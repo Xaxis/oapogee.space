@@ -1,0 +1,58 @@
+name: ci
+
+# The premise of this repository is that the documentation is the product, and
+# that its claims about itself are checkable rather than aspirational. Every job
+# here is also a `make` target, so what CI runs and what a contributor runs
+# locally cannot diverge.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  content:
+    name: content holds together
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+
+      # No em dashes, no emoji, and the project name is never shortened to
+      # "Apogee", which belongs to Apogee Components in this hobby.
+      - name: Prose rules hold
+        run: make prose
+
+      # Part, tier and glossary cross-references resolve, frontmatter is
+      # complete, and the accuracy contract holds: a null price carries a
+      # verification marker, and no page claims verified while markers remain.
+      - name: Data cross-references resolve
+        run: make data
+
+      # TODO-VERIFY.md is generated. A stale index would quietly understate how
+      # much of this site is unmeasured, which is the one thing it exists to
+      # prevent.
+      - name: Verification index is current
+        run: make check-todos
+
+  web:
+    name: site builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: make lint
+      - run: make type-check
+      - run: make build

@@ -1,0 +1,38 @@
+{
+  "name": "oapogee",
+  "version": "0.1.0",
+  "private": true,
+  "description": "oApogee: an open source rocket telemetry payload for model rockets, and the documentation that teaches you to build one.",
+  "packageManager": "yarn@1.22.22",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "yarn workspace @oapogee/web dev",
+    "build": "yarn workspace @oapogee/web build",
+    "start": "yarn workspace @oapogee/web start",
+    "lint": "yarn workspace @oapogee/web lint",
+    "type-check": "yarn workspace @oapogee/web type-check",
+    "todos": "node tools/collect-todos.mjs",
+    "check:todos": "node tools/collect-todos.mjs --check",
+    "check:prose": "node tools/check-prose.mjs",
+    "check:data": "node tools/check-data.mjs",
+    "check": "make check"
+  },
+  "devDependencies": {
+    "gray-matter": "^4.0.3",
+    "prettier": "^3.6.2",
+    "yaml": "^2.6.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Xaxis/oapogee.space.git"
+  },
+  "homepage": "https://oapogee.space",
+  "bugs": {
+    "url": "https://github.com/Xaxis/oapogee.space/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

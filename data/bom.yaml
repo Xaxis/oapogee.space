@@ -1,0 +1,678 @@
+# oApogee bill of materials
+#
+# Canonical source for every part on the site. The /bom page, the build guide
+# part callouts, and the ground station page all render from this file. Do not
+# hand-write a parts table in a Markdown page.
+#
+# ACCURACY CONTRACT
+# Every `price_usd` and every `mass_g` in this file is null. That is deliberate,
+# not incomplete. The hardware does not exist yet, no unit has been assembled,
+# and no cart has been priced. A number appears here only after someone has
+# measured it or read it off an invoice, and the corresponding `verify` note
+# says exactly what would close it.
+#
+# Manufacturer part numbers ARE asserted where the silicon is well known and
+# stable. Breakout board product numbers and supplier links are NOT asserted,
+# because they change, go out of stock, and get revised without notice. Those
+# carry `confidence: unverified` and a verify note.
+
+schema_version: 1
+updated: 2026-08-11
+status: draft
+currency: USD
+
+# ---------------------------------------------------------------------------
+# Build paths. Same electrical design, two ways to fabricate it.
+# ---------------------------------------------------------------------------
+
+paths:
+  - id: modules
+    name: Modules
+    summary: >
+      Off-the-shelf breakout boards wired to a carrier or protoboard. Buildable
+      today with no PCB fabrication, no reflow, and no stencil.
+    tradeoff: >
+      Heavier and bulkier than the board path, and every inter-board wire is a
+      joint that can fail under boost shock. The mass targets published for the
+      Board path do not apply here and must be quoted separately.
+    available: true
+
+  - id: board
+    name: Board
+    summary: >
+      The custom oApogee PCB. One part number to order assembled, or a
+      hand-solderable layout with no parts smaller than 0402.
+    tradeoff: >
+      Nothing to build until boards are fabricated. Minimum order quantities
+      make a single unit expensive.
+    available: false
+    availability_note: >
+      TODO(confirm-on-hardware): the PCB is a paper design. No Gerbers have been
+      produced, nothing has been fabricated, and nothing has flown.
+
+# ---------------------------------------------------------------------------
+# Tier budgets. Tier names, capabilities, and the comparison matrix live in
+# data/tiers.yaml, which is canonical for all of that. This block carries only
+# the cost and mass targets, which belong beside the parts that drive them.
+# ---------------------------------------------------------------------------
+
+tier_budgets:
+  - id: solo
+    target_bom_usd: null
+    target_bom_verify: >
+      TODO(verify): price a real cart for the Modules path and the Board path
+      separately, at quantity 1 and quantity 10, from a US distributor. The
+      brief's "under $30 entry build" is a target, not a measurement.
+    target_mass_g: null
+    target_mass_verify: >
+      TODO(verify): weigh an assembled Solo including a 150 mAh cell on a 0.1 g
+      scale, three units, report the mean. The brief's "under 25 g" is a target.
+
+  - id: link
+    target_bom_usd: null
+    target_bom_verify: >
+      TODO(verify): as Solo. Note that Link is not complete without a ground
+      station, which is a second bill of materials, and the site must not quote
+      a Link price that silently excludes it.
+    target_mass_g: null
+    target_mass_verify: >
+      TODO(verify): weigh an assembled Link including cell and antenna.
+
+  - id: track
+    target_bom_usd: null
+    target_bom_verify: >
+      TODO(verify): as Solo. The brief's "under $60 full build" is a target.
+    target_mass_g: null
+    target_mass_verify: >
+      TODO(verify): weigh an assembled Track including cell, antenna, and GNSS
+      antenna.
+
+# ---------------------------------------------------------------------------
+# Parts.
+#
+# Field reference:
+#   id            stable slug, referenced by build steps and troubleshooting
+#   role          functional role, one per role per build
+#   mpn           manufacturer part number. Asserted only where confident.
+#   confidence    asserted | unverified
+#   applies       list of {tier, path, qty}. Absence means not used in that combo.
+#   why           the design reasoning, rendered as the part's explainer
+#   substitutes   documented alternates, with what changes if you use them
+# ---------------------------------------------------------------------------
+
+parts:
+  # --- Compute ------------------------------------------------------------
+
+  - id: mcu
+    role: mcu
+    name: RP2350 microcontroller
+    manufacturer: Raspberry Pi
+    mpn: RP2350A
+    confidence: asserted
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): unit price at qty 1 and qty 100 from an authorised
+      distributor, and confirm the package variant (RP2350A is the 30-GPIO QFN-60
+      part; RP2350B has more IO in a larger package and is not needed here).
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Drag-and-drop UF2 flashing means a beginner installs no toolchain to get a
+      working payload: the board appears as a USB drive and you copy a file onto
+      it. That single property removes the most common place a first-time
+      builder gives up. Beyond that, the part is cheap, the community is large,
+      and the PIO blocks give clean timing-critical IO without burning CPU.
+    substitutes:
+      - mpn: RP2040
+        note: >
+          Fully acceptable. Loses the RP2350's hardware floating point, so the
+          sensor fusion runs slower, and loses the security features, which this
+          project does not use. Choose RP2040 if it is cheaper or more available
+          at the time of the build.
+        confidence: asserted
+
+  - id: mcu_module
+    role: mcu
+    name: RP2350 or RP2040 development module
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): select one canonical module and one alternate. Candidates to
+      evaluate, none confirmed: Raspberry Pi Pico 2, Seeed XIAO RP2350, Adafruit
+      Feather RP2040. Selection criteria in priority order: mass, whether the
+      castellated or through-hole footprint suits a beginner, whether onboard
+      QSPI flash is accessible to LittleFS, presence of a LiPo charger, and
+      USB-C rather than micro-B. Weigh each candidate before choosing.
+    applies:
+      - { tier: solo, path: modules, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      The Modules path needs a carrier that already solves USB, the 3V3 rail, and
+      the boot button, so the builder's soldering is limited to sensor
+      connections.
+    substitutes: []
+
+  - id: flash
+    role: storage
+    name: QSPI NOR flash
+    manufacturer: Winbond
+    mpn: W25Q128JVSIQ
+    confidence: asserted
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): confirm the density actually required by measuring a full
+      flight log at the intended sample rates, then size the part to that with
+      margin rather than defaulting to 16 MB. Also confirm the specific part
+      suffix, which encodes package and voltage.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Onboard flash with LittleFS, soldered down. There is no microSD socket on
+      this design and that is a deliberate decision, not an omission. A microSD
+      card is held in its socket by a friction detent, and boost acceleration on
+      even a modest motor is enough to unseat one. In DIY flight computers the
+      card socket is the single most common in-flight failure point, and its
+      failure mode is the worst one available: the flight proceeds normally and
+      the data is simply gone. A soldered part cannot unseat. The cost is that
+      offloading data requires plugging in USB rather than moving a card, which
+      is a mild inconvenience on the ground in exchange for removing a failure
+      mode in the air.
+    substitutes: []
+
+  # --- Sensing ------------------------------------------------------------
+
+  - id: baro
+    role: barometer
+    name: BMP390 barometric pressure sensor
+    manufacturer: Bosch Sensortec
+    mpn: BMP390
+    confidence: asserted
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): quote the RMS noise in Pa at the oversampling and output
+      data rate oApogee actually configures, from the datasheet, and convert it
+      to metres of altitude noise at sea level. Do not quote the headline
+      "0.5 m" style figure from marketing material without stating the
+      configuration it assumes. Also state the usable pressure range and what
+      altitude that corresponds to.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+      - { tier: solo, path: modules, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      Altitude is the number this entire project exists to produce, so the
+      barometer is the one part not to economise on. Resolution here sets the
+      resolution of the apogee figure.
+    substitutes:
+      - mpn: DPS310
+        manufacturer: Infineon
+        note: >
+          The budget alternate. Cheaper and widely available. Document the
+          resolution difference and the altitude ceiling of each part side by
+          side so a builder choosing DPS310 knows precisely what they gave up.
+          TODO(verify): produce that comparison from both datasheets.
+        confidence: asserted
+    breakout:
+      confidence: unverified
+      verify: >
+        TODO(verify): identify a currently-stocked BMP390 breakout and record
+        its supplier part number, price, mass, and whether its I2C pull-ups
+        conflict when three breakouts share a bus. Adafruit and SparkFun both
+        list BMP390 boards; neither product number is confirmed here.
+
+  - id: imu
+    role: imu
+    name: 6-axis IMU, accelerometer and gyroscope
+    manufacturer: TDK InvenSense
+    mpn: ICM-42688-P
+    confidence: asserted
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): confirm the selectable full-scale ranges and the gyro noise
+      density from the datasheet, and state which range oApogee configures.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+      - { tier: solo, path: modules, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      Orientation, and the vertical acceleration channel that the sensor fusion
+      integrates to cover for the barometer during the pressure disturbance
+      around burnout and, on faster flights, transonic effects.
+    substitutes:
+      - mpn: LSM6DSO
+        manufacturer: STMicroelectronics
+        note: >
+          Equivalent for this application and often easier to source. Register
+          maps differ, so the firmware carries a driver for each.
+        confidence: asserted
+
+  - id: high_g
+    role: high_g_accelerometer
+    name: High-g accelerometer
+    manufacturer: Analog Devices
+    mpn: ADXL375
+    confidence: asserted
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): confirm the full-scale range and bandwidth from the
+      datasheet. Then, separately, produce the number that justifies this part:
+      the peak acceleration of a typical loaded airframe on a C, D, and E motor,
+      taken from OpenRocket simulation, so the site can state at which motor
+      class the 6-axis IMU actually saturates instead of asserting it.
+    optional: true
+    applies:
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      A general purpose IMU tops out around 16 g. Boost acceleration on anything
+      above a C motor exceeds that, and when an accelerometer saturates it does
+      not report an error, it reports its maximum value for as long as the real
+      acceleration is higher. The result is a boost phase that looks like a flat
+      plateau at exactly 16 g, which is not merely imprecise, it is wrong in a
+      way that looks plausible. Integrating that flat top underestimates
+      velocity, which propagates into every fused altitude estimate during the
+      part of the flight the fusion is most needed. A dedicated high-g part
+      exists solely so the boost data means something.
+    substitutes:
+      - mpn: H3LIS331DL
+        manufacturer: STMicroelectronics
+        note: >
+          Selectable full-scale ranges, cheaper, lower resolution. Adequate for
+          detecting and bounding boost acceleration, less good for integrating
+          it. TODO(verify): compare the noise floors.
+        confidence: asserted
+
+  # --- Radio --------------------------------------------------------------
+
+  - id: lora
+    role: radio
+    name: SX1262 LoRa transceiver
+    manufacturer: Semtech
+    mpn: SX1262
+    confidence: asserted
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): the entire range claim. Range is the number readers will
+      most want and the number most often lied about in this hobby. It must come
+      from a measured ground test and a measured flight, with the antenna type,
+      orientation, spreading factor, bandwidth, transmit power, and terrain all
+      stated. Publish the disappointing numbers too, specifically the range with
+      the rocket on the ground in tall grass after landing, which is the case
+      that actually matters for recovery.
+    applies:
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      LoRa trades data rate for link budget, which is exactly the trade a
+      telemetry downlink wants: the packets are small and infrequent, and the
+      requirement is that they arrive from a kilometre away through a rocket
+      body tube at an unfavourable angle.
+    region_note: >
+      902 to 928 MHz for US builds under FCC Part 15. 863 to 870 MHz for EU and
+      UK builds. This is a hardware selection issue as well as a firmware one,
+      because the matching network and antenna are tuned per band. See the
+      Safety and rules page.
+    substitutes: []
+
+  - id: lora_module
+    role: radio
+    name: SX1262 module
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): select a canonical SX1262 module for the Modules path.
+      Candidates to evaluate, none confirmed: Ebyte E22-900M22S, Waveshare
+      Core1262, Seeed Wio-SX1262, Ai-Thinker Ra-01SH. Criteria: FCC modular
+      approval status, whether the module includes a PA and at what output,
+      antenna connector type, mass, and whether the vendor publishes a real
+      datasheet rather than a two-page flyer. Modular approval matters: a
+      pre-certified module is the difference between Part 15 compliance being
+      inherited and being the builder's problem.
+    applies:
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      A pre-certified module removes both the RF layout risk and most of the
+      regulatory burden from a first-time builder.
+    substitutes: []
+
+  - id: antenna_rocket
+    role: antenna
+    name: 902 to 928 MHz antenna, airborne side
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): choose between a tuned wire monopole cut to a quarter
+      wavelength and a flexible PCB antenna, and measure the difference. Publish
+      the wire length as a measured, trimmed figure with the ground plane it
+      assumes, not as a textbook calculation, because the calculation is not what
+      works in a body tube. Also determine whether a carbon fibre or metallic
+      airframe blocks the link, and say so plainly if it does.
+    applies:
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      The antenna is the cheapest part on the board and the one most able to
+      ruin the link. It gets its own treatment on the Ground station page.
+    substitutes: []
+
+  # --- Position -----------------------------------------------------------
+
+  - id: gnss
+    role: gnss
+    name: u-blox M10 GNSS receiver
+    manufacturer: u-blox
+    mpn: MAX-M10S
+    confidence: asserted
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): cold start and hot start time to first fix, measured, not
+      quoted, because the number that matters is time to fix on a launch rail
+      after the pad wait, not the datasheet best case. Also measure whether lock
+      is retained through boost once the airborne dynamic model is configured.
+    applies:
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Position for recovery. The value is not the flight track, it is the last
+      fix before the signal is lost, which turns a search into a walk.
+    gotcha: >
+      u-blox receivers ship with a dynamic platform model that assumes ground
+      vehicle behaviour and will reject the position solution under rocket
+      accelerations, losing lock exactly when it is needed. The airborne model
+      must be configured explicitly at startup, and the configuration must be
+      saved or reapplied on every boot. This is the single most common reason a
+      GNSS-equipped model rocket payload comes back with no track. Also document
+      the CoCom velocity and altitude limits, note that they are not reachable at
+      the altitudes oApogee targets, and note that they will matter to anyone
+      scaling this design up.
+    substitutes:
+      - mpn: SAM-M10Q
+        manufacturer: u-blox
+        note: >
+          Integrated antenna in the package. Larger and heavier, but removes the
+          antenna matching and placement problem entirely, which for a first
+          build is usually the right trade. TODO(verify): compare mass and
+          measured time to first fix against MAX-M10S with a chip antenna.
+        confidence: asserted
+
+  # --- Power --------------------------------------------------------------
+
+  - id: battery
+    role: battery
+    name: 1S LiPo cell with protection circuit, 150 to 250 mAh
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): measure the actual current draw of each tier in each flight
+      state, then size the cell from that rather than from the brief's assumed
+      range. Report endurance as pad-idle hours plus post-landing beacon hours,
+      because those are the two numbers a flier needs. Confirm the cell ships
+      with a protection circuit; unprotected cells are common and must not be
+      recommended.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+      - { tier: solo, path: modules, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      Single cell keeps the power design trivial and the mass low. Protection
+      circuit is not optional, see the Safety and rules page.
+    substitutes: []
+
+  - id: charger
+    role: power
+    name: LiPo charge controller
+    manufacturer: Microchip
+    mpn: MCP73831
+    confidence: asserted
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): set the charge current programming resistor from the chosen
+      cell capacity and state the resulting rate, and confirm thermal behaviour
+      in the pod, which is a small sealed plastic volume.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      USB-C in, charge and run from the same connector, nothing to remove from
+      the airframe to top the battery up between flights.
+    substitutes:
+      - mpn: BQ24074
+        manufacturer: Texas Instruments
+        note: >
+          Adds proper power path management, so the payload runs from USB rather
+          than from the cell while charging. Better behaviour on the bench during
+          a long configuration session. More expensive and larger.
+        confidence: asserted
+
+  - id: usb_connector
+    role: connector
+    name: USB-C receptacle
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): choose a specific receptacle with through-hole mounting tabs.
+      Surface-mount-only USB connectors tear off boards, and this one gets
+      handled every flight day.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      One connector for power, charging, configuration, and data offload. No
+      programming header, no card slot, no second cable to lose.
+    substitutes: []
+
+  - id: battery_connector
+    role: connector
+    name: JST-PH 2.0 mm right-angle header, 2 position
+    manufacturer: JST
+    mpn: S2B-PH-K-S
+    confidence: asserted
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): confirm the cell's connector polarity matches. LiPo cells
+      ship with both polarities and reversing one destroys the board. State the
+      check explicitly in the build guide.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      The de facto standard for small LiPo cells, so a replacement is easy to
+      buy anywhere.
+    substitutes: []
+
+  # --- Recovery aids ------------------------------------------------------
+
+  - id: buzzer
+    role: recovery
+    name: Piezo buzzer
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): select a part and then measure what actually matters, which
+      is not the datasheet sound pressure level but the distance at which the
+      beacon pattern is findable in tall grass on a windy day. Test it by having
+      someone hide an active unit in a field. Report that distance.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+      - { tier: solo, path: modules, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      On a Solo build with no radio, the buzzer is the only recovery aid there
+      is. It earns its mass.
+    substitutes: []
+
+  - id: status_led
+    role: indicator
+    name: Addressable RGB LED
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): choose between an addressable part, which costs one GPIO
+      total, and discrete LEDs, which cost one GPIO each but are visible in
+      direct sunlight at the pad if driven hard. Sunlight visibility is the
+      requirement that decides this, and it needs testing outdoors, not at a
+      desk.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+      - { tier: solo, path: modules, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      Arm state has to be readable from a few metres away while the rocket is on
+      the pad and you are walking back to the flight line. That is the whole
+      requirement.
+    substitutes: []
+
+# ---------------------------------------------------------------------------
+# Ground station. A second, separate bill of materials. Tier Link and Track are
+# not usable without one, and a quoted Link price that omits it is dishonest.
+# ---------------------------------------------------------------------------
+
+ground_station:
+  summary: >
+    A matching SX1262 receiver on the same MCU family, connected by USB to a
+    laptop or phone. The display layer runs in the browser over WebSerial so
+    there is nothing to install on the flight line.
+  status: proposed
+  approval_note: >
+    TODO(confirm): the brief asks for confirmation of the WebSerial approach
+    before this is built out. The tradeoff to decide: WebSerial needs no
+    installation, which is the right answer for a club field where six people
+    want to watch, but it is not supported in Safari or on iOS, which rules out
+    a large share of phones. The alternative is a native app per platform, which
+    nobody will install. A third option is a small local server the user runs
+    once. Recommend WebSerial with an explicit, prominently stated browser
+    requirement, and a plain serial terminal fallback documented for everyone
+    else.
+  parts:
+    - id: gs_mcu
+      name: RP2350 or RP2040 development module
+      same_as: mcu_module
+      qty: 1
+    - id: gs_radio
+      name: SX1262 module
+      same_as: lora_module
+      qty: 1
+    - id: gs_antenna
+      name: 902 to 928 MHz antenna, ground side
+      qty: 1
+      confidence: unverified
+      price_usd: null
+      verify: >
+        TODO(verify): the ground antenna is where link budget is cheapest to buy,
+        because mass does not matter on the ground. Compare a quarter wave whip
+        against a small yagi and publish both measured ranges, so a reader can
+        decide whether the yagi is worth carrying.
+    - id: gs_enclosure
+      name: 3D printed ground station case
+      qty: 1
+      confidence: unverified
+      price_usd: null
+      verify: "TODO(verify): print time and filament mass once the model exists."
+
+# ---------------------------------------------------------------------------
+# Tools. What a builder needs that is not on the parts list. Split into what is
+# genuinely required and what merely helps, because a beginner reading a long
+# tool list decides the project is not for them.
+# ---------------------------------------------------------------------------
+
+tools:
+  required:
+    - name: Temperature-controlled soldering iron with a fine conical or chisel tip
+      note: >
+        A fixed-temperature iron will work for the Modules path. It is not
+        adequate for the Board path.
+    - name: Leaded or lead-free solder, 0.5 to 0.8 mm
+    - name: Flux, no-clean, in a pen or syringe
+      note: >
+        The single highest-value item on this list for a beginner. Most bad
+        joints are a flux problem, not a skill problem.
+    - name: Fine tweezers
+    - name: Flush cutters
+    - name: Multimeter with continuity and DC volts
+      note: >
+        Required, not optional. The build guide has a continuity checkpoint
+        before first power-on, and skipping it is how a reversed battery
+        connector becomes a dead board.
+    - name: USB-C cable, data capable
+      note: >
+        Charge-only USB-C cables are common and will make a working board look
+        broken. This has its own troubleshooting entry.
+    - name: Digital calipers
+      note: Needed to fit the pod to a specific body tube diameter.
+    - name: Small drill bits and a pin vice
+      note: For static ports. See the Mounting page for sizing.
+  recommended:
+    - name: Solder wick and a solder sucker
+    - name: Helping hands or a small vice
+    - name: Illuminated magnifier or a USB microscope
+    - name: Isopropyl alcohol and a stiff brush
+    - name: Scale accurate to 0.1 g
+      note: >
+        Strongly recommended. You cannot do a stability check without knowing the
+        payload mass, and guessing it defeats the purpose.
+  fabrication:
+    - name: 3D printer, or access to a print service
+      note: >
+        Required for the mounting hardware in both form factors. FDM in PLA or
+        PETG is sufficient. TODO(verify): confirm PLA survives a black airframe
+        sitting on a pad in summer sun, and if it does not, say so and recommend
+        PETG.
+    - name: LiPo-safe charging container
+      note: See the Safety and rules page.

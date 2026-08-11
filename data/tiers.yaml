@@ -1,0 +1,171 @@
+# oApogee tiers and build paths
+#
+# Canonical source for tier names, what each tier can do, and the upgrade
+# promise. Cost and mass targets live in data/bom.yaml beside the parts that
+# drive them. Nothing here is duplicated in prose; pages render from this file.
+
+schema_version: 1
+updated: 2026-08-11
+status: draft
+
+# The upgrade promise. This is a commitment the site makes to a reader deciding
+# where to start, so the design has to honour it and the honouring has to be
+# checkable.
+upgrade_promise: >
+  Every tier is the same PCB, the same firmware, and the same enclosure. Moving
+  up a tier means populating footprints that were already there, not building a
+  new payload. Nobody who starts with Solo has to start over.
+upgrade_promise_verify: >
+  TODO(confirm-on-hardware): this is currently a design intention, not a
+  demonstrated fact. It is only true if the Solo build populates every shared
+  footprint and leaves the radio and GNSS sections genuinely optional, including
+  their supply decoupling and any shared bus pull-ups. Confirm on the first
+  fabricated board by populating a Solo, flying it, then upgrading that same
+  physical unit to Link and flying it again. Until that has happened, the site
+  states this as an intention.
+
+paths:
+  - id: modules
+    name: Modules
+    order: 1
+    available: true
+    one_liner: Breakout boards wired by hand. Buildable today.
+  - id: board
+    name: Board
+    order: 2
+    available: false
+    one_liner: The custom oApogee PCB. Not yet fabricated.
+
+tiers:
+  - id: solo
+    name: oApogee Solo
+    order: 1
+    tagline: Barometer, IMU, onboard logging. No radio.
+    adds: Barometer, IMU, onboard flash logging
+    purpose: >
+      The cheapest complete entry point, and the only tier with no radio
+      regulation to understand before the first flight.
+    good_for: >
+      A first build, a classroom set, and anyone who wants a flight profile
+      rather than a live readout.
+    not_good_for: >
+      Finding a rocket that drifted. Solo has a buzzer and nothing else.
+    capabilities:
+      onboard_log: true
+      altitude: true
+      acceleration: true
+      orientation: true
+      live_downlink: false
+      live_altitude: false
+      gnss_position: false
+      recovery_beacon_audio: true
+      recovery_beacon_radio: false
+      needs_ground_station: false
+    difficulty: beginner
+    build_time_estimate: null
+    build_time_verify: >
+      TODO(verify): time three people who have soldered before, from opening the
+      parts bag to a first successful bench log. The brief's "under two hours" is
+      a target. Report the median and the slowest, not the fastest.
+
+  - id: link
+    name: oApogee Link
+    order: 2
+    tagline: Live telemetry downlink to a ground station.
+    adds: SX1262 LoRa downlink, plus a ground station
+    purpose: >
+      Real-time altitude while the rocket is still in the air, and a second copy
+      of the flight data that survives a payload you never recover.
+    good_for: >
+      Club flights where people want to watch the number climb, and any flight
+      where losing the payload would mean losing the data.
+    not_good_for: >
+      Flying somewhere you have not checked the regulations for the band. See
+      the Safety and rules page.
+    capabilities:
+      onboard_log: true
+      altitude: true
+      acceleration: true
+      orientation: true
+      live_downlink: true
+      live_altitude: true
+      gnss_position: false
+      recovery_beacon_audio: true
+      recovery_beacon_radio: true
+      needs_ground_station: true
+    difficulty: intermediate
+    build_time_estimate: null
+    build_time_verify: "TODO(verify): as Solo, and time the ground station separately."
+    requires_note: >
+      A Link payload is not usable on its own. Budget for the ground station,
+      which is a separate build and a separate bill of materials.
+
+  - id: track
+    name: oApogee Track
+    order: 3
+    tagline: GNSS position for long walkaway recovery.
+    adds: u-blox GNSS receiver
+    purpose: >
+      Finding the rocket. The valuable output is not the flight track, it is the
+      last position fix downlinked before the signal is lost.
+    good_for: >
+      Big fields, windy days, tall crops, and anything with a long descent.
+    not_good_for: >
+      Nothing, apart from cost and mass. Track is the full build.
+    capabilities:
+      onboard_log: true
+      altitude: true
+      acceleration: true
+      orientation: true
+      live_downlink: true
+      live_altitude: true
+      gnss_position: true
+      recovery_beacon_audio: true
+      recovery_beacon_radio: true
+      needs_ground_station: true
+    difficulty: intermediate
+    build_time_estimate: null
+    build_time_verify: "TODO(verify): as Solo."
+
+# What every tier does, and what no tier does. This second list is not a
+# disclaimer. It is a scope boundary, and it appears on Start here, on Home, and
+# anywhere a reader could plausibly assume otherwise.
+scope:
+  does:
+    - Records barometric altitude, acceleration, and orientation to onboard flash
+    - Detects the flight phases and timestamps apogee
+    - Exports the flight as CSV and JSON over USB
+    - Beeps after landing so you can find it
+    - Downlinks live telemetry, on Link and Track
+    - Reports position, on Track
+  does_not:
+    - Fire ejection charges
+    - Control or trigger parachute deployment
+    - Ignite motors
+    - Command any pyrotechnic device
+    - Replace a motor's delay grain or a mechanical recovery system
+  boundary_statement: >
+    oApogee is a passive instrumentation payload. It watches the flight and
+    records it. It does not act on the rocket. Deployment control is the domain
+    of certified high power rocketry, it carries a completely different set of
+    failure consequences, and it is out of scope. If a payload that fires
+    charges is what you need, oApogee is not that and will not become that.
+
+# Flight envelope. Set by the answer that v1 targets low power with headroom.
+envelope:
+  target: Low power, A through E motors
+  headroom: >
+    Design choices are made so that F and G motors are not blocked later. In
+    practice that means the high-g accelerometer is specified now rather than
+    retrofitted, and the firmware thresholds are chosen with margin instead of
+    tuned tightly to a C motor.
+  altitude_ceiling: null
+  altitude_ceiling_verify: >
+    TODO(verify): state the usable altitude ceiling from the barometer's pressure
+    range, and separately state the practical ceiling from radio range. These are
+    different numbers and readers will conflate them.
+  regulatory_note: >
+    A payload in this mass class flown on A through E motors sits inside FAA
+    Part 101 Subpart C Class 1 model rocket limits. Adding mass is what moves a
+    rocket toward those limits, so check the total, not just the payload. See the
+    Safety and rules page.

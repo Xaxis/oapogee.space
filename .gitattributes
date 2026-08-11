@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.pdf binary
+*.stl binary
+*.step binary
+*.3mf binary
+*.bin binary
+*.uf2 binary
+
+# Generated. Collapsed in diffs so a lockfile churn does not bury a real change.
+yarn.lock linguist-generated=true -diff

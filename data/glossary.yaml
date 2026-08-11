@@ -1,0 +1,397 @@
+# oApogee glossary
+#
+# Canonical definitions. Prose pages give a one-clause gloss on first use and
+# link here for the full definition. Terms are added as pages are written, so
+# this file grows; it does not get rewritten.
+#
+# Fields:
+#   term        the display form, sentence case unless it is a proper noun
+#   id          slug, used as the anchor and the link target
+#   aliases     other spellings that should resolve to this entry
+#   short       one clause, for a hover or an inline gloss
+#   long        the full definition, for the glossary page
+#   see_also    other term ids
+#   source      primary source URL where the term is legally or formally defined
+
+schema_version: 1
+updated: 2026-08-11
+status: draft
+
+terms:
+  - id: apogee
+    term: apogee
+    short: the highest point of the flight
+    long: >
+      The highest point a rocket reaches, and the instant at which its vertical
+      velocity passes through zero. It is the single number most fliers want,
+      and it is what the project is named after. Note that apogee and the moment
+      of parachute deployment are not the same event: a motor's delay grain is
+      chosen to fire the ejection charge near apogee, and how near is a measure
+      of how well the flight was planned.
+    see_also: [delay-grain, coast]
+
+  - id: oapogee
+    term: oApogee
+    short: this project, an open source rocket telemetry payload
+    long: >
+      An open source telemetry payload for model rockets, and the documentation
+      that teaches you to build one. Written oApogee, one word, lowercase o,
+      capital A. Never shortened to "Apogee", which in this hobby means Apogee
+      Components, an unrelated retailer.
+    aliases: [oapogee]
+
+  - id: telemetry
+    term: telemetry
+    short: measurements taken on the vehicle and sent to the ground
+    long: >
+      Measurement at a distance. On oApogee it means the flight data recorded on
+      the payload, and on Link and Track, the live stream of that data sent down
+      to a ground station while the rocket is still flying.
+
+  - id: payload
+    term: payload
+    short: anything the rocket carries that is not part of flying it
+    long: >
+      Whatever the rocket carries beyond what it needs to fly. On a model rocket
+      this is usually an altimeter, a camera, or an egg. oApogee is a payload,
+      specifically a passive instrumentation payload, meaning it observes and
+      records but does not act on the rocket.
+    see_also: [passive-payload]
+
+  - id: passive-payload
+    term: passive instrumentation payload
+    short: a payload that only measures, and never commands anything
+    long: >
+      A payload that records and transmits but never actuates. oApogee does not
+      fire ejection charges, control deployment, ignite motors, or command any
+      pyrotechnic device. This is a scope boundary, not a limitation to be
+      removed later. A payload that can fire a charge has a completely different
+      failure consequence profile and belongs to certified high power rocketry.
+    see_also: [ejection-charge, high-power-rocketry]
+
+  - id: static-port
+    term: static port
+    short: a vent hole that lets the barometer see outside air pressure
+    long: >
+      A hole in the airframe, positioned so the pressure sensor inside reads
+      ambient static pressure rather than the pressure of a sealed volume or the
+      dynamic pressure of moving air. A barometric altimeter inside a sealed tube
+      measures the tube, not the sky, and produces confident nonsense. Sizing,
+      count, placement relative to the sensor, and deburring all matter.
+    see_also: [barometric-altitude]
+
+  - id: barometric-altitude
+    term: barometric altitude
+    short: altitude inferred from air pressure
+    long: >
+      Altitude calculated from the drop in atmospheric pressure with height,
+      relative to a pressure reference taken on the ground before launch. It is
+      the standard method for model rocket altimeters because it needs one small
+      cheap sensor. Its weaknesses: it is noisy, it is disturbed by airflow
+      around the airframe, and because the ground reference is taken once, a
+      weather system moving through during a long pad wait shifts the zero.
+    see_also: [static-port, pad-calibration, sensor-fusion]
+
+  - id: pad-calibration
+    term: pad calibration
+    short: averaging ground pressure before launch to set the altitude zero
+    long: >
+      The procedure of sampling atmospheric pressure while the rocket sits on the
+      pad and averaging it over a settling window, to establish the zero
+      reference that every later altitude is measured against. Without it, the
+      altimeter reports height above sea level rather than height above the
+      launch site.
+    see_also: [barometric-altitude]
+
+  - id: sensor-fusion
+    term: sensor fusion
+    short: combining two imperfect sensors into one better estimate
+    long: >
+      Combining measurements from sensors with different weaknesses so that each
+      covers for the other. On oApogee, barometric altitude is noisy and is
+      actively wrong during the pressure disturbance around burnout, while
+      acceleration integrated to get altitude drifts steadily because integrating
+      any sensor's bias accumulates it. Fused, the barometer anchors the long
+      term and the accelerometer carries the short term.
+    see_also: [barometric-altitude, imu]
+
+  - id: imu
+    term: IMU
+    short: an inertial measurement unit, accelerometer plus gyroscope
+    long: >
+      Inertial Measurement Unit. A chip combining an accelerometer, which
+      measures linear acceleration, and a gyroscope, which measures rotation
+      rate. Together they give orientation and the acceleration channel the
+      sensor fusion uses.
+    see_also: [sensor-fusion, saturation]
+
+  - id: saturation
+    term: saturation
+    short: a sensor pinned at its maximum, reporting that instead of the truth
+    long: >
+      What happens when the real quantity exceeds a sensor's full-scale range.
+      The dangerous property is that the sensor does not report an error, it
+      reports its maximum, so a saturated boost phase looks like a flat plateau
+      rather than like missing data. A typical 6-axis IMU tops out around 16 g,
+      which anything above a C motor will exceed, and that is why a separate
+      high-g accelerometer exists.
+    see_also: [imu]
+
+  - id: coast
+    term: coast
+    short: the unpowered climb between motor burnout and apogee
+    long: >
+      The phase after the motor stops thrusting and before apogee, during which
+      the rocket climbs on momentum alone while drag and gravity slow it. Most of
+      the altitude on a well-flown low power rocket is gained during coast.
+    see_also: [apogee, burnout]
+
+  - id: burnout
+    term: burnout
+    short: the moment the motor stops producing thrust
+    long: >
+      The end of the propellant burn. On an acceleration plot it is a sharp
+      change from strong positive acceleration to deceleration, and it is usually
+      the most visually obvious feature of a flight graph after apogee.
+    see_also: [coast, delay-grain]
+
+  - id: delay-grain
+    term: delay grain
+    short: the slow-burning section of a motor that times the ejection charge
+    long: >
+      The section of a model rocket motor that burns after the propellant is
+      spent and before the ejection charge fires, chosen to put deployment near
+      apogee. The number after the dash in a motor designation is the delay in
+      seconds, so a C6-5 has a five second delay.
+    see_also: [ejection-charge, apogee]
+
+  - id: ejection-charge
+    term: ejection charge
+    short: the pyrotechnic charge that pushes the parachute out
+    long: >
+      A small pyrotechnic charge that pressurises the body tube and pushes out
+      the nose cone and recovery system. On a model rocket it is part of the
+      motor. oApogee does not fire, arm, control, or interact with an ejection
+      charge in any way.
+    see_also: [passive-payload, delay-grain]
+
+  - id: cg
+    term: centre of gravity
+    short: the balance point of the loaded rocket
+    aliases: [CG, center of gravity]
+    long: >
+      The point the rocket balances at, with the motor installed and the payload
+      fitted. Adding a payload moves it, and which way depends entirely on where
+      the payload sits: forward of the existing balance point it moves the centre
+      of gravity forward, aft of it, backwards. This is why a payload cannot be
+      added without re-checking stability.
+    see_also: [cp, stability-margin]
+
+  - id: cp
+    term: centre of pressure
+    short: the point aerodynamic forces effectively act through
+    aliases: [CP, center of pressure]
+    long: >
+      The point at which the total aerodynamic force on the airframe can be
+      treated as acting. A rocket is stable when the centre of pressure is behind
+      the centre of gravity, so that any deviation from straight flight produces
+      a force that corrects it rather than amplifies it.
+    see_also: [cg, stability-margin]
+
+  - id: stability-margin
+    term: stability margin
+    short: the gap between centre of gravity and centre of pressure, in calibers
+    long: >
+      The distance between the centre of gravity and the centre of pressure,
+      expressed in calibers, where one caliber is the body tube diameter. Too
+      little and the rocket is unstable. Too much and it weathercocks hard into
+      the wind, which loses altitude and can send it downrange over people.
+    see_also: [cg, cp, caliber]
+    target_value: null
+    target_verify: >
+      TODO(verify): state the caliber margin oApogee recommends aiming for, with
+      a source. The commonly cited range in model rocketry is well known, but it
+      should be quoted from NAR or Tripoli guidance rather than from memory,
+      because this is a safety number.
+
+  - id: caliber
+    term: caliber
+    short: one body tube diameter, used as the unit for stability margin
+    long: >
+      The diameter of the rocket's body tube, used as the unit for measuring
+      stability margin. A rocket with a 24 mm tube and a 24 mm gap between its
+      centre of gravity and centre of pressure has a one caliber margin.
+    see_also: [stability-margin]
+
+  - id: walkaway
+    term: walkaway
+    short: how far you have to walk to get the rocket back
+    long: >
+      The distance from the pad to where the rocket lands, and by extension the
+      recovery walk itself. Long walkaways are what GNSS tracking and audible
+      beacons exist for, and are also where landowner permission stops being a
+      formality.
+    see_also: [recovery-ethics]
+
+  - id: recovery-ethics
+    term: recovery ethics
+    short: the rules about where you may go to retrieve a rocket
+    long: >
+      A landed rocket does not grant permission to go and get it. Property lines,
+      crops, livestock, and dry grass fire risk all outrank recovering hardware.
+      A payload is worth less than a relationship with a landowner and far less
+      than a field fire.
+    see_also: [walkaway]
+
+  - id: lora
+    term: LoRa
+    short: a long range, low data rate radio modulation
+    long: >
+      A spread spectrum modulation that trades data rate for link budget, which
+      makes it well suited to telemetry: the packets are small and infrequent,
+      and the requirement is that they arrive from far away through an airframe
+      at an unfavourable angle. LoRa is the modulation. It is not itself a
+      licence, a band, or a network.
+    see_also: [part-15, spreading-factor]
+
+  - id: spreading-factor
+    term: spreading factor
+    short: the LoRa setting that trades data rate against range
+    long: >
+      The parameter that sets how much a LoRa symbol is spread in time. A higher
+      spreading factor gives more range and more resistance to noise, and costs
+      data rate and airtime. Because a rocket generates its most interesting data
+      in the few seconds where update rate matters most, this is a real trade and
+      the site states the setting alongside every range figure it publishes.
+    see_also: [lora]
+
+  - id: part-15
+    term: FCC Part 15
+    short: the US rules for unlicensed low power transmitters
+    long: >
+      The part of the US Federal Communications Commission rules covering
+      unlicensed radio devices. Operating within Part 15 limits in the 902 to
+      928 MHz band requires no licence and no callsign, which is why it is the
+      oApogee default. Part 15 devices must accept interference and must not
+      cause harmful interference, and the equipment authorisation obligations
+      fall on whoever builds and operates the transmitter.
+    source: https://www.ecfr.gov/current/title-47/chapter-I/subchapter-A/part-15
+    see_also: [part-97, lora]
+
+  - id: part-97
+    term: FCC Part 97
+    short: the US amateur radio service rules, which require a licence
+    long: >
+      The rules governing the amateur radio service in the US. Operating under
+      Part 97 requires a licence, requires station identification, and prohibits
+      messages encoded to obscure their meaning, which rules out encrypting a
+      telemetry link. In exchange it allows far higher transmit power and other
+      bands. Part 97 and Part 15 are separate legal regimes and oApogee
+      documentation never blends them into one procedure.
+    source: https://www.ecfr.gov/current/title-47/chapter-I/subchapter-D/part-97
+    see_also: [part-15]
+
+  - id: part-101
+    term: FAA Part 101 Subpart C
+    short: the US federal rules for amateur rockets
+    long: >
+      The subpart of the US Federal Aviation Regulations covering amateur
+      rockets, which defines the classes of amateur rocket and the operating
+      limits for each. Class 1, the model rocket class, is where low power model
+      rocketry sits and carries the fewest requirements. The class boundaries are
+      set by propellant mass and total vehicle mass, so adding a payload is a
+      thing that can move a rocket across a boundary.
+    source: https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-101
+    see_also: [high-power-rocketry]
+
+  - id: high-power-rocketry
+    term: high power rocketry
+    short: rocketry above the model rocket limits, requiring certification
+    long: >
+      Rocketry beyond the model rocket thresholds, requiring certification
+      through NAR or Tripoli, and subject to additional FAA requirements.
+      Electronic deployment control lives here. oApogee is designed for the low
+      power side of that line and does not attempt to serve the other side.
+    see_also: [part-101, nar, tripoli, passive-payload]
+
+  - id: nar
+    term: NAR
+    short: the National Association of Rocketry, a US hobby organisation
+    long: >
+      The National Association of Rocketry. It publishes the Model Rocket Safety
+      Code that most US clubs fly under, and it runs a certification programme
+      for high power rocketry.
+    source: https://www.nar.org/
+    see_also: [tripoli, part-101]
+
+  - id: tripoli
+    term: Tripoli
+    short: the Tripoli Rocketry Association, focused on high power rocketry
+    long: >
+      The Tripoli Rocketry Association. Publishes its own safety code and runs a
+      high power certification programme.
+    source: https://www.tripoli.org/
+    see_also: [nar, high-power-rocketry]
+
+  - id: lipo
+    term: LiPo
+    short: a lithium polymer rechargeable cell
+    long: >
+      Lithium polymer battery. High energy density for its mass, which is why
+      oApogee uses one, and correspondingly unforgiving when damaged, overcharged,
+      or shorted. A punctured or crushed cell can ignite, sometimes minutes after
+      the damage rather than immediately. Handling rules are on the Safety and
+      rules page and are not optional.
+    see_also: [protection-circuit]
+
+  - id: protection-circuit
+    term: protection circuit
+    short: the small board on a cell that stops over-discharge and shorts
+    long: >
+      A small circuit built into the cell's packaging that disconnects it on
+      over-discharge, overcharge, and short circuit. Bare cells without one are
+      sold and are cheaper. oApogee does not recommend them and the build guide
+      says how to tell the difference.
+    see_also: [lipo]
+
+  - id: uf2
+    term: UF2
+    short: a firmware file you flash by dragging it onto a USB drive
+    long: >
+      A firmware file format that a board in bootloader mode accepts by appearing
+      as a USB mass storage device, so flashing is copying a file. It is the
+      reason oApogee uses the RP2040 and RP2350 family: a first-time builder
+      installs no toolchain to get a working payload.
+    see_also: [littlefs]
+
+  - id: littlefs
+    term: LittleFS
+    short: a filesystem designed to survive power loss on flash
+    long: >
+      A small filesystem for microcontroller flash, designed to be resilient to
+      power loss and to wear-level. On oApogee it holds the flight logs. The
+      power loss property matters because a payload's power can be interrupted by
+      an impact.
+    see_also: [uf2]
+
+  - id: gnss
+    term: GNSS
+    short: satellite positioning, the general term that includes GPS
+    long: >
+      Global Navigation Satellite System. The general term for satellite
+      positioning, of which GPS is the US system and Galileo, GLONASS, and BeiDou
+      are others. Modern receivers use several at once, which is why the site
+      says GNSS rather than GPS.
+    see_also: [dynamic-model]
+
+  - id: dynamic-model
+    term: dynamic platform model
+    short: a GNSS receiver setting for the kind of motion it should expect
+    long: >
+      A configuration setting on u-blox receivers telling the receiver what sort
+      of motion to expect, which it uses to filter position solutions. The
+      default assumes ground vehicle dynamics and will discard solutions under
+      rocket acceleration, losing lock at exactly the moment tracking matters.
+      The airborne model must be set explicitly, and this is the single most
+      common reason a GNSS-equipped model rocket payload returns with no track.
+    see_also: [gnss]

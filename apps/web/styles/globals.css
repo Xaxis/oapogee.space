@@ -1,0 +1,298 @@
+@import 'tailwindcss';
+
+/*
+  oApogee visual language.
+
+  Hi-vis yellow against near-black, because that is what the board and the pod
+  actually are. The colour choice on the hardware is a recovery decision, a
+  bright payload is far easier to find in tall grass after a long walkaway, and
+  the site carrying the same palette is the cheapest way to make that connection
+  legible before a reader has read the reasoning.
+
+  Dark by default and committed to it. This is instrument documentation, read on
+  a laptop in a field as often as at a desk.
+*/
+
+@theme {
+  --color-ink: #08090a;
+  --color-surface: #101113;
+  --color-surface-2: #17191c;
+  --color-line: #26292e;
+  --color-line-bright: #3a3f47;
+  --color-body: #dcdee2;
+  --color-muted: #8b9099;
+  --color-dim: #6a6f77;
+
+  --color-hivis: #ffcf1b;
+  --color-hivis-dim: #a8880f;
+  --color-orange: #ff7a1a;
+  --color-alert: #ff5f56;
+  --color-ok: #3ecf8e;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-body);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.65;
+}
+
+a {
+  color: var(--color-hivis);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* --- chrome --------------------------------------------------------------- */
+
+.wordmark {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.wordmark .o {
+  color: var(--color-hivis);
+}
+
+.rule {
+  border-top: 1px solid var(--color-line);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--color-line-bright);
+  border-radius: 999px;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+.chip-draft {
+  border-color: var(--color-hivis-dim);
+  color: var(--color-hivis);
+}
+.chip-verified {
+  border-color: var(--color-ok);
+  color: var(--color-ok);
+}
+.chip-blocked {
+  border-color: var(--color-line);
+  color: var(--color-dim);
+}
+
+/* --- prose ---------------------------------------------------------------- */
+
+.prose {
+  max-width: 46rem;
+}
+.prose > * + * {
+  margin-top: 1.05rem;
+}
+.prose h2 {
+  font-size: 1.45rem;
+  line-height: 1.25;
+  font-weight: 650;
+  color: #fff;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-line);
+  scroll-margin-top: 5rem;
+}
+.prose h3 {
+  font-size: 1.1rem;
+  font-weight: 650;
+  color: #fff;
+  margin-top: 2rem;
+  scroll-margin-top: 5rem;
+}
+.prose h4 {
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--color-body);
+  margin-top: 1.5rem;
+}
+.prose p {
+  color: var(--color-body);
+}
+.prose strong {
+  color: #fff;
+  font-weight: 650;
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.prose ul {
+  list-style: disc;
+}
+.prose ol {
+  list-style: decimal;
+}
+.prose li::marker {
+  color: var(--color-dim);
+}
+.prose blockquote {
+  border-left: 2px solid var(--color-hivis-dim);
+  padding-left: 1rem;
+  color: var(--color-muted);
+  font-style: normal;
+}
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+}
+.prose pre {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+.prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-line);
+  margin: 2.5rem 0;
+}
+
+/* Tables can be wide. They scroll inside themselves rather than making the page
+   scroll sideways, which on a phone at a launch site is the difference between
+   readable and useless. */
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+}
+.prose table,
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.prose table {
+  display: block;
+  overflow-x: auto;
+}
+.prose th,
+table.data th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  font-weight: 500;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--color-line-bright);
+  white-space: nowrap;
+}
+.prose td,
+table.data td {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--color-line);
+  vertical-align: top;
+}
+table.data tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- verification markers ------------------------------------------------- */
+
+/*
+  The accuracy rule says oApogee never publishes a number it has not measured or
+  sourced. Markers are how a gap is recorded, and rendering them visibly is the
+  point: a reader can see exactly where a figure is missing instead of reading
+  around a hole they cannot detect. They are meant to look unfinished.
+*/
+
+.marker {
+  display: block;
+  border-left: 3px solid var(--color-hivis-dim);
+  background: color-mix(in srgb, var(--color-hivis) 6%, transparent);
+  padding: 0.75rem 1rem;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.88rem;
+  color: var(--color-muted);
+}
+.marker-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-hivis);
+  margin-bottom: 0.3rem;
+}
+.marker-confirm-on-hardware {
+  border-left-color: var(--color-orange);
+  background: color-mix(in srgb, var(--color-orange) 6%, transparent);
+}
+.marker-confirm-on-hardware .marker-label {
+  color: var(--color-orange);
+}
+.marker-photo,
+.marker-confirm {
+  border-left-color: var(--color-line-bright);
+  background: var(--color-surface);
+}
+.marker-photo .marker-label,
+.marker-confirm .marker-label {
+  color: var(--color-muted);
+}
+
+/* --- print ---------------------------------------------------------------- */
+
+/* Checklists get laminated and taken to a range table. Anything printed has to
+   come out on white paper without draining a cartridge. */
+@media print {
+  html {
+    color-scheme: light;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .no-print {
+    display: none !important;
+  }
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+  .marker {
+    border-left: 3px solid #999;
+    background: none;
+  }
+  .prose h2 {
+    border-top-color: #ccc;
+  }
+}
