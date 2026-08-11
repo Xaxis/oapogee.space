@@ -13,7 +13,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help install dev build start lint type-check format \
-        check check-fast prose data todos check-todos clean
+        check check-fast prose data todos check-todos schematic check-schematic clean
 
 help: ## List available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -37,7 +37,13 @@ todos: ## Regenerate TODO-VERIFY.md from the markers in content, data and docs
 check-todos: ## TODO-VERIFY.md matches the markers actually in the sources
 	@node tools/collect-todos.mjs --check
 
-check-fast: prose data check-todos lint type-check ## Everything except the site build
+schematic: ## Regenerate the system block diagram from data/system.yaml
+	@node tools/gen-schematic.mjs
+
+check-schematic: ## The committed schematic matches the data it was drawn from
+	@node tools/gen-schematic.mjs --check
+
+check-fast: prose data check-todos check-schematic lint type-check ## Everything except the site build
 
 check: check-fast build ## Everything CI runs
 

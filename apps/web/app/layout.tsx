@@ -41,7 +41,6 @@ const NAV = [
     items: [
       { href: '/glossary', label: 'Glossary' },
       { href: '/status', label: 'Status' },
-      { href: '/roadmap', label: 'Page map' },
     ],
   },
 ]

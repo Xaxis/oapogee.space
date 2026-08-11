@@ -1,0 +1,172 @@
+# oApogee flight state machine
+#
+# Canonical source for the flight phases. The firmware implements this, the
+# homepage animates it, the Reading Your Data page names features of the graph
+# with it, and the Troubleshooting page refers to phases by id. One definition,
+# several surfaces.
+#
+# ACCURACY CONTRACT
+# Every numeric threshold here is null. The transition criteria are described in
+# prose because the shape of each rule is a design decision that can be reasoned
+# about on paper, but the actual numbers depend on measured sensor noise on real
+# hardware. Choosing them from intuition and publishing them as if they were
+# tuned would be the worst kind of wrong: plausible, specific, and untested.
+#
+# `shape` describes the qualitative altitude and velocity behaviour, and is what
+# the homepage scene draws. It is a diagram of the state machine, not a plot of
+# any flight, and the site says so wherever it appears.
+
+schema_version: 1
+updated: 2026-08-11
+status: draft
+
+phases:
+  - id: PAD_IDLE
+    name: Pad idle
+    order: 0
+    summary: >
+      Powered on, sensors sampling, nothing recorded to flash. The payload is
+      waiting for you to arm it.
+    behaviour: >
+      Barometric pressure is averaged continuously to establish the ground
+      reference. This is why the altimeter reports height above the launch site
+      rather than height above sea level, and it is why the payload wants a
+      settling period before you walk away.
+    caution: >
+      A weather front moving through during a long pad wait shifts the
+      atmospheric pressure, which moves the zero the whole flight is measured
+      against. The longer the pad wait, the more this matters.
+    transitions_to: ARMED
+    criteria: Operator arms the payload.
+    threshold: null
+
+  - id: ARMED
+    name: Armed
+    order: 1
+    summary: >
+      Ground reference locked, ring buffer running, waiting for motion. The
+      status LED and buzzer say so from several metres away.
+    behaviour: >
+      A pre-arm ring buffer holds the most recent samples continuously, so that
+      when launch is detected the log already contains the moment of ignition
+      rather than starting a fraction of a second after it. Launch detection is
+      inherently late: it cannot fire until enough acceleration has accumulated
+      to be distinguishable from someone knocking the rail. The ring buffer is
+      what recovers the part you would otherwise lose.
+    transitions_to: BOOST
+    criteria: >
+      Sustained upward acceleration above a threshold, held for a minimum number
+      of consecutive samples so that a bump on the pad does not trigger it.
+    threshold: null
+    threshold_verify: >
+      TODO(verify): choose the acceleration threshold and the sample count from
+      measured pad noise on real hardware, including a deliberately clumsy rail
+      knock, and state both numbers with the motor class they were tuned against.
+
+  - id: BOOST
+    name: Boost
+    order: 2
+    summary: >
+      The motor is thrusting. The highest accelerations of the flight happen
+      here, and the log rate is at its fastest.
+    behaviour: >
+      This is the phase a general purpose IMU cannot measure honestly. A 6-axis
+      part saturates around 16 g and reports its maximum rather than an error,
+      so boost on anything above a C motor comes back as a flat plateau that
+      looks like data. The high-g accelerometer exists for this phase alone.
+    caution: >
+      Barometric altitude is least trustworthy here. Airflow over the static
+      ports disturbs the pressure the sensor sees, which is why the fused
+      estimate leans on integrated acceleration through boost.
+    transitions_to: COAST
+    criteria: Acceleration falls through zero as thrust ends. This is burnout.
+    threshold: null
+    threshold_verify: >
+      TODO(verify): confirm whether burnout detection needs hysteresis to avoid
+      chattering on a rough burn, and if so, state the band.
+
+  - id: COAST
+    name: Coast
+    order: 3
+    summary: >
+      Unpowered climb. The rocket is slowing under drag and gravity, and most of
+      the altitude on a well flown low power rocket is gained here.
+    behaviour: >
+      With thrust gone and airflow settling, the barometer becomes the reliable
+      sensor again, and the fusion shifts weight back toward it. Vertical
+      velocity decays toward zero.
+    transitions_to: APOGEE
+    criteria: >
+      Altitude decreasing across several consecutive samples. Confirmation
+      across multiple samples is required rather than a single reading, because
+      barometric noise alone will produce a descending pair at any point near
+      the top of a flight and a single-sample rule would call apogee early.
+    threshold: null
+    threshold_verify: >
+      TODO(verify): set the confirmation count from measured barometer noise at
+      the configured output data rate. State the resulting detection lag in
+      milliseconds, because that lag is an error in the recorded apogee time and
+      the reader is entitled to know its size.
+
+  - id: APOGEE
+    name: Apogee
+    order: 4
+    summary: >
+      The highest point of the flight, and the number the whole payload exists
+      to produce. Vertical velocity passes through zero.
+    behaviour: >
+      Apogee is detected, timestamped, and marked in the log. On Link and Track
+      it is sent down immediately, so the number survives even if the payload
+      does not.
+    caution: >
+      Apogee and parachute deployment are different events. The motor's delay
+      grain fires the ejection charge, and how close that lands to apogee is a
+      measure of how well the flight was planned. oApogee records the difference
+      and has no part in causing it.
+    transitions_to: DESCENT
+    criteria: Sustained descent confirmed.
+    threshold: null
+
+  - id: DESCENT
+    name: Descent
+    order: 5
+    summary: >
+      Under recovery. The deployment jolt is usually the second most obvious
+      feature of the flight graph after burnout.
+    behaviour: >
+      The interesting part of the flight is over, so the log rate drops. Battery
+      spent here is battery unavailable for the recovery beacon later, and a
+      descent under parachute contains far less information per second than
+      boost did.
+    transitions_to: LANDED
+    criteria: >
+      Altitude stable near the ground reference and acceleration quiet, both
+      held for a sustained period.
+    threshold: null
+    threshold_verify: >
+      TODO(verify): a rocket hanging in a tree is stationary and is not on the
+      ground. Determine what the landing detector does in that case and state it,
+      because the honest answer may be that it cannot tell, and a reader
+      searching a treeline needs to know which behaviour to expect.
+
+  - id: LANDED
+    name: Landed
+    order: 6
+    summary: >
+      Down. Everything now serves one purpose, which is helping you find it.
+    behaviour: >
+      Logging drops to minimal. The buzzer switches to a recovery beacon
+      pattern, and on Link and Track the radio stretches its beacon interval to
+      trade update rate for endurance. On a Solo build the buzzer is the only
+      recovery aid there is.
+    caution: >
+      This is the phase whose battery endurance actually matters, and the one
+      most likely to be under-tested, because it only gets exercised when a
+      flight goes wrong.
+    transitions_to: null
+    criteria: Terminal state until power cycle.
+    threshold: null
+    threshold_verify: >
+      TODO(verify): measure beacon endurance from landing detect to cell
+      cutoff, for each tier, on a fully charged cell after a full flight. This
+      is the number that decides whether a payload is findable the next morning.

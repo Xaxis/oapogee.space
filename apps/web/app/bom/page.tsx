@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { getBom, getTiers, type Part } from '@/lib/data'
 
 export const metadata: Metadata = {
@@ -77,16 +78,27 @@ export default function Bom() {
           Why every price says &ldquo;not priced&rdquo;
         </div>
         <p className="mt-3 max-w-2xl text-[var(--color-muted)]">
-          Nothing here has been bought. No cart has been priced and no unit has been assembled, so
-          there is no honest number to put in the price column. oApogee does not publish a figure it
-          has not sourced or measured, because in this hobby people spend money and fly hardware
-          over other people&rsquo;s heads based on what a site like this tells them.
-        </p>
-        <p className="mt-3 max-w-2xl text-[var(--color-muted)]">
-          Manufacturer part numbers marked plainly are asserted with confidence. Anything marked{' '}
+          Nothing here has been bought, so there is no honest number to put in the column.
+          Manufacturer part numbers shown plainly are asserted with confidence; anything marked{' '}
           <span className="text-[var(--color-orange)]">unconfirmed</span> is a candidate that still
           needs checking against current availability.
         </p>
+      </section>
+
+      <section>
+        <h2 className="text-2xl font-semibold text-white">How it goes together</h2>
+        <p className="mt-2 max-w-2xl text-[var(--color-muted)]">
+          The same parts, wired. The ticks on each block show which tiers populate it.
+        </p>
+        <div className="mt-6 overflow-x-auto rounded-lg border border-[var(--color-line)]">
+          <Image
+            src="/schematic/system.svg"
+            alt="oApogee system block diagram, showing every part in this bill of materials and how they connect."
+            width={1168}
+            height={616}
+            className="min-w-[900px] max-w-none"
+          />
+        </div>
       </section>
 
       {bom.paths.map((path) => (

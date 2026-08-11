@@ -122,6 +122,59 @@ if (bom) {
   }
 }
 
+// --- system diagram --------------------------------------------------------
+
+// The block diagram is drawn from part ids. If a part is renamed or dropped and
+// the diagram is not updated, it keeps rendering a board that no longer exists,
+// which is exactly the failure a generated diagram is supposed to prevent.
+const system = load('system.yaml')
+if (system && bom) {
+  const partIds = new Set((bom.parts ?? []).map((p) => p.id))
+  const nodeIds = new Set()
+
+  for (const n of system.nodes ?? []) {
+    if (!n.id) fail('data/system.yaml: a node has no id')
+    if (nodeIds.has(n.id)) fail(`data/system.yaml: duplicate node id "${n.id}"`)
+    nodeIds.add(n.id)
+
+    // `also` covers parts a node stands for without drawing separately: the
+    // Modules-path equivalent of a chip, a connector, an antenna. They still
+    // have to resolve.
+    for (const ref of [n.part, ...(n.also ?? [])].filter(Boolean)) {
+      if (!partIds.has(ref)) {
+        fail(`data/system.yaml: node "${n.id}" references unknown part "${ref}"`)
+      }
+    }
+    if (!n.part && !n.external) {
+      fail(`data/system.yaml: node "${n.id}" has no part and is not marked external`)
+    }
+    for (const tier of n.tiers ?? []) {
+      if (!tierIds.has(tier)) fail(`data/system.yaml: node "${n.id}" lists unknown tier "${tier}"`)
+    }
+    if (n.col >= (system.grid?.cols ?? 0) || n.row >= (system.grid?.rows ?? 0)) {
+      fail(`data/system.yaml: node "${n.id}" sits outside the declared grid`)
+    }
+  }
+
+  const KINDS = new Set((system.legend ?? []).map((l) => l.kind))
+  for (const e of system.edges ?? []) {
+    if (!nodeIds.has(e.from)) fail(`data/system.yaml: edge from unknown node "${e.from}"`)
+    if (!nodeIds.has(e.to)) fail(`data/system.yaml: edge to unknown node "${e.to}"`)
+    if (!KINDS.has(e.kind)) {
+      fail(`data/system.yaml: edge ${e.from} -> ${e.to} has kind "${e.kind}", which the legend does not explain`)
+    }
+  }
+
+  // A part that is in the bill of materials but on no node is not necessarily
+  // wrong, some parts are mechanical, but it is worth knowing about.
+  const drawn = new Set(
+    (system.nodes ?? []).flatMap((n) => [n.part, ...(n.also ?? [])]).filter(Boolean)
+  )
+  for (const id of partIds) {
+    if (!drawn.has(id)) warn(`data/system.yaml: part "${id}" appears in the BOM but not on the diagram`)
+  }
+}
+
 // --- glossary --------------------------------------------------------------
 
 if (glossary) {

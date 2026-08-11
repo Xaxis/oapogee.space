@@ -130,3 +130,21 @@ export type Term = {
 export type Glossary = { updated: string; status: string; terms: Term[] }
 
 export const getGlossary = (): Glossary => load<Glossary>('glossary.yaml')
+
+// --- flight phases ---------------------------------------------------------
+
+export type Phase = {
+  id: string
+  name: string
+  order: number
+  summary: string
+  behaviour: string
+  caution?: string
+  transitions_to: string | null
+  criteria: string
+  threshold: number | null
+}
+
+export type FlightPhases = { updated: string; status: string; phases: Phase[] }
+
+export const getFlightPhases = (): FlightPhases => load<FlightPhases>('flight-phases.yaml')

@@ -5,11 +5,11 @@
 
 Every unverified claim in the repository, in one place. This file is the accuracy rule made visible: oApogee does not publish a number it has not measured or sourced, so anything missing is listed here rather than guessed at.
 
-Generated 2026-08-11. 49 open markers.
+Generated 2026-08-11. 55 open markers.
 
 | Kind | Count |
 |---|---|
-| TODO(verify) | 44 |
+| TODO(verify) | 50 |
 | TODO(confirm-on-hardware) | 4 |
 | TODO(confirm) | 1 |
 | TODO(photo) | 0 |
@@ -54,13 +54,22 @@ A number, price, link, or claim that is currently absent rather than guessed. Ea
 - **L425** compare mass and measured time to first fix against MAX-M10S with a chip antenna.
 - **L440** measure the actual current draw of each tier in each flight state, then size the cell from that rather than from the brief's assumed range. Report endurance as pad-idle hours plus post-landing beacon hours, because those are the two numbers a flier needs. Confirm the cell ships with a protection circuit; unprotected cells are common and must not be recommended.
 - **L467** set the charge current programming resistor from the chosen cell capacity and state the resulting rate, and confirm thermal behaviour in the pod, which is a small sealed plastic volume.
-- **L495** choose a specific receptacle with through-hole mounting tabs. Surface-mount-only USB connectors tear off boards, and this one gets handled every flight day.
-- **L516** confirm the cell's connector polarity matches. LiPo cells ship with both polarities and reversing one destroys the board. State the check explicitly in the build guide.
-- **L539** select a part and then measure what actually matters, which is not the datasheet sound pressure level but the distance at which the beacon pattern is findable in tall grass on a windy day. Test it by having someone hide an active unit in a field. Report that distance.
-- **L564** choose between an addressable part, which costs one GPIO total, and discrete LEDs, which cost one GPIO each but are visible in direct sunlight at the pad if driven hard. Sunlight visibility is the requirement that decides this, and it needs testing outdoors, not at a desk.
-- **L618** the ground antenna is where link budget is cheapest to buy, because mass does not matter on the ground. Compare a quarter wave whip against a small yagi and publish both measured ranges, so a reader can decide whether the yagi is worth carrying.
-- **L627** print time and filament mass once the model exists.
-- **L674** confirm PLA survives a black airframe sitting on a pad in summer sun, and if it does not, say so and recommend PETG.
+- **L495** a single LiPo cell runs from about 4.2 V down to about 3.0 V, which crosses 3.3 V partway through. A plain buck regulator browns out at the bottom of the discharge and a plain LDO wastes headroom at the top, so the part is a buck-boost. Select one, then measure quiescent current, because on a payload that sits armed on a pad and then beacons after landing, idle draw sets endurance more than active draw does.
+- **L521** choose a specific receptacle with through-hole mounting tabs. Surface-mount-only USB connectors tear off boards, and this one gets handled every flight day.
+- **L542** confirm the cell's connector polarity matches. LiPo cells ship with both polarities and reversing one destroys the board. State the check explicitly in the build guide.
+- **L565** select a part and then measure what actually matters, which is not the datasheet sound pressure level but the distance at which the beacon pattern is findable in tall grass on a windy day. Test it by having someone hide an active unit in a field. Report that distance.
+- **L590** choose between an addressable part, which costs one GPIO total, and discrete LEDs, which cost one GPIO each but are visible in direct sunlight at the pad if driven hard. Sunlight visibility is the requirement that decides this, and it needs testing outdoors, not at a desk.
+- **L644** the ground antenna is where link budget is cheapest to buy, because mass does not matter on the ground. Compare a quarter wave whip against a small yagi and publish both measured ranges, so a reader can decide whether the yagi is worth carrying.
+- **L653** print time and filament mass once the model exists.
+- **L700** confirm PLA survives a black airframe sitting on a pad in summer sun, and if it does not, say so and recommend PETG.
+
+### `data/flight-phases.yaml`
+
+- **L62** choose the acceleration threshold and the sample count from measured pad noise on real hardware, including a deliberately clumsy rail knock, and state both numbers with the motor class they were tuned against.
+- **L85** confirm whether burnout detection needs hysteresis to avoid chattering on a rough burn, and if so, state the band.
+- **L106** set the confirmation count from measured barometer noise at the configured output data rate. State the resulting detection lag in milliseconds, because that lag is an error in the recorded apogee time and the reader is entitled to know its size.
+- **L147** a rocket hanging in a tree is stationary and is not on the ground. Determine what the landing detector does in that case and state it, because the honest answer may be that it cannot tell, and a reader searching a treeline needs to know which behaviour to expect.
+- **L170** measure beacon endurance from landing detect to cell cutoff, for each tier, on a fully charged cell after a full flight. This is the number that decides whether a payload is findable the next morning.
 
 ### `data/glossary.yaml`
 
@@ -100,5 +109,5 @@ An open question awaiting a maintainer decision. See NOTES-FOR-WIL.md for contex
 
 ### `data/bom.yaml`
 
-- **L594** the brief asks for confirmation of the WebSerial approach before this is built out. The tradeoff to decide: WebSerial needs no installation, which is the right answer for a club field where six people want to watch, but it is not supported in Safari or on iOS, which rules out a large share of phones. The alternative is a native app per platform, which nobody will install. A third option is a small local server the user runs once. Recommend WebSerial with an explicit, prominently stated browser requirement, and a plain serial terminal fallback documented for everyone else.
+- **L620** the brief asks for confirmation of the WebSerial approach before this is built out. The tradeoff to decide: WebSerial needs no installation, which is the right answer for a club field where six people want to watch, but it is not supported in Safari or on iOS, which rules out a large share of phones. The alternative is a native app per platform, which nobody will install. A third option is a small local server the user runs once. Recommend WebSerial with an explicit, prominently stated browser requirement, and a plain serial terminal fallback documented for everyone else.
 

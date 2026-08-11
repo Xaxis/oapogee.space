@@ -483,6 +483,32 @@ parts:
           a long configuration session. More expensive and larger.
         confidence: asserted
 
+  - id: regulator
+    role: power
+    name: 3V3 regulator
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): a single LiPo cell runs from about 4.2 V down to about 3.0 V,
+      which crosses 3.3 V partway through. A plain buck regulator browns out at
+      the bottom of the discharge and a plain LDO wastes headroom at the top, so
+      the part is a buck-boost. Select one, then measure quiescent current,
+      because on a payload that sits armed on a pad and then beacons after
+      landing, idle draw sets endurance more than active draw does.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      The rail everything else runs from. It is called out separately rather
+      than hidden inside the microcontroller row because the choice between
+      buck, boost, and buck-boost is decided by the cell chemistry, and getting
+      it wrong shows up as a payload that dies at 60 percent battery.
+    substitutes: []
+
   - id: usb_connector
     role: connector
     name: USB-C receptacle

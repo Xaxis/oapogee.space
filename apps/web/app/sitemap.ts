@@ -15,5 +15,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: p.route === '/' ? 1 : 0.7,
     }))
 
-  return [...pages, { url: `${SITE_URL}/roadmap`, lastModified: new Date(), priority: 0.3 }]
+  return pages
 }

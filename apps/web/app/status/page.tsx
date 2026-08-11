@@ -137,8 +137,7 @@ export default function Status() {
             TODO-VERIFY.md
           </a>
           , which is generated from the content files and checked in the build, so it cannot drift
-          out of date. The plan for the rest of the site is the{' '}
-          <Link href="/roadmap">page map</Link>.
+          out of date.
         </p>
       </section>
     </div>

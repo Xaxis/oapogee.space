@@ -43,6 +43,12 @@ jobs:
       - name: Verification index is current
         run: make check-todos
 
+      # The block diagram is generated from the same data as the parts table. A
+      # diagram maintained by hand disagrees with the hardware within a month,
+      # and nobody notices until a builder follows it.
+      - name: Schematic matches the hardware
+        run: make check-schematic
+
   web:
     name: site builds
     runs-on: ubuntu-latest

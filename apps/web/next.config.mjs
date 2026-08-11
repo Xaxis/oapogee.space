@@ -8,6 +8,13 @@ const nextConfig = {
   eslint: {
     dirs: ['app', 'components', 'lib'],
   },
+  images: {
+    // The only SVG the optimiser will ever see is the schematic this repository
+    // generates into public/. No remote patterns are configured, so nothing
+    // off-origin can reach the optimiser at all.
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
 }
 
 export default nextConfig
