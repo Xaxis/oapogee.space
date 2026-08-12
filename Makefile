@@ -35,7 +35,10 @@ links: ## Every internal link resolves, and every anchor exists on its target
 	@node tools/check-links.mjs
 
 hw-deps: ## Install the tscircuit toolchain, isolated from the web workspace on purpose
-	@cd hardware && npm install --silent
+	# npm ci rather than install, so the lockfile governs and a CI run cannot
+	# resolve a different tree than a local one. Not silenced: this failed once
+	# in CI and --silent meant the log said only that it had failed.
+	cd hardware && npm ci --no-audit --no-fund
 
 hw: ## Render the circuit source to schematic, netlist, circuit JSON and KiCad
 	@node tools/build-hardware.mjs

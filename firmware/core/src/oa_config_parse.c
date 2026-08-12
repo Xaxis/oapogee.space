@@ -416,7 +416,8 @@ static oa_result_t oa_parse_line(oa_span_t                 line,
             }
         }
         if (cfg != NULL) {
-            memset(cfg->callsign, 0, sizeof cfg->callsign);
+            /* oa_parse_callsign zeroed the whole of its output buffer before
+             * copying, so the terminator and the padding come across with it. */
             memcpy(cfg->callsign, callsign, sizeof callsign);
         }
         if (report != NULL) {

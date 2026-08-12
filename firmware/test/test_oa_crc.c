@@ -160,7 +160,7 @@ static void test_every_single_bit_flip_changes_the_crc(void)
  * that does not go through the reference implementation at all.
  *
  * Note that the packet puts the CRC on the wire little-endian, which is a
- * separate decision about byte order and is checked in test_packet.c. The
+ * separate decision about byte order and is checked in test_oa_packet.c. The
  * residue property is about the register, not about the wire. */
 static void test_residue_of_message_plus_crc_is_zero(void)
 {
@@ -198,6 +198,6 @@ int main(void)
     test_residue_of_message_plus_crc_is_zero();
     test_null_buffer_returns_the_seed();
 
-    printf("test_crc: all checks passed\n");
+    printf("test_oa_crc: all checks passed\n");
     return 0;
 }

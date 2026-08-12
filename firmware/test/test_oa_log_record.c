@@ -212,7 +212,13 @@ static void test_negative_values_are_twos_complement(void)
 
 /* Header contract rule 4: every byte of the record is written, so a record never
  * carries stale bytes from a previous one. Pack a zeroed record over a buffer
- * full of 0xAA and require that nothing of the 0xAA survives. */
+ * full of 0xAA and require that nothing of the 0xAA survives.
+ *
+ * Today this passes whether or not the packer clears the buffer first, because
+ * both records are covered end to end by named fields and every one of them is
+ * written. That is the point: this check is what fails the first time a record
+ * gains a reserved gap and the clear is not there, which is the first time an
+ * unwritten byte becomes a leak of the previous sample into the log. */
 static void test_no_stale_bytes(void)
 {
     oa_log_flight_t flight;

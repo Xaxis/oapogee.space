@@ -172,6 +172,6 @@ int main(void)
     test_is_low_reports_an_unconfigured_threshold();
     test_is_low_compares_strictly_below();
 
-    printf("test_battery: all checks passed\n");
+    printf("test_oa_battery: all checks passed\n");
     return 0;
 }

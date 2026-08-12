@@ -33,3 +33,7 @@ hardware/.build/
 # configure time, so it is generated in full and none of it is source.
 firmware/build/
 firmware/build-*/
+
+# tscircuit build cache and its intermediate circuit JSON
+hardware/.tscircuit/
+hardware/oapogee.circuit.json
