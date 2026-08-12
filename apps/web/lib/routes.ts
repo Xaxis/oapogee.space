@@ -32,6 +32,7 @@ export const GENERATED_ROUTES = [
   { href: '/preflight', group: 'Fly', nav: 'Preflight checklist' },
   { href: '/troubleshooting', group: 'Fly', nav: 'Troubleshooting' },
   { href: '/flights', group: 'Fly', nav: 'Flight log' },
+  { href: '/reference/schematic', group: 'Reference', nav: 'Schematic' },
   { href: '/reference/telemetry-packet', group: 'Reference', nav: 'Packet format' },
   { href: '/reference/log-format', group: 'Reference', nav: 'Log format' },
   { href: '/glossary', group: 'Reference', nav: 'Glossary' },
@@ -65,6 +66,7 @@ export function navFor(group: (typeof NAV_GROUPS)[number]) {
     Fly: ['/preflight', '/safety', '/data', '/troubleshooting', '/flights'],
     Reference: [
       '/reference',
+      '/reference/schematic',
       '/reference/telemetry-packet',
       '/reference/log-format',
       '/glossary',

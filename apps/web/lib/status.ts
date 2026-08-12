@@ -34,6 +34,7 @@ const GENERATED_SOURCES: Record<string, string> = {
   '/preflight': 'data/preflight.yaml',
   '/troubleshooting': 'data/troubleshooting.yaml',
   '/flights': 'data/flights.yaml',
+  '/reference/schematic': 'hardware/oapogee.tsx',
   '/glossary': 'data/glossary.yaml',
   '/changelog': 'CHANGELOG.md',
   '/status': 'every page in this table',
