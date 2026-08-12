@@ -16,7 +16,8 @@
     "type-check": "yarn workspace @oapogee/web type-check",
     "check:prose": "node tools/check-prose.mjs",
     "check:data": "node tools/check-data.mjs",
-    "check": "make check"
+    "check": "make check",
+    "test:web": "yarn workspace @oapogee/web test"
   },
   "devDependencies": {
     "gray-matter": "^4.0.3",

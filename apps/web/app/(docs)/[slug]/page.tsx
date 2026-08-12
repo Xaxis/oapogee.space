@@ -3,6 +3,14 @@ import type { Metadata } from 'next'
 import { getPage } from '@/lib/content'
 import { DocPage } from '@/components/DocPage'
 import { CONTENT_ROUTES, routeForSlug } from '@/lib/routes'
+import { GroundStation } from '@/components/GroundStation'
+
+// A few prose pages carry an interactive companion below the text. Keyed by
+// slug here rather than by splitting the route, so the pages stay one file and
+// one code path.
+const COMPANIONS: Record<string, () => React.ReactNode> = {
+  'ground-station': () => <GroundStation />,
+}
 
 // One route for every prose page. Pages generated from data (bill of materials,
 // preflight, troubleshooting, flights, glossary, status) have their own
@@ -35,5 +43,11 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
   const page = await getPage(route.file)
   if (!page) notFound()
 
-  return <DocPage {...page} />
+  const Companion = COMPANIONS[slug]
+  return (
+    <>
+      <DocPage {...page} />
+      {Companion && Companion()}
+    </>
+  )
 }

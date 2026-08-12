@@ -125,15 +125,62 @@ properties of the system rather than of a particular flight:
   yours to make, and the site will publish both ends of it rather than only the
   flattering one.
 
+## The host link
+
+The packet specification covers the air interface. It says nothing about how the
+receiver module hands a packet to a laptop, because that is a different link
+with different constraints, and leaving it unspecified would mean every tool
+that wants to read from a ground station has to guess.
+
+So it is specified here, and it is a line protocol rather than a binary one.
+
+```
+OA1 <hex> rssi=<dBm> snr=<dB>
+```
+
+One line per received radio frame, terminated by a newline:
+
+- `OA1` is the line protocol version, not the packet version. It exists so a
+  parser can tell a packet line from a boot banner.
+- `<hex>` is the complete packet, exactly as received off the air, as lowercase
+  hex with no separators. CRC included: whether it passes is the reader's
+  business, not the module's.
+- The trailing `key=value` pairs are what the radio knows and the packet cannot:
+  signal strength and signal to noise ratio, measured per frame.
+
+Three rules, and they are what make the same line usable by a terminal, a
+browser and a script:
+
+1. **A line the receiver cannot parse is emitted anyway.** A frame that arrives
+   corrupted is still evidence about the link, and a module that silently drops
+   it makes the link look better than it is.
+2. **A parser ignores any line not starting with `OA1`.** Boot banners,
+   diagnostics and firmware chatter share the port, and must not confuse a
+   reader.
+3. **The module never interprets the packet.** It does not decode, it does not
+   filter, and it does not reorder. Everything above this line is the host's
+   job, which is what lets the browser receiver and a plain terminal see exactly
+   the same thing.
+
+This format is deliberately readable. You can watch a flight in any serial
+terminal, paste a line straight into the
+[decoder on the packet spec page](/reference/telemetry-packet), and grep a
+recording for the apogee packet, without any tooling at all.
+
+TODO(confirm-on-hardware): the receiver firmware does not exist, so no module
+has ever emitted one of these lines. The format is settled enough to write a
+parser against and nothing has produced it.
+
 ## The terminal fallback
 
-For anyone the browser path excludes, the ground station also emits
-human-readable lines over the same serial connection, readable in any serial
-terminal.
+For anyone the browser path excludes, the host link above is already
+human-readable. Open the port in any serial terminal at the configured baud rate
+and you get one line per packet as it arrives.
 
-TODO(confirm-on-hardware): define and document that text format. It should be
-one line per packet, fixed field order, easy to grep and easy to paste into a
-message when asking for help.
+That is the whole fallback. It is not a degraded mode with less information: it
+is the same bytes the browser receiver reads, before anything is done to them.
+
+TODO(verify): state the baud rate once the receiver firmware sets one.
 
 ## Recording
 
