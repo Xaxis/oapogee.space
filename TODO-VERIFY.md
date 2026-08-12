@@ -5,18 +5,55 @@
 
 Every unverified claim in the repository, in one place. This file is the accuracy rule made visible: oApogee does not publish a number it has not measured or sourced, so anything missing is listed here rather than guessed at.
 
-Generated 2026-08-11. 55 open markers.
+Generated 2026-08-12. 100 open markers.
 
 | Kind | Count |
 |---|---|
-| TODO(verify) | 50 |
-| TODO(confirm-on-hardware) | 4 |
-| TODO(confirm) | 1 |
-| TODO(photo) | 0 |
+| TODO(verify) | 72 |
+| TODO(confirm-on-hardware) | 20 |
+| TODO(confirm) | 6 |
+| TODO(photo) | 2 |
 
 ## Needs a source or a measurement
 
 A number, price, link, or claim that is currently absent rather than guessed. Each entry states what evidence would close it.
+
+### `content/build.md`
+
+- **L153** state the acceptable voltage range at this checkpoint, from the chosen regulator's datasheet.
+
+### `content/faq.md`
+
+- **L88** two separate ceilings, and readers will conflate them. The barometer has a usable pressure range that corresponds to some altitude, and the radio has a practical range that is usually the lower limit in practice. Both need stating with their conditions.
+
+### `content/firmware.md`
+
+- **L99** state the settling window duration, and state the altitude error you get if you arm and walk away immediately.
+- **L178** choose the confirmation count from measured barometer noise, and publish the resulting lag in milliseconds.
+- **L196** measure the beacon endurance from landing detect to cell cutoff, per tier, on a fully charged cell after a full flight. That is the number that decides whether a payload is still findable the next morning.
+- **L217** confirm the specific configuration messages required, and confirm by flight that lock is retained through boost once they are applied.
+
+### `content/ground-station.md`
+
+- **L96** compare a quarter wave whip against a small directional antenna, measured, and publish both ranges so a reader can decide whether carrying the directional one is worth it.
+- **L102** the entire range claim. This is the number readers most want and the number most often exaggerated in this hobby, so it gets measured or it does not get published.
+
+### `content/mounting.md`
+
+- **L48** measure the altitude penalty of the pod against the same rocket and motor flown without it, several times each, and publish both the mean and the spread. This is the number that decides whether the pod is worth it and it should come from flights rather than from simulation alone.
+- **L91** publish the port diameter and count oApogee recommends, along with the reasoning that produced them. The rule of thumb in hobby rocketry relates total vent area to the enclosed volume, and this site should state the specific rule it is using, cite where it comes from, and show the arithmetic for the standard sled and pod volumes rather than quoting a number with no derivation. Then confirm it by flying the same rocket with two different port configurations and comparing.
+- **L129** state the caliber margin oApogee recommends, quoted from NAR or Tripoli guidance with a citation rather than asserted from memory. This is a safety number and it does not get a rule of thumb from an anonymous website.
+- **L135** work a complete example. Take a named, commonly available kit, state its published stability margin unloaded on a specific motor, then show the same rocket in OpenRocket with an oApogee pod at two different positions, one sensible and one badly chosen, with the resulting margins and what each means. Include the OpenRocket file so a reader can open it rather than trusting a screenshot.
+- **L147** publish a table of apogee against payload mass for A, B, C, D and E motors on a representative airframe, generated from OpenRocket and checked against at least one real flight per motor class. A reader deciding between Solo and Track deserves to see what the extra mass costs them before they order.
+
+### `content/reading-your-data.md`
+
+- **L55** this section needs a real flight. It is written as the structure of the walkthrough, with each feature described in terms of what causes it, and it must be replaced by an annotated plot of an actual oApogee flight with each feature marked on the real curve. A synthetic illustration would defeat the purpose of the page.
+- **L180** a complete walkthrough of one real oApogee flight, with the actual data file published alongside so a reader can follow along in their own tools. Every feature above marked on the real curve. This page is not finished until that exists, and it will not be faked in the meantime.
+
+### `content/reference.md`
+
+- **L50** every threshold marked N above is unset. They must come from measured sensor noise on real hardware, not from intuition, and each carries its own verification note in `data/flight-phases.yaml`.
 
 ### `content/safety.md`
 
@@ -29,6 +66,10 @@ A number, price, link, or claim that is currently absent rather than guessed. Ea
 - **L311** transcribe the Class 1 criteria from the current text of Part 101 Subpart C, with the section number, including the propellant mass limit, the total weight limit, and the construction requirements. State them as a quotation with a retrieval date rather than a paraphrase. Then state plainly where the boundary into Class 2 sits and what that entails, so a reader scaling up knows what changes.
 - **L318** confirm whether a transmitter in the payload has any bearing on airspace notification requirements. The expected answer is no at Class 1, but expected is not verified.
 - **L357** ` above is a place where a specific number or rule section has been deliberately left out rather than guessed at.
+
+### `content/start-here.md`
+
+- **L130** fill this section in with measured figures. It should carry, per tier and per build path, the actual price of a real cart from a US distributor at quantity one, the measured mass of an assembled unit including cell, and the median and slowest build times from timing several people who have soldered before. The targets in the project brief are under $60 for the full build, under 25 g flying mass, and an evening of work, but a target is not a measurement and this site does not publish targets as though they were.
 
 ### `data/bom.yaml`
 
@@ -75,6 +116,10 @@ A number, price, link, or claim that is currently absent rather than guessed. Ea
 
 - **L212** state the caliber margin oApogee recommends aiming for, with a source. The commonly cited range in model rocketry is well known, but it should be quoted from NAR or Tripoli guidance rather than from memory, because this is a safety number.
 
+### `data/preflight.yaml`
+
+- **L166** state the settling window in seconds once the firmware defines it, and state what the altitude error is if you leave early.
+
 ### `data/tiers.yaml`
 
 - **L67** time three people who have soldered before, from opening the parts bag to a first successful bench log. The brief's "under two hours" is a target. Report the median and the slowest, not the fastest.
@@ -86,9 +131,53 @@ A number, price, link, or claim that is currently absent rather than guessed. Ea
 
 - **L83** ` count, generated from frontmatter. Given that the hardware does not exist yet, a reader landing on this site deserves to see the project's actual maturity in one click rather than inferring it. It also makes `TODO-VERIFY.md` self-maintaining: the page is the index, the file is a build artifact of it.
 
+### `docs/spec/log-format.md`
+
+- **L224** the actual per-phase log rates have not been chosen. Once they are, publish the resulting file size for a representative flight and use it to size the flash part, rather than defaulting to 16 MB because it is the reflexive choice.
+- **L352** confirm that LittleFS on the chosen flash part actually survives power loss mid-write in practice, by testing it: write continuously and cut power repeatedly, then check that every completed record is intact. This is the assumption the whole storage design rests on and it should be demonstrated rather than trusted.
+
+### `docs/spec/telemetry-packet.md`
+
+- **L225** state the detection lag in milliseconds once the confirmation sample count is chosen from measured barometer noise. A reader is entitled to know the size of the error in the recorded apogee time.
+- **L299** publish the actual intervals for each state at the shipped radio configuration, measured, along with the resulting duty cycle, so that anyone checking regional duty cycle limits can do the arithmetic. This matters for EU and UK builds in particular.
+
 ## Needs the physical hardware
 
 Procedures written out but not yet performed on a real board. These cannot close until hardware exists, and no page containing one may be marked verified.
+
+### `content/build.md`
+
+- **L77** the specific module has not been selected. This stage cannot be written concretely until it is. See the verify note on `mcu_module` in the bill of materials for the selection criteria.
+- **L140** this entire path depends on a fabricated PCB. Nothing below can be written concretely until boards exist, and none of it has been performed.
+- **L209** document the LED behaviour for charging, charge complete, and charge fault, once that behaviour is implemented.
+
+### `content/firmware.md`
+
+- **L33** describe the actual LED indication and the boot banner text once the firmware exists.
+- **L41** no firmware has been written and no release exists. When one does, publish per-tier builds, a changelog entry for every release, and the git commit each build came from, so a flight log can record exactly what was flying.
+- **L51** document the toolchain, the checkout, the build command, and the output path, once the firmware repository exists. Include the exact toolchain versions the published releases are built with, because "it builds on my machine" is not a build instruction.
+- **L66** publish the full configuration reference once the firmware defines it. It must cover, at minimum:
+- **L118** document the procedure once it exists. It will involve holding the board still in several orientations, and it needs to state what "still" means and how the procedure tells you it has enough data.
+
+### `content/ground-station.md`
+
+- **L43** the ground station has not been built. The parts are listed in the [bill of materials](/bom); the assembly steps below are the structure, not a tested procedure.
+- **L134** define and document that text format. It should be one line per packet, fixed field order, easy to grep and easy to paste into a message when asking for help.
+
+### `content/mounting.md`
+
+- **L55** the models do not exist yet. When they do, publish the parametric source rather than only exported STLs, in a format that can be opened and edited without a commercial licence. The pod is parametric on tube diameter, so a builder with an unusual airframe changes one number rather than asking for a new file.
+
+### `content/reading-your-data.md`
+
+- **L36** the offload tool does not exist. Document the actual invocation once it does, for all three operating systems.
+
+### `content/reference.md`
+
+- **L77** the KiCad project does not exist. When it does, publish the project itself rather than a PDF export, along with Gerbers, a pick and place file, and the assembly bill of materials.
+- **L83** the pin assignment is not fixed. It cannot be published until the schematic exists, and publishing a provisional one would guarantee that somebody builds against it.
+- **L89** board outline, mounting hole positions and diameters, connector positions, and the maximum component height on each side. Also the sled and pod models, published as parametric source rather than only as exported STLs.
+- **L96** configuration file reference, serial command reference, and the self-test output format.
 
 ### `content/safety.md`
 
@@ -107,7 +196,36 @@ Procedures written out but not yet performed on a real board. These cannot close
 
 An open question awaiting a maintainer decision. See NOTES-FOR-WIL.md for context.
 
+### `content/about.md`
+
+- **L147** decide whether to register the mark, and publish a short trademark policy here once decided.
+
+### `content/firmware.md`
+
+- **L160** decide between a complementary filter and a Kalman filter, and document the choice with its reasoning. A complementary filter is far simpler to implement, to explain, and to verify by hand, which on a project whose product is its documentation is a real argument. A Kalman filter is better behaved if the noise characteristics are known, and they are not yet, because nothing has flown.
+
+### `content/ground-station.md`
+
+- **L37** the brief asks for confirmation of this approach before building it out. The recommendation is WebSerial with the requirement stated prominently, plus the terminal fallback.
+
 ### `data/bom.yaml`
 
 - **L620** the brief asks for confirmation of the WebSerial approach before this is built out. The tradeoff to decide: WebSerial needs no installation, which is the right answer for a club field where six people want to watch, but it is not supported in Safari or on iOS, which rules out a large share of phones. The alternative is a native app per platform, which nobody will install. A third option is a small local server the user runs once. Recommend WebSerial with an explicit, prominently stated browser requirement, and a plain serial terminal fallback documented for everyone else.
+
+### `docs/spec/log-format.md`
+
+- **L345** decide whether to store a rolling CRC per block in `flight.bin`. The argument for is that flash bit rot and a partial-page write on power loss can corrupt a record in the middle of a file undetectably. The argument against is that it breaks the flat-array property that makes this format one line to load. A separate sidecar of block checksums would keep both, at the cost of a third file.
+
+### `docs/spec/telemetry-packet.md`
+
+- **L419** decide whether a `SIM` packet should use a distinct packet type rather than a flag. A flag is cheaper and a type is harder to ignore by accident. The argument for the flag is that every field means the same thing in both cases; the argument for the type is that it makes the mistake impossible.
+
+## Needs a photograph
+
+Image slots, each describing what the photograph must actually show.
+
+### `content/build.md`
+
+- **L51** the full parts layout for a Track build on the Modules path, top down, every part labelled, on a plain background. This is the photo people screenshot to check their order arrived complete.
+- **L175** a completed board, top and bottom, at high enough resolution to check joint quality against.
 

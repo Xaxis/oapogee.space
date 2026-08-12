@@ -108,7 +108,11 @@ export async function getPage(slug: string): Promise<Page | null> {
 
   // Strip the leading H1: the layout renders the title from frontmatter, and
   // two of them is a duplicate heading in the outline.
-  const body = content.replace(/^#\s+.+\n/, '')
+  // gray-matter leaves a newline where the frontmatter block was, so an anchor
+  // at the start of the string does not reach the H1. The layout renders the
+  // title from frontmatter, and leaving this in produces a duplicate heading in
+  // the document outline.
+  const body = content.replace(/^\s*#\s+.+\n/, '')
 
   return {
     frontmatter: { ...(data as Frontmatter), updated: isoDate(data.updated) },
@@ -117,9 +121,25 @@ export async function getPage(slug: string): Promise<Page | null> {
   }
 }
 
-export async function getDoc(name: string): Promise<{ html: string; markdown: string } | null> {
-  const path = join(DOCS_DIR, `${name}.md`)
+// The two wire format specifications live in docs/spec/ because they are
+// repository deliverables that firmware implementers read from a checkout. They
+// also need stable citable URLs, since third parties are invited to implement
+// against them, so they render here from the same file rather than from a copy.
+export async function getSpec(name: string): Promise<Page | null> {
+  const path = join(DOCS_DIR, 'spec', `${name}.md`)
   if (!existsSync(path)) return null
-  const markdown = readFileSync(path, 'utf8')
-  return { html: await toHtml(markdown), markdown }
+
+  const { data, content } = matter(readFileSync(path, 'utf8'))
+  const markers = countMarkers(content)
+  // gray-matter leaves a newline where the frontmatter block was, so an anchor
+  // at the start of the string does not reach the H1. The layout renders the
+  // title from frontmatter, and leaving this in produces a duplicate heading in
+  // the document outline.
+  const body = content.replace(/^\s*#\s+.+\n/, '')
+
+  return {
+    frontmatter: { ...(data as Frontmatter), updated: isoDate(data.updated) },
+    html: renderMarkers(await toHtml(body)),
+    markers,
+  }
 }

@@ -1,0 +1,430 @@
+# oApogee troubleshooting
+#
+# Symptom-first, not component-first. Somebody with a problem knows what they
+# saw, not which part caused it, and a page organised by subsystem asks them to
+# diagnose before they can look anything up.
+#
+# Each entry is titled with what the reader would actually say out loud. Build
+# steps link directly to these anchors as their failure branch, so a checkpoint
+# that fails has somewhere to send you at the moment it fails.
+#
+# Checks are ordered by cost: the free thing you should try first is first, and
+# the thing that involves desoldering is last. Most of these end at check one or
+# two, and the ones that do not are the ones worth writing carefully.
+
+schema_version: 1
+updated: 2026-08-11
+status: draft
+
+categories:
+  - id: power
+    title: It will not power on
+  - id: sensors
+    title: A sensor is missing or wrong
+  - id: flight
+    title: The flight did not record properly
+  - id: radio
+    title: Radio and ground station
+  - id: gnss
+    title: Position and tracking
+  - id: data
+    title: Reading the data
+
+entries:
+  # --- power ---------------------------------------------------------------
+  - id: no-power
+    category: power
+    symptom: Nothing happens when I plug it in
+    tiers: [solo, link, track]
+    checks:
+      - do: Try a different USB-C cable
+        detail: >
+          Charge-only USB-C cables are extremely common, look identical to data
+          cables, and will make a perfectly good board look dead. This is the
+          single most common cause of this symptom and it costs nothing to rule
+          out.
+      - do: Try a different USB port, ideally directly on a computer rather than a hub
+      - do: Check the board for a solder bridge across the USB connector pins
+        detail: >
+          Use magnification and a multimeter in continuity mode. A bridge between
+          the power pins can make the host refuse to supply power at all.
+      - do: Measure the 3V3 rail
+        detail: >
+          If USB power is present and 3V3 is not, the regulator or its input is
+          the problem. If 3V3 is present and nothing runs, the microcontroller is.
+    see_also: [not-a-drive]
+
+  - id: not-a-drive
+    category: power
+    symptom: It powers on but does not appear as a USB drive
+    tiers: [solo, link, track]
+    checks:
+      - do: Hold the boot button while plugging it in
+        detail: >
+          The board only presents itself as a drive in bootloader mode. In normal
+          operation it is a serial device, not a drive, and that is correct
+          behaviour rather than a fault.
+      - do: Try a different cable
+        detail: See above. It is still the most likely answer.
+      - do: Check the boot button actually makes contact
+        detail: Continuity across it while pressed.
+
+  - id: short-battery
+    category: power
+    symptom: It runs on USB but dies immediately on battery
+    tiers: [solo, link, track]
+    checks:
+      - do: Check the battery connector polarity before anything else
+        detail: >
+          Lithium cells ship with both polarities on the same connector type.
+          Confirm which one you have against the board silkscreen. Reversing it
+          can destroy the board, so check with a multimeter rather than by
+          plugging it in.
+        critical: true
+      - do: Measure the cell voltage under load
+        detail: >
+          A cell whose protection circuit has tripped reads near zero and needs
+          to be recovered or replaced. A cell that sags heavily under load is
+          damaged or too small.
+      - do: Confirm the cell has a protection circuit at all
+        detail: >
+          Bare unprotected cells are sold and are cheaper. oApogee assumes the
+          protection board is present.
+
+  # --- sensors -------------------------------------------------------------
+  - id: baro-missing
+    category: sensors
+    symptom: The barometer never appears on the bus
+    tiers: [solo, link, track]
+    checks:
+      - do: Reflow the sensor's ground pad
+        detail: >
+          On small packages the ground pad is the joint most likely to look fine
+          and not be. It is also the one that makes the whole part invisible when
+          it fails, rather than making it behave oddly.
+      - do: Check for a short between the two bus lines
+      - do: Confirm the bus pull-up resistors are present, and only once
+        detail: >
+          On the Modules path each breakout brings its own pull-ups, and several
+          in parallel can load the bus enough to stop it working. This presents
+          as intermittent dropouts more often than as total absence, but it can
+          do both.
+      - do: Confirm the part is powered
+        detail: 3V3 at the sensor's supply pin, measured at the pin, not at the regulator.
+    see_also: [intermittent-sensor]
+
+  - id: intermittent-sensor
+    category: sensors
+    symptom: Sensors drop out intermittently
+    tiers: [solo, link, track]
+    checks:
+      - do: Count the bus pull-ups
+        detail: >
+          This is the classic Modules-path failure. Three breakouts on one I2C
+          bus means three sets of pull-ups in parallel, which can pull the bus
+          harder than the parts can drive it. Remove all but one set, or cut the
+          jumper the breakout provides for exactly this.
+      - do: Shorten the wiring
+        detail: Long unshielded jumpers on a fast bus pick up noise from the radio.
+      - do: Check for a cold joint by flexing the board gently while watching the console
+        detail: >
+          If it drops out when you flex it, it is mechanical, and you have just
+          learned something important about how it will behave under boost.
+
+  - id: altitude-negative
+    category: sensors
+    symptom: My altitude reads negative
+    tiers: [solo, link, track]
+    checks:
+      - do: Check whether it is a small negative number after landing
+        detail: >
+          This is not a fault. Barometric altitude is measured against a pressure
+          reference taken on the pad. If atmospheric pressure rises during the
+          flight, or the rocket lands lower than the pad, the reading goes
+          negative and it is correct. oApogee does not clamp it at zero, because
+          clamping would hide a real measurement.
+      - do: Check whether it went negative during the flight
+        detail: >
+          A negative excursion during boost usually means the static ports are
+          badly placed and are seeing dynamic pressure rather than static.
+      - do: Check whether it starts at a large negative value
+        detail: >
+          That means the pressure reference was taken somewhere other than the
+          pad, most often because the payload was armed indoors or the settling
+          window was interrupted.
+    see_also: [altitude-nonsense]
+
+  - id: altitude-nonsense
+    category: sensors
+    symptom: The altitude is wildly wrong, or flat, or enormous
+    tiers: [solo, link, track]
+    checks:
+      - do: Check the static ports are open
+        detail: >
+          A sealed tube produces a smooth, confident, entirely fictional altitude
+          curve. Look for paint, glue, tape, and swarf left from drilling.
+        critical: true
+      - do: Check port placement relative to the sensor
+        detail: >
+          Ports too close to the nose cone shoulder or a fin root see pressure
+          disturbed by the airframe rather than ambient.
+      - do: Deburr the port holes
+        detail: >
+          A raised lip around a drilled hole disturbs the airflow over it, which
+          is the thing the port exists to avoid.
+      - do: Compare against the raw pressure column in the log
+        detail: >
+          The log stores raw pressure alongside fused altitude precisely so this
+          is answerable. If pressure looks sane and altitude does not, the
+          problem is the reference or the fusion. If pressure looks wrong, it is
+          the port or the sensor.
+
+  - id: boost-plateau
+    category: sensors
+    symptom: The acceleration trace is a flat plateau during boost
+    tiers: [solo, link, track]
+    checks:
+      - do: Check whether the plateau sits at about 16 g
+        detail: >
+          Then it is not a plateau, it is saturation. A general purpose IMU tops
+          out around there and reports its maximum rather than an error, so real
+          acceleration above the limit looks like a constant. Anything above a C
+          motor will do this.
+      - do: Check whether the high-g accelerometer is fitted and healthy
+        detail: >
+          The HIGH_G flag in the log and in the telemetry says whether the value
+          came from the dedicated part or from the IMU. If it came from the IMU,
+          the boost phase is not measurable with what is on the board.
+      - do: Fit the high-g accelerometer if you fly above a C motor
+        detail: This is what that part is for and it is the only fix.
+
+  # --- flight --------------------------------------------------------------
+  - id: no-launch-detect
+    category: flight
+    symptom: It never detects launch
+    tiers: [solo, link, track]
+    checks:
+      - do: Confirm it was armed, not merely powered on
+        detail: >
+          A powered payload sits in PAD_IDLE and records nothing. Launch
+          detection only runs from ARMED.
+      - do: Check the orientation the payload was mounted in
+        detail: >
+          Launch detection looks for sustained acceleration along the vehicle
+          axis. A payload mounted sideways in the pod sees the boost on a
+          different axis than the firmware expects.
+      - do: Check the motor class
+        detail: >
+          The detection threshold has to be high enough that bumping the rail
+          does not trigger it. A very small motor in a heavy airframe may not
+          clear it.
+      - do: Check the log for the pre-arm ring buffer contents
+        detail: >
+          If the buffer shows the acceleration event but the state never changed,
+          the threshold is the problem rather than the sensor.
+    see_also: [no-log]
+
+  - id: no-log
+    category: flight
+    symptom: There is no log file after the flight
+    tiers: [solo, link, track]
+    checks:
+      - do: Check whether storage was full
+        detail: >
+          The LOG_FULL flag is set when it is. A full filesystem stops logging
+          silently, which is why clearing it is on the preflight checklist.
+      - do: Check whether a flight directory exists with only a manifest in it
+        detail: >
+          That means it armed and created the flight, then never wrote records.
+          Look at the state in the manifest.
+      - do: Check whether it armed at all
+    see_also: [truncated-log]
+
+  - id: truncated-log
+    category: flight
+    symptom: The log stops partway through the flight
+    tiers: [solo, link, track]
+    checks:
+      - do: Check where it stops
+        detail: >
+          Stopping at or shortly after the deployment jolt usually means power
+          was interrupted by the shock. Check that the cell cannot move inside
+          the pod and that the connector is retained.
+      - do: Check for LOG_FULL in the last records
+      - do: Check the cell voltage in the final records
+        detail: >
+          A cell that sagged under the radio's transmit current can brown out the
+          board. This is more likely on Link and Track, and more likely with a
+          small or old cell.
+    note: >
+      A truncated log is still a valid log. A partial trailing record is normal
+      and every conforming reader truncates to whole records rather than failing.
+
+  - id: apogee-wrong
+    category: flight
+    symptom: The apogee number looks too low
+    tiers: [solo, link, track]
+    checks:
+      - do: Check whether the pressure reference was taken properly
+        detail: >
+          Every altitude is measured against it. The manifest records the
+          reference pressure and how many samples went into it.
+      - do: Check the static ports
+        detail: Under-reading is a classic symptom of a partially blocked port.
+      - do: Compare against the raw pressure column
+        detail: >
+          Recompute altitude from raw pressure yourself. If your number and the
+          payload's number agree, the sensor and the reference are consistent and
+          the flight really was that low.
+      - do: Re-check your simulation
+        detail: >
+          A payload adds mass, and mass costs altitude. The flight may be correct
+          and the expectation wrong.
+
+  # --- radio ---------------------------------------------------------------
+  - id: radio-drops
+    category: radio
+    symptom: The radio drops out at short range
+    tiers: [link, track]
+    checks:
+      - do: Check the antenna is connected and correctly tuned for your band
+        detail: >
+          A 902 to 928 MHz antenna on an 868 MHz module, or the reverse, will
+          appear to work at a few metres and fail at any real distance. This is
+          the most common cause and the easiest to overlook.
+        critical: true
+      - do: Check the antenna is not coiled inside the airframe or against carbon fibre
+        detail: >
+          A conductive airframe blocks the link. So does an antenna wrapped
+          around itself to make it fit.
+      - do: Check the ground station antenna and its orientation
+        detail: >
+          Two antennas at right angles to each other are cross-polarised and lose
+          a large fraction of the link budget for free.
+      - do: Check the spreading factor
+        detail: >
+          A low spreading factor buys update rate and costs range. If range
+          matters more than rate for your flying site, trade the other way.
+    note: >
+      Range on the ground after landing is dramatically worse than range in the
+      air, because the antenna is lying in grass rather than in clear line of
+      sight. That is not a fault, it is the physics of the recovery case.
+
+  - id: no-packets
+    category: radio
+    symptom: The ground station receives nothing at all
+    tiers: [link, track]
+    checks:
+      - do: Confirm both ends are on the same band and the same radio settings
+        detail: >
+          Frequency, bandwidth, spreading factor and coding rate all have to
+          match. One mismatch and the link is silent rather than degraded.
+      - do: Confirm the payload is transmitting
+        detail: >
+          The status LED indicates transmission. If it is not transmitting, the
+          problem is the payload, not the link.
+      - do: Check the browser
+        detail: >
+          The ground station display uses WebSerial, which is not supported in
+          Safari or on iOS. Use a Chromium-based browser on a desktop, or the
+          plain serial terminal fallback.
+      - do: Check whether another application is holding the serial port
+        detail: Only one thing can have the port open at a time.
+
+  - id: crc-failures
+    category: radio
+    symptom: Packets arrive but most fail the CRC
+    tiers: [link, track]
+    checks:
+      - do: Check for a nearby transmitter
+        detail: >
+          The 902 to 928 MHz band is busy, and a Part 15 device has to accept
+          interference. A high CRC failure rate at close range often means
+          somebody else is talking.
+      - do: Move the ground station away from the laptop and from USB 3 ports
+        detail: USB 3 is a well-known source of broadband noise in this region.
+      - do: Check the receiver module's own wiring
+        detail: >
+          The application CRC covers the serial link between the module and the
+          host, so a bad connection there produces exactly this symptom.
+
+  # --- gnss ----------------------------------------------------------------
+  - id: gnss-no-lock
+    category: gnss
+    symptom: GNSS loses lock during the flight
+    tiers: [track]
+    checks:
+      - do: Confirm the airborne dynamic platform model is configured
+        detail: >
+          u-blox receivers default to a model that assumes ground vehicle
+          dynamics and will reject position solutions under rocket acceleration.
+          It must be set explicitly at every boot, or saved to the receiver's
+          configuration. This is the single most common reason a GNSS-equipped
+          model rocket payload comes back with no track.
+        critical: true
+      - do: Check the antenna's view of the sky
+        detail: >
+          Inside a body tube with the antenna facing the wrong way, the receiver
+          is looking at the ground for most of the flight.
+      - do: Check for interference from the radio
+        detail: >
+          A LoRa transmitter next to a GNSS receiver can desensitise it. Physical
+          separation and antenna orientation both help.
+    note: >
+      Losing lock under boost and regaining it during coast is normal and
+      expected. The valuable fix is the last one before landing, not a continuous
+      track.
+
+  - id: gnss-slow-fix
+    category: gnss
+    symptom: It takes a very long time to get a first fix
+    tiers: [track]
+    checks:
+      - do: Get the fix before you close the airframe and before you queue
+        detail: >
+          A cold start with no almanac takes far longer than a warm one. The pad
+          is the worst place to be waiting.
+      - do: Check the antenna and its ground plane
+      - do: Check that it is not being reset between attempts
+        detail: A receiver that loses power between attempts starts cold every time.
+
+  # --- data ----------------------------------------------------------------
+  - id: cannot-read-log
+    category: data
+    symptom: My tool cannot read the binary log
+    tiers: [solo, link, track]
+    checks:
+      - do: Read the layout from meta.json rather than hardcoding it
+        detail: >
+          The manifest states every field, its offset, its type and its scaling.
+          A reader built on the manifest keeps working across format versions.
+      - do: Truncate to whole records
+        detail: >
+          A trailing partial record is normal. Use floor(file_size /
+          record_bytes) rather than failing.
+      - do: Check your byte order
+        detail: Everything is little-endian.
+
+  - id: two-altitudes
+    category: data
+    symptom: The GNSS altitude and the barometric altitude disagree
+    tiers: [track]
+    checks:
+      - do: Use the barometric column
+        detail: >
+          They are different measurements. GNSS altitude is referenced to an
+          ellipsoid rather than to the launch pad, and it is considerably less
+          precise for this application. The GNSS altitude is stored because
+          disagreement is diagnostically useful, not because it is a better
+          number.
+
+  - id: sim-in-archive
+    category: data
+    symptom: A bench test looks like a real flight in my archive
+    tiers: [solo, link, track]
+    checks:
+      - do: Check the simulated field in the manifest, and the SIM flag in the packets
+        detail: >
+          Both exist for exactly this. A bench run produces a complete, plausible
+          log, and without checking that field an archive will eventually publish
+          one as a flight.

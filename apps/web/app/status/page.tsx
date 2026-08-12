@@ -12,13 +12,15 @@ const CHIP: Record<string, string> = {
   verified: 'chip-verified',
   'needs-review': 'chip-draft',
   draft: 'chip-draft',
+  generated: '',
   'not written': 'chip-blocked',
 }
 
 export default function Status() {
   const rows = pageStatuses()
   const totals = repoMarkerTotals()
-  const written = rows.filter((r) => r.exists).length
+  const written = rows.filter((r) => r.status !== 'not written').length
+  const verified = rows.filter((r) => r.status === 'verified').length
 
   return (
     <div className="flex flex-col gap-14">
@@ -29,17 +31,17 @@ export default function Status() {
         </p>
         <p className="mt-4 text-[var(--color-muted)]">
           oApogee never publishes a number it has not measured or sourced. That rule only means
-          something if the gaps are countable, so this page counts them. Every figure below comes
-          from the content files themselves, not from a hand-maintained list.
+          something if the gaps are countable, so this page counts them, from the content files
+          rather than from a list somebody maintains by hand.
         </p>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: 'Pages live', value: `${written} of ${rows.length}` },
+          { label: 'Pages verified', value: `${verified}` },
           { label: 'Needs a source', value: String(totals.verify) },
           { label: 'Needs hardware', value: String(totals.confirmOnHardware) },
-          { label: 'Needs a decision', value: String(totals.confirm) },
         ].map((s) => (
           <div
             key={s.label}
@@ -63,7 +65,10 @@ export default function Status() {
               'verified',
               'A human with the relevant expertise checked every number and every step on real hardware. Nothing reaches this while it still has open markers.',
             ],
-            ['not written', 'Planned in the page map. Does not exist yet.'],
+            [
+              'generated',
+              'Rendered from structured data rather than written prose. Its accuracy is the data file’s, and the build fails if the data stops resolving.',
+            ],
           ].map(([k, v]) => (
             <div key={k}>
               <dt>
@@ -91,16 +96,15 @@ export default function Status() {
               {rows.map((row) => (
                 <tr key={row.route}>
                   <td>
-                    {row.exists ? (
+                    {row.status === 'not written' ? (
+                      <span className="font-medium text-[var(--color-dim)]">{row.title}</span>
+                    ) : (
                       <Link href={row.route} className="font-medium">
                         {row.title}
                       </Link>
-                    ) : (
-                      <span className="font-medium text-[var(--color-dim)]">{row.title}</span>
                     )}
                     <div className="mt-1 font-mono text-xs text-[var(--color-dim)]">
-                      {row.route}
-                      {row.note ? ` . ${row.note}` : ''}
+                      {row.route} . {row.source}
                     </div>
                   </td>
                   <td>
@@ -126,18 +130,18 @@ export default function Status() {
       <section className="max-w-[46rem]">
         <h2 className="text-xl font-semibold text-white">Why so much is missing</h2>
         <p className="mt-3 text-[var(--color-muted)]">
-          The hardware is a design on paper. Nothing has been fabricated, assembled, weighed, priced,
-          or flown. Every one of the markers counted above is a place where a specific number was
-          deliberately left out rather than guessed at, and each one records what evidence would
-          close it.
+          The hardware is a design on paper. Nothing has been fabricated, assembled, weighed,
+          priced, or flown. Each of the {totals.total} markers counted above is a place where a
+          specific number was deliberately left out rather than guessed at, and each records what
+          evidence would close it.
         </p>
         <p className="mt-3 text-[var(--color-muted)]">
           The full list lives in{' '}
           <a href="https://github.com/Xaxis/oapogee.space/blob/main/TODO-VERIFY.md">
             TODO-VERIFY.md
           </a>
-          , which is generated from the content files and checked in the build, so it cannot drift
-          out of date.
+          , generated from the content files and checked in the build, so it cannot drift out of
+          date.
         </p>
       </section>
     </div>

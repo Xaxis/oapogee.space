@@ -1,0 +1,125 @@
+# oApogee flight log
+#
+# In v1 this holds the maintainer's flights only. The submission format is
+# specified now anyway, so that opening it to the community later is a mechanism
+# change rather than a redesign, and so anyone recording flights today records
+# the fields that will be needed.
+#
+# The list is empty because nothing has flown.
+
+schema_version: 1
+updated: 2026-08-11
+status: draft
+
+submissions_open: false
+submissions_note: >
+  Community submissions are not open yet. When they are, the format below is
+  what a submission will contain, and it is deliberately mostly derived from the
+  flight itself rather than typed in by hand.
+
+# What a submission consists of. The principle: anything the payload already
+# knows is taken from the log rather than asked for, because a field a human
+# retypes is a field a human gets wrong.
+submission:
+  required_files:
+    - name: meta.json
+      from: the flight directory, unmodified
+      why: >
+        Carries the firmware version, the tier, the record layout, the pressure
+        reference, and the simulated flag. Without it the binary is not
+        interpretable and the flight is not verifiable.
+    - name: flight.bin
+      from: the flight directory, unmodified
+      why: >
+        The archival copy. CSV is a convenience derived from this, and a
+        submission of CSV alone cannot be re-derived if a decoding bug is found
+        later.
+    - name: gnss.bin
+      from: the flight directory, if present
+      optional: true
+
+  derived_fields:
+    - { field: apogee_m, source: log summary }
+    - { field: max_velocity_m_s, source: log summary }
+    - { field: max_accel_g, source: log summary }
+    - { field: flight_duration_s, source: log summary }
+    - { field: tier, source: meta.json device.tier }
+    - { field: fw_version, source: meta.json device.fw_version }
+    - { field: simulated, source: meta.json session.simulated }
+    - { field: pad_pressure_pa, source: meta.json calibration }
+
+  # Everything the payload cannot know. Kept short on purpose: a long form is a
+  # form nobody completes.
+  declared_fields:
+    - field: motor
+      required: true
+      example: C6-5
+      why: >
+        The single most useful piece of context. An apogee figure means nothing
+        without it.
+    - field: airframe
+      required: true
+      example: A named kit, or a description if scratch built
+      why: Lets a reader compare against a rocket they own.
+    - field: liftoff_mass_g
+      required: true
+      why: >
+        Apogee is mostly a function of motor and mass. Without mass, a flight is
+        not comparable to any other flight.
+    - field: mounting
+      required: true
+      options: [internal-sled, external-pod, other]
+      why: >
+        The pod costs drag. Accumulating flights both ways is how that cost gets
+        measured rather than guessed at.
+    - field: stability_margin_cal
+      required: false
+      why: From the flier's own simulation, with the payload fitted.
+    - field: wind
+      required: false
+      why: Explains weathercocking and drift in the track.
+    - field: site_elevation_m
+      required: false
+    - field: notes
+      required: false
+      why: Anything that went wrong, which is usually the interesting part.
+    - field: consent
+      required: true
+      why: >
+        Explicit agreement to publish the flight data under the site's
+        documentation licence. A flight archive that is unclear about this is
+        useless to anyone who wants to analyse it.
+
+  # Deliberately not collected.
+  never_collected:
+    - field: precise launch site coordinates
+      why: >
+        A GNSS track from a model rocket flight points at where somebody flies,
+        and often at private land whose owner did not agree to be published.
+        Submissions carry the flight's shape, not its absolute position, unless
+        the submitter explicitly opts in.
+    - field: contact details beyond a display name
+      why: Not needed to publish a flight.
+
+# Rules the archive holds itself to, enforced rather than promised.
+archive_rules:
+  - id: sim-never-published
+    rule: >
+      A log whose manifest sets session.simulated is never published as a
+      flight. A bench run produces a complete and entirely plausible log, and an
+      archive that cannot tell the difference will eventually publish one.
+  - id: raw-retained
+    rule: >
+      The binary and its manifest are retained alongside any derived figure, so
+      that a flight can be reprocessed if a decoding or filter bug is found.
+  - id: no-editing
+    rule: >
+      Submitted logs are published unmodified. A flight that went badly is more
+      useful than one that went well, and an archive that quietly drops the ugly
+      ones is not a data set.
+  - id: truncation-marked
+    rule: >
+      A truncated log is published and labelled as truncated. A log that ends at
+      apogee is telling you something about the flight.
+
+flights: []

@@ -1,0 +1,232 @@
+# oApogee preflight checklist
+#
+# Renders to the screen, to a print stylesheet, and to plain text. It is used on
+# a range table, outdoors, possibly in wind, by someone who is also thinking
+# about a motor and a launch rail. That sets the constraints: short lines, no
+# paragraphs, one action per item, and the reason kept separate from the action
+# so the reason can be hidden once it is known.
+#
+# Ordered by when it happens, not by subsystem. A checklist sorted by component
+# makes the user jump around, and a jumped checklist is a skipped checklist.
+
+schema_version: 1
+updated: 2026-08-11
+status: draft
+
+intro: >
+  Everything on this list exists because skipping it costs a flight. Items
+  marked critical cost more than that. Work top to bottom on the day; do not
+  jump ahead to the pad section because the queue is moving.
+
+sections:
+  - id: night-before
+    title: The night before
+    where: At home
+    items:
+      - id: charge
+        text: Charge the payload fully
+        why: >
+          A cell charged days earlier and left at full degrades, and a cell
+          charged on the morning is a cell you are rushing.
+        tiers: [solo, link, track]
+
+      - id: inspect-cell
+        text: Inspect the cell for swelling, dents, or damaged wires
+        why: >
+          A damaged lithium cell can ignite, sometimes minutes after the damage
+          rather than at the moment of it. This is the item on this list with a
+          consequence beyond losing a flight.
+        critical: true
+        tiers: [solo, link, track]
+
+      - id: offload
+        text: Offload and clear the previous flight's log
+        why: >
+          Storage that fills mid-flight stops logging silently. You get a partial
+          flight and no warning at the time.
+        tiers: [solo, link, track]
+
+      - id: firmware
+        text: Confirm the firmware version, and do not update it today
+        why: >
+          A flight day is not the day to discover what changed. If you must
+          update, do a full bench dry run afterwards.
+        tiers: [solo, link, track]
+
+      - id: gs-charge
+        text: Charge the ground station and the laptop or phone running it
+        why: A receiver with a flat battery is a payload with no downlink.
+        tiers: [link, track]
+
+      - id: sim
+        text: Re-simulate the rocket in OpenRocket with the payload fitted
+        why: >
+          Adding mass moves the centre of gravity, and where the payload sits
+          decides which way. A rocket that flew well ten times before tells you
+          nothing about how it flies with a pod on it.
+        critical: true
+        tiers: [solo, link, track]
+
+  - id: at-the-field
+    title: At the field, before you queue
+    where: Prep table
+    items:
+      - id: conditions
+        text: Check the wind and the fire conditions, and accept the answer
+        why: >
+          Dry grass and a hot motor casing is a real combination, and a field
+          fire ends a club's access to a site permanently. Not flying is always
+          available to you.
+        critical: true
+        tiers: [solo, link, track]
+
+      - id: rso
+        text: Tell the Range Safety Officer you are flying electronics
+        why: >
+          It is their field and their call. It also means someone else knows
+          there is a lithium cell in the airframe.
+        tiers: [solo, link, track]
+
+      - id: ports
+        text: Check the static ports are open and free of dust, glue, or paint
+        why: >
+          A blocked vent makes the barometer measure a sealed tube instead of the
+          sky, and it produces confident nonsense rather than an obvious failure.
+        tiers: [solo, link, track]
+
+      - id: secure
+        text: Check the payload is secure in the sled or pod, and nothing rattles
+        why: >
+          Anything that can move under your hand will move far harder under
+          boost. Shake it and listen.
+        tiers: [solo, link, track]
+
+      - id: antenna
+        text: Check the antenna is attached and not pinched by the enclosure
+        why: >
+          Transmitting into a disconnected or shorted antenna is bad for the
+          radio and gives you no link.
+        tiers: [link, track]
+
+      - id: link-check
+        text: Power up and confirm the ground station is receiving
+        why: >
+          Confirm the link on the table, where you can fix it, rather than at the
+          pad, where you cannot.
+        tiers: [link, track]
+
+      - id: fix
+        text: Let the GNSS receiver get a fix before you close the airframe
+        why: >
+          A cold start takes far longer than a hot one, and the pad is not where
+          you want to be waiting for it.
+        tiers: [track]
+
+      - id: mass
+        text: Weigh the loaded rocket and confirm it matches your simulation
+        why: >
+          The simulation you trusted last night assumed a mass. This is the
+          thirty seconds that confirms it was the right one.
+        tiers: [solo, link, track]
+
+  - id: at-the-pad
+    title: At the pad
+    where: Launch rail
+    items:
+      - id: rail
+        text: Fit the rocket to the rail and confirm it slides freely
+        why: >
+          An external pod is the most common thing to catch on a rail button or
+          a launch lug.
+        tiers: [solo, link, track]
+
+      - id: arm
+        text: Arm the payload
+        why: >
+          Arming starts the pressure reference settling and the pre-arm ring
+          buffer. Everything before this point is not being recorded.
+        tiers: [solo, link, track]
+
+      - id: confirm-arm
+        text: Confirm the arm indication, by ear and by eye, from a step back
+        why: >
+          You need to be able to tell from several metres whether it armed,
+          because that is where you will be standing when you wonder.
+        critical: true
+        tiers: [solo, link, track]
+
+      - id: settle
+        text: Let it settle before you walk away
+        why: >
+          The ground pressure reference is an average over a settling window. Arm
+          it, then let it sit.
+        tiers: [solo, link, track]
+        duration: null
+        duration_verify: >
+          TODO(verify): state the settling window in seconds once the firmware
+          defines it, and state what the altitude error is if you leave early.
+
+      - id: gs-confirm
+        text: Confirm the ground station shows the armed state and a live altitude near zero
+        why: >
+          This is the last moment the payload is reachable. A reading of zero
+          here means the reference took.
+        tiers: [link, track]
+
+      - id: leave
+        text: Walk back. Do not touch the rocket again unless it is disarmed
+        why: A bumped rocket during the settling window corrupts the reference.
+        tiers: [solo, link, track]
+
+  - id: after
+    title: After the flight
+    where: Wherever it landed
+    items:
+      - id: listen
+        text: Listen for the recovery beacon before you start walking
+        why: >
+          The beacon pattern is easier to hear from a standing start than from
+          the middle of a field with wind in your ears.
+        tiers: [solo, link, track]
+
+      - id: last-fix
+        text: Read the last position from the ground station before you leave the flight line
+        why: >
+          The fix you have is the one you have. Write it down rather than
+          trusting the receiver to still be showing it later.
+        tiers: [track]
+
+      - id: permission
+        text: If it landed on land that is not the flying site, ask before you go
+        why: >
+          A landed rocket does not grant permission. Access to flying sites
+          depends on landowners tolerating rocketry, and that tolerance is spent
+          one field at a time.
+        critical: true
+        tiers: [solo, link, track]
+
+      - id: disarm
+        text: Disarm the payload as soon as you have it
+        why: Every minute armed is a minute of battery you may want next flight.
+        tiers: [solo, link, track]
+
+      - id: inspect-after
+        text: Inspect the cell and the airframe after any hard landing
+        why: >
+          Impact damage to a lithium cell is not always visible immediately and
+          is not always immediate in its consequences.
+        critical: true
+        tiers: [solo, link, track]
+
+      - id: offload-after
+        text: Offload the flight before the next one
+        why: >
+          The flight you did not offload is the flight you lose when the next one
+          fills the storage.
+        tiers: [solo, link, track]
+
+footer: >
+  oApogee is a passive instrumentation payload. It does not fire ejection
+  charges, control deployment, ignite motors, or command any pyrotechnic device.
+  Your recovery system is the motor's ejection charge and delay grain, exactly as
+  it was before you fitted a payload.

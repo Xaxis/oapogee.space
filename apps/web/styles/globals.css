@@ -106,6 +106,16 @@ a:hover {
 .prose > * + * {
   margin-top: 1.05rem;
 }
+/* The page title is rendered from frontmatter and the leading H1 is stripped, so
+   an H1 reaching here is one that appeared mid-document. Style it rather than
+   letting it inherit body size and look like a stray paragraph. */
+.prose h1 {
+  font-size: 1.7rem;
+  line-height: 1.2;
+  font-weight: 650;
+  color: #fff;
+  margin-top: 3rem;
+}
 .prose h2 {
   font-size: 1.45rem;
   line-height: 1.25;

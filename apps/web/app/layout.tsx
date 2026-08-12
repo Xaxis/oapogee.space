@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { NAV_GROUPS, navFor } from '@/lib/routes'
 import '../styles/globals.css'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://oapogee.space'
@@ -33,16 +34,19 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 }
 
-const NAV = [
-  { group: 'Build', items: [{ href: '/bom', label: 'Bill of materials' }] },
-  { group: 'Fly', items: [{ href: '/safety', label: 'Safety and rules' }] },
-  {
-    group: 'Reference',
-    items: [
-      { href: '/glossary', label: 'Glossary' },
-      { href: '/status', label: 'Status' },
-    ],
-  },
+// Three groups, because the three readers arrive with different intent: the
+// beginner building one, the flier using one, and the engineer who wants the
+// packet format and will skip everything else.
+const NAV = NAV_GROUPS.map((group) => ({ group, items: navFor(group) }))
+
+// The header carries the entry point into each group rather than all twenty
+// links. The footer carries everything.
+const HEADER_LINKS = [
+  { href: '/start', label: 'Start here' },
+  { href: '/bom', label: 'Bill of materials' },
+  { href: '/build', label: 'Build' },
+  { href: '/safety', label: 'Safety' },
+  { href: '/reference', label: 'Reference' },
 ]
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -55,7 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="o">o</span>apogee
             </Link>
             <nav className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
-              {NAV.flatMap((g) => g.items).map((item) => (
+              {HEADER_LINKS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}

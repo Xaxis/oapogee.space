@@ -148,3 +148,78 @@ export type Phase = {
 export type FlightPhases = { updated: string; status: string; phases: Phase[] }
 
 export const getFlightPhases = (): FlightPhases => load<FlightPhases>('flight-phases.yaml')
+
+// --- preflight -------------------------------------------------------------
+
+export type PreflightItem = {
+  id: string
+  text: string
+  why: string
+  tiers: string[]
+  critical?: boolean
+}
+
+export type PreflightSection = {
+  id: string
+  title: string
+  where: string
+  items: PreflightItem[]
+}
+
+export type Preflight = {
+  updated: string
+  status: string
+  intro: string
+  sections: PreflightSection[]
+  footer: string
+}
+
+export const getPreflight = (): Preflight => load<Preflight>('preflight.yaml')
+
+// --- troubleshooting -------------------------------------------------------
+
+export type Check = { do: string; detail?: string; critical?: boolean }
+
+export type TroubleEntry = {
+  id: string
+  category: string
+  symptom: string
+  tiers: string[]
+  checks: Check[]
+  note?: string
+  see_also?: string[]
+}
+
+export type Troubleshooting = {
+  updated: string
+  status: string
+  categories: { id: string; title: string }[]
+  entries: TroubleEntry[]
+}
+
+export const getTroubleshooting = (): Troubleshooting => load<Troubleshooting>('troubleshooting.yaml')
+
+// --- flight log ------------------------------------------------------------
+
+export type Flights = {
+  updated: string
+  status: string
+  submissions_open: boolean
+  submissions_note: string
+  submission: {
+    required_files: { name: string; from: string; why?: string; optional?: boolean }[]
+    derived_fields: { field: string; source: string }[]
+    declared_fields: {
+      field: string
+      required: boolean
+      example?: string
+      why?: string
+      options?: string[]
+    }[]
+    never_collected: { field: string; why: string }[]
+  }
+  archive_rules: { id: string; rule: string }[]
+  flights: unknown[]
+}
+
+export const getFlights = (): Flights => load<Flights>('flights.yaml')
