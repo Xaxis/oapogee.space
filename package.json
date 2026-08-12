@@ -32,6 +32,6 @@
     "url": "https://github.com/Xaxis/oapogee.space/issues"
   },
   "engines": {
-    "node": ">=22"
+    "node": "^22.13.0 || >=24"
   }
 }
