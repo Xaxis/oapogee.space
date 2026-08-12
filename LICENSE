@@ -1,0 +1,97 @@
+# oApogee licensing
+
+Copyright 2026 William Neeley and the oApogee contributors.
+
+This project is three different kinds of thing in one repository, and they are
+licensed differently on purpose. Which licence applies is decided by what a file
+is, not by where it sits.
+
+| What | Licence | SPDX |
+|---|---|---|
+| Hardware design files | CERN Open Hardware Licence Version 2, Strongly Reciprocal | `CERN-OHL-S-2.0` |
+| Firmware and software | Apache License 2.0 | `Apache-2.0` |
+| Documentation and content | Creative Commons Attribution-ShareAlike 4.0 International | `CC-BY-SA-4.0` |
+
+Full texts are in `LICENSES/`.
+
+## What falls under each
+
+**Hardware, `CERN-OHL-S-2.0`.** Schematics, PCB layout, the KiCad project,
+Gerbers, the parametric CAD source for the sled and the pod, and the exported
+STL and STEP files.
+
+**Firmware and software, `Apache-2.0`.** The payload firmware, the ground
+station firmware, the browser receiver, the offload and export tooling, the
+build and check scripts in `tools/`, and the site in `apps/web/`.
+
+**Documentation, `CC-BY-SA-4.0`.** Everything in `content/` and `docs/`, the
+structured source in `data/`, and the generated diagrams and figures.
+
+Where a file could plausibly be read as more than one of those, the reciprocal
+licence applies. A generated diagram is documentation; the script that generates
+it is software.
+
+## Why these three
+
+The `o` in oApogee means open, which raises the bar rather than lowering it. The
+reasoning behind each choice, including what each one costs, is on the
+[about page](content/about.md).
+
+In short:
+
+- **Reciprocal hardware.** The plausible bad outcome for a project like this is
+  a manufacturer producing the board at volume as a closed product. `-S` does
+  not prevent that and is not meant to, but it requires that their improvements
+  come back.
+- **Permissive firmware.** The firmware is the part most likely to be embedded
+  in somebody else's project, and that should be easy. Apache 2.0 over MIT for
+  the express patent grant, which matters once money is involved.
+- **Share-alike documentation.** The documentation is the product, so it gets
+  the same reciprocity as the board. The cost, accepted knowingly: a competitor
+  may reproduce this build guide commercially provided they attribute and share
+  alike.
+
+## Trademark
+
+**The design is open. The name is not.**
+
+A licence does not stop somebody selling a clone called oApogee, and a
+trademark is the only thing that does. Nothing in the licences above grants any
+right to use the oApogee name or wordmark.
+
+You may build this, modify it, sell it, and fork it. Call it something else.
+
+You may say your product is "based on the oApogee design" or "compatible with
+oApogee", because that is accurate and useful to buyers. You may not name it
+oApogee, brand it as oApogee, or imply it is an official oApogee product.
+
+oApogee is not affiliated with Apogee Components.
+
+## Contributing
+
+By contributing you agree that your contribution is licensed under the licence
+that applies to the file you are contributing to, as set out above. There is no
+copyright assignment and no contributor licence agreement.
+
+## Applying a notice
+
+New source files should carry an SPDX identifier so that the licence of a file
+travels with the file:
+
+```
+// SPDX-FileCopyrightText: 2026 William Neeley and the oApogee contributors
+// SPDX-License-Identifier: Apache-2.0
+```
+
+Use `CERN-OHL-S-2.0` for hardware sources and `CC-BY-SA-4.0` for documentation.
+
+## No warranty
+
+All three licences disclaim warranties and limit liability, and those
+disclaimers are real rather than boilerplate here.
+
+**oApogee is a passive instrumentation payload. It does not fire ejection
+charges, control deployment, ignite motors, or command any pyrotechnic device.**
+It is nonetheless a device you attach to a rocket and a lithium cell you charge
+in your house. You are responsible for what you build, for the rules that apply
+where you fly, and for flying it safely. See `content/safety.md`.

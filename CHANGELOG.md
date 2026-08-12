@@ -45,11 +45,18 @@ Dates are ISO. Versions follow the repository's `VERSION` file.
   exists. Board, the custom PCB, once fabricated. The tier owns the capability
   content and the path owns only the assembly content.
 
+- **Licensing.** CERN-OHL-S 2.0 for hardware, Apache 2.0 for firmware and
+  software, CC BY-SA 4.0 for documentation. Reciprocal on the board because the
+  plausible bad outcome is a closed volume clone and `-S` at least requires that
+  improvements come back; permissive on the firmware because that is the part
+  worth having other people embed everywhere, with Apache over MIT for the
+  express patent grant. The documentation gets share-alike, accepting that a
+  competitor may reproduce the build guide commercially with attribution.
+- **Trademark policy.** The design is open, the name is not. Licences do not
+  stop a clone shipping under this name; a trademark does.
+
 ### Not yet decided
 
-- Licensing. The recommendation and its tradeoffs are on the about page:
-  CERN-OHL-S for hardware, Apache 2.0 for firmware, CC BY-SA 4.0 for
-  documentation. Nothing is applied until the maintainer decides.
 - Whether the high-g accelerometer belongs at Link and above, as the project
   brief specifies, or as an option at every tier driven by motor class. See
   `NOTES-FOR-WIL.md`.

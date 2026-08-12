@@ -198,7 +198,7 @@ An open question awaiting a maintainer decision. See NOTES-FOR-WIL.md for contex
 
 ### `content/about.md`
 
-- **L147** decide whether to register the mark, and publish a short trademark policy here once decided.
+- **L164** whether to formally register the mark. The policy above stands either way; registration decides how enforceable it is.
 
 ### `content/firmware.md`
 

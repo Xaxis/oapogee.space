@@ -8,7 +8,9 @@ const compat = new FlatCompat({ baseDirectory: dirname(fileURLToPath(import.meta
 // should not be edited, so linting it only ever produces an error nobody may fix.
 const config = [
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
-  { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'] },
+  // Both build directories hold generated route types. next dev writes to
+  // .next-dev so that a running dev server cannot clobber a production build.
+  { ignores: ['.next/**', '.next-dev/**', 'node_modules/**', 'next-env.d.ts'] },
 ]
 
 export default config

@@ -79,10 +79,25 @@ first-run experience than the entire rest of the project.
 
 Confirm and I will build it that way.
 
-### 5. Licensing, with the tradeoff rather than a pick
+### 5. ~~Licensing, with the tradeoff rather than a pick~~ RESOLVED 2026-08-12
 
-You answered "docs now, kits later", which changes this materially. Here is the
-tradeoff.
+**Decided and applied:** CERN-OHL-S 2.0 for hardware, Apache 2.0 for firmware
+and software, CC BY-SA 4.0 for documentation. Canonical texts fetched from
+apache.org, ohwr.org and creativecommons.org rather than reproduced from memory,
+and installed in `LICENSES/`. `LICENSE` at the root says which applies to what.
+The trademark policy is published on the About page: the design is open, the
+name is not.
+
+Two things still open, neither blocking:
+
+- Whether to formally register the mark. The policy stands either way;
+  registration decides how enforceable it is.
+- The copyright holder line currently reads "William Neeley and the oApogee
+  contributors". If a company should hold it instead, that is a one-line change
+  and it is easier now than later.
+
+The original analysis is kept below, because the costs of each choice are worth
+being able to point at when somebody asks why.
 
 **Hardware, CERN-OHL-S versus CERN-OHL-P.**
 

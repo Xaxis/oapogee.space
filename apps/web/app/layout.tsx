@@ -105,9 +105,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               anything.
             </p>
 
-            <p className="mt-6 text-xs text-[var(--color-dim)]">
-              oApogee is not affiliated with Apogee Components.{' '}
-              <a href="https://github.com/Xaxis/oapogee.space">Source on GitHub</a>.
+            <p className="mt-6 max-w-2xl text-xs text-[var(--color-dim)]">
+              Hardware under CERN-OHL-S 2.0, firmware under Apache 2.0, documentation under CC BY-SA
+              4.0. The design is open, the name is not. <Link href="/about">Licensing in full</Link>
+              . <a href="https://github.com/Xaxis/oapogee.space">Source on GitHub</a>.
+            </p>
+            <p className="mt-2 text-xs text-[var(--color-dim)]">
+              oApogee is not affiliated with Apogee Components.
             </p>
           </div>
         </footer>

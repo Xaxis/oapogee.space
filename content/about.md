@@ -79,11 +79,21 @@ there is hardware.
 
 ## Licensing
 
-Not yet decided. The tradeoffs are below, presented rather than resolved,
-because they are the maintainer's call and because the reasoning is more useful
-to a reader than the conclusion.
+Decided. Three licences, because this repository holds three different kinds of
+thing and treating them the same would be wrong in both directions.
 
-### Hardware: CERN-OHL-S or CERN-OHL-P
+| What | Licence |
+|---|---|
+| Hardware design files | CERN-OHL-S 2.0, strongly reciprocal |
+| Firmware and software | Apache 2.0 |
+| Documentation and content | CC BY-SA 4.0 |
+
+Full texts are in `LICENSES/`, and `LICENSE` at the repository root says which
+applies to which files. The reasoning below is kept because the tradeoffs are
+more useful to a reader than the conclusion, and because each choice cost
+something worth knowing about.
+
+### Hardware: CERN-OHL-S
 
 Both are open hardware licences from CERN. The difference is reciprocity.
 
@@ -98,23 +108,22 @@ require that their improvements come back. Given that the name promises
 openness, taking the licence that keeps downstream open is the consistent
 choice.
 
-The case for `-P`: it maximises adoption. Some vendors avoid reciprocal
-licences, and if the goal is for this design to end up in as many hands as
-possible, permissive gets there faster.
+The case against, which is real: `-P` would maximise adoption. Some vendors
+avoid reciprocal licences entirely, and if the only goal were for this design to
+end up in as many hands as possible, permissive would get there faster. That is
+the cost of this choice and it is accepted.
 
-**Current recommendation: CERN-OHL-S 2.0.**
-
-### Firmware: MIT or Apache 2.0
+### Firmware: Apache 2.0
 
 Both permissive, both fine, and the practical difference is narrow.
 
 **Apache 2.0** adds an express patent grant and a patent retaliation clause,
 which matter more once money is involved. **MIT** is shorter and more familiar
-to hobbyists.
+to hobbyists, and that familiarity is the only thing given up here.
 
-**Current recommendation: Apache 2.0**, because the firmware is the part most
-likely to be embedded in something else, and the patent grant is worth the extra
-paragraphs when that happens.
+Apache 2.0 wins because the firmware is the part most likely to end up embedded
+in somebody else's project, and the patent grant is worth the extra paragraphs
+when that happens.
 
 Note the asymmetry: reciprocal hardware, permissive firmware. That is deliberate
 and it is a common pattern. The board is the thing worth protecting from a
@@ -131,21 +140,29 @@ alike. Given that the documentation is the product, that is a real thing to
 accept rather than a formality.
 
 `CC BY-NC-SA` would prevent that, and it is not an open licence by the usual
-definition. It would sit badly under a name whose first letter means open.
-
-**Current recommendation: CC BY-SA 4.0, and accept the consequence.**
+definition. It would sit badly under a name whose first letter means open, so the
+consequence is accepted rather than avoided.
 
 ### Trademark, which is the part licences do not cover
 
 A licence does not stop somebody selling a clone called oApogee. A trademark
-does.
+does, and it is the only thing that does.
 
-The standard open hardware posture, and the one this project intends: **the
-design is open, the name is not.** Build it, sell it, modify it, fork it. Call it
-something else.
+**The design is open. The name is not.** Nothing in the three licences above
+grants any right to use the oApogee name or wordmark.
 
-TODO(confirm): decide whether to register the mark, and publish a short
-trademark policy here once decided.
+Build it, modify it, sell it, fork it. Call it something else.
+
+You may say your product is "based on the oApogee design" or "compatible with
+oApogee", because that is accurate and useful to whoever is buying. You may not
+name it oApogee, brand it as oApogee, or imply that it is an official oApogee
+product.
+
+This is the standard open hardware posture, and it is the only one that survives
+contact with a manufacturer.
+
+TODO(confirm): whether to formally register the mark. The policy above stands
+either way; registration decides how enforceable it is.
 
 ## Status
 

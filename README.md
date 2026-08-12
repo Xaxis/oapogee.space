@@ -94,9 +94,22 @@ The three tiers are oApogee Solo, oApogee Link, and oApogee Track.
 
 ## Licence
 
-Not yet decided. The recommendation, with the tradeoffs laid out, is in
-[NOTES-FOR-WIL.md](NOTES-FOR-WIL.md): CERN-OHL-S for the hardware, Apache 2.0
-for the firmware, CC BY-SA 4.0 for the documentation.
+Three, because this repository holds three different kinds of thing.
+
+| What | Licence | SPDX |
+|---|---|---|
+| Hardware design files | CERN Open Hardware Licence v2, Strongly Reciprocal | `CERN-OHL-S-2.0` |
+| Firmware and software | Apache License 2.0 | `Apache-2.0` |
+| Documentation and content | Creative Commons Attribution-ShareAlike 4.0 | `CC-BY-SA-4.0` |
+
+Full texts in [LICENSES/](LICENSES), and [LICENSE](LICENSE) says which applies
+to which files and why. Reciprocal on the board because the plausible bad
+outcome is a closed volume clone; permissive on the firmware because that is the
+part worth having other people embed everywhere.
+
+**The design is open. The name is not.** Build it, sell it, fork it, call it
+something else. Licences do not stop somebody shipping a clone under this name;
+a trademark does.
 
 A project named for openness that ships a black box loses the audience it was
 built for, so the intent is to publish the KiCad project rather than a PDF

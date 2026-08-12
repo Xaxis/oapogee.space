@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "oApogee: an open source rocket telemetry payload for model rockets, and the documentation that teaches you to build one.",
+  "license": "Apache-2.0",
   "packageManager": "yarn@1.22.22",
   "workspaces": [
     "apps/*"

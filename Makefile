@@ -71,4 +71,4 @@ format: ## Prettier in place
 	yarn prettier --write .
 
 clean: ## Remove build output
-	rm -rf apps/web/.next apps/web/out
+	rm -rf apps/web/.next apps/web/.next-dev apps/web/out
