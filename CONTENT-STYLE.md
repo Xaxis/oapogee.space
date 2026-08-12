@@ -59,8 +59,8 @@ Three markers, used precisely:
 - `TODO(photo)` for an image slot, with a description of what the photo must
   show, not just "photo here".
 
-Every marker gets aggregated into `TODO-VERIFY.md`. A marker with no closing
-condition is not a marker, it is a shrug.
+Every marker is collected onto the site's status page when it builds. A marker
+with no closing condition is not a marker, it is a shrug.
 
 A page full of confident fabricated specs is worse than an empty page. Readers
 in this hobby spend money and fly hardware over other people's heads based on

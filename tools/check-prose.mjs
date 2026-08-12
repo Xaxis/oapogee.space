@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const SCAN_DIRS = ['content', 'data', 'docs']
-const ALSO = ['CONTENT-STYLE.md', 'NOTES-FOR-WIL.md', 'README.md']
+const ALSO = ['CONTENT-STYLE.md', 'CONTRIBUTING.md', 'README.md']
 const SCAN_EXT = new Set(['.md', '.yaml', '.yml'])
 const SKIP_DIRS = new Set(['node_modules', '.git', '.next'])
 

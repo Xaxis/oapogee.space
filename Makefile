@@ -13,7 +13,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help install dev build start lint type-check format \
-        check check-fast prose data links todos check-todos schematic check-schematic clean
+        check check-fast prose data links schematic check-schematic clean
 
 help: ## List available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -34,12 +34,6 @@ data: ## Structured data cross-references resolve and the accuracy contract hold
 links: ## Every internal link resolves, and every anchor exists on its target
 	@node tools/check-links.mjs
 
-todos: ## Regenerate TODO-VERIFY.md from the markers in content, data and docs
-	@node tools/collect-todos.mjs
-
-check-todos: ## TODO-VERIFY.md matches the markers actually in the sources
-	@node tools/collect-todos.mjs --check
-
 hw-deps: ## Install the tscircuit toolchain, isolated from the web workspace on purpose
 	@cd hardware && npm install --silent
 
@@ -55,7 +49,7 @@ schematic: ## Regenerate the system block diagram from data/system.yaml
 check-schematic: ## The committed schematic matches the data it was drawn from
 	@node tools/gen-schematic.mjs --check
 
-check-fast: prose data links check-todos check-schematic lint type-check ## Everything except the site build
+check-fast: prose data links check-schematic lint type-check ## Everything except the site build
 
 check: check-fast build ## Everything CI runs
 

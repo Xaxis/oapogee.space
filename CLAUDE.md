@@ -41,10 +41,11 @@ even if the writing is good.
 
 ```
 content/     Prose pages, Markdown + YAML frontmatter
-data/        Structured source: bom.yaml, tiers.yaml, glossary.yaml
-docs/        Page map, and eventually docs/spec/ for the wire formats
-apps/web/    Next.js site, one renderer of content/ and data/
-tools/       check-prose, check-data, collect-todos
+data/        Structured source: bom, tiers, glossary, preflight, troubleshooting
+docs/        spec/ for the wire formats, open-questions.md, page-map.md
+hardware/    tscircuit circuit source, own node_modules, runs under bun
+apps/web/    Next.js site, one renderer of everything above
+tools/       check-prose, check-data, check-links, gen-schematic, build-hardware
 ```
 
 `content/` and `data/` are canonical. The site renders them and holds no content
@@ -55,12 +56,9 @@ of its own.
 ```bash
 make check       # everything CI runs
 make check-fast  # the same without the site build
-make todos       # regenerate TODO-VERIFY.md
+make hw          # re-render the schematic from hardware/oapogee.tsx
 make dev         # the site, locally
 ```
-
-Run `make todos` after touching any verification marker and commit the result.
-`make check-todos` fails otherwise, so a stale index cannot merge.
 
 ## Things that will bite you
 
@@ -113,5 +111,5 @@ Define jargon on first use and add the term to `data/glossary.yaml`. Comments an
 prose explain *why*, especially where a non-obvious constraint drove the design.
 Full rules in `CONTENT-STYLE.md`.
 
-Open questions and disagreements with the brief go in `NOTES-FOR-WIL.md` rather
-than being silently resolved.
+Open design questions go in `docs/open-questions.md`, in the open, with the
+arguments on both sides, rather than being silently resolved.

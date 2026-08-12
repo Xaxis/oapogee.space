@@ -42,17 +42,35 @@ jobs:
       - name: Internal links and anchors resolve
         run: make links
 
-      # TODO-VERIFY.md is generated. A stale index would quietly understate how
-      # much of this site is unmeasured, which is the one thing it exists to
-      # prevent.
-      - name: Verification index is current
-        run: make check-todos
-
       # The block diagram is generated from the same data as the parts table. A
       # diagram maintained by hand disagrees with the hardware within a month,
       # and nobody notices until a builder follows it.
       - name: Schematic matches the hardware
         run: make check-schematic
+
+  hardware:
+    name: schematic matches the circuit source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # The tscircuit CLI runs under bun. Under node it cannot load a .tsx entry
+      # point at all, and the error it gives says nothing about bun.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Installed here rather than at the root: tscircuit at the root rehoists
+      # the workspace and moves next out of where eslint expects to find it.
+      - run: make hw-deps
+
+      # The committed schematic and netlist are rendered from hardware/. If they
+      # stop matching, the published drawing is describing a board that no longer
+      # exists, which is the failure a generated schematic exists to prevent.
+      - run: make check-hw
 
   web:
     name: site builds

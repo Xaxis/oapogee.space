@@ -82,7 +82,7 @@ every net crosses the part.
 
 ## Open items
 
-Tracked in `TODO-VERIFY.md`, generated from the markers in the source:
+Listed at [oapogee.space/status](https://oapogee.space/status):
 
 - Map every functional pin onto a real package pin, from datasheets.
 - Choose the buck-boost regulator, currently a placeholder part.

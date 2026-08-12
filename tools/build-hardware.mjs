@@ -97,10 +97,20 @@ for (const { format, file } of ARTIFACTS) {
       continue
     }
     // Circuit JSON embeds absolute source paths from the machine that built it,
-    // so comparing it byte for byte fails on every machine but one. Comparing
-    // the schematic and the netlist is what actually catches a drifted design.
+    // so it can never match byte for byte on a second machine.
     if (format === 'circuit-json') continue
-    if (!readFileSync(target).equals(produced)) stale.push(`${file} does not match the source`)
+
+    // The KiCad export mints 223 fresh UUIDs on every run, so a byte comparison
+    // reports a change that is not one. Normalising them still catches a real
+    // design change, because a moved net changes far more than identifiers.
+    const normalise = (buf) =>
+      format === 'kicad_sch'
+        ? buf.toString('utf8').replace(/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/g, '<uuid>')
+        : buf.toString('utf8')
+
+    if (normalise(readFileSync(target)) !== normalise(produced)) {
+      stale.push(`${file} does not match the source`)
+    }
   } else {
     writeFileSync(target, produced)
     console.log(`  ${file}  ${(produced.length / 1024).toFixed(0)} kB`)

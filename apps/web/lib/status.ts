@@ -124,9 +124,15 @@ function walk(dir: string, acc: string[] = []): string[] {
   return acc
 }
 
+const MARKER_SOURCES = () => [
+  ...walk(CONTENT_DIR),
+  ...walk(DATA_DIR),
+  ...walk(join(DOCS_DIR, 'spec')),
+]
+
 export function repoMarkerTotals(): MarkerCount {
   const totals: MarkerCount = { verify: 0, confirmOnHardware: 0, confirm: 0, photo: 0, total: 0 }
-  for (const file of [...walk(CONTENT_DIR), ...walk(DATA_DIR), ...walk(join(DOCS_DIR, 'spec'))]) {
+  for (const file of MARKER_SOURCES()) {
     const m = countMarkers(readFileSync(file, 'utf8'))
     totals.verify += m.verify
     totals.confirmOnHardware += m.confirmOnHardware
@@ -135,4 +141,58 @@ export function repoMarkerTotals(): MarkerCount {
     totals.total += m.total
   }
   return totals
+}
+
+export type Marker = { kind: string; file: string; line: number; text: string }
+
+const KINDS = ['verify', 'confirm-on-hardware', 'confirm', 'photo'] as const
+
+/**
+ * Every unverified claim in the repository, read from the sources at build time.
+ *
+ * This used to be a generated Markdown file at the repository root, checked in
+ * and validated by CI so it could not go stale. Reading the sources directly is
+ * strictly better: it cannot go stale by construction, it needs no check, and it
+ * removes a generated artifact from the root of a repository that people are
+ * meant to be able to read.
+ *
+ * A marker's text runs from its introducer to the end of its block. In YAML that
+ * is a folded scalar continuing until dedent or the next key; in Markdown it is
+ * the rest of the paragraph. One heuristic covers both.
+ */
+export function repoMarkers(): Marker[] {
+  const out: Marker[] = []
+
+  for (const path of MARKER_SOURCES()) {
+    const file = path.slice(path.indexOf('/oapogee.space/') + '/oapogee.space/'.length)
+    const lines = readFileSync(path, 'utf8').split('\n')
+
+    for (let i = 0; i < lines.length; i++) {
+      const kind = KINDS.find((k) => lines[i].includes(`TODO(${k})`))
+      if (!kind) continue
+
+      const marker = `TODO(${kind})`
+      const parts = [lines[i].slice(lines[i].indexOf(marker) + marker.length)]
+
+      for (let j = i + 1; j < lines.length; j++) {
+        const next = lines[j]
+        if (!next.trim()) break
+        if (/^\s*#/.test(next)) break
+        if (/^\s*-?\s*[A-Za-z_][\w-]*:(\s|$)/.test(next)) break
+        if (/^\s*[-*]\s/.test(next)) break
+        if (/^#{1,6}\s/.test(next)) break
+        if (KINDS.some((k) => next.includes(`TODO(${k})`))) break
+        parts.push(next)
+        i = j
+      }
+
+      out.push({
+        kind,
+        file,
+        line: i + 1,
+        text: parts.join(' ').replace(/^[:\s>]+/, '').replace(/\s+/g, ' ').replace(/["']$/, '').trim(),
+      })
+    }
+  }
+  return out
 }

@@ -57,9 +57,9 @@ Dates are ISO. Versions follow the repository's `VERSION` file.
 
 ### Not yet decided
 
-- Whether the high-g accelerometer belongs at Link and above, as the project
-  brief specifies, or as an option at every tier driven by motor class. See
-  `NOTES-FOR-WIL.md`.
+- Whether the high-g accelerometer belongs at Link and above, or as an option
+  at every tier driven by motor class. These and the rest are argued out in
+  [docs/open-questions.md](docs/open-questions.md).
 - Whether the ground station display uses WebSerial, which excludes iOS
   entirely.
 - Complementary filter or Kalman filter for the sensor fusion.
@@ -68,6 +68,6 @@ Dates are ISO. Versions follow the repository's `VERSION` file.
 
 **Nothing has been fabricated, assembled, weighed, priced, or flown.** Every
 cost, mass, range and endurance figure on the site is absent rather than
-estimated, and each gap records what evidence would close it. See
-[TODO-VERIFY.md](TODO-VERIFY.md), which is generated from the content files and
-checked in the build.
+estimated, and each gap records what evidence would close it. The full list is
+at [oapogee.space/status](https://oapogee.space/status), read from the content
+files at build time so it cannot go stale.

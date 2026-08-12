@@ -67,12 +67,15 @@ build rather than producing a warning nobody reads.
 | `make prose` | No em dashes, no emoji, and the name is never shortened |
 | `make data` | Part, tier and glossary cross-references resolve; frontmatter is complete; a null price carries a marker; no page claims `verified` with open markers |
 | `make links` | Every internal link resolves, including its anchor |
-| `make check-todos` | `TODO-VERIFY.md` matches the markers actually in the sources |
 | `make check-schematic` | The committed diagram matches `data/system.yaml` |
 
-After editing content, run `make todos` and commit the regenerated
-`TODO-VERIFY.md`. After editing `data/system.yaml`, run `make schematic` and
-commit the regenerated SVG. Both are checked, so a stale one cannot merge.
+After editing `data/system.yaml`, run `make schematic` and commit the
+regenerated SVG. After editing `hardware/oapogee.tsx`, run `make hw`. Both are
+checked, so a stale one cannot merge.
+
+Verification markers need no regeneration step: they are read from the content
+files when the site is built and listed at
+[oapogee.space/status](https://oapogee.space/status).
 
 ## Where things live
 

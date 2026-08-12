@@ -1,6 +1,33 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { pageStatuses, repoMarkerTotals } from '@/lib/status'
+import { pageStatuses, repoMarkerTotals, repoMarkers } from '@/lib/status'
+
+// Ordered by how close each kind is to being closeable: sourcing is desk work,
+// hardware needs a fabricated board, photos need a finished one.
+const MARKER_GROUPS = [
+  {
+    kind: 'verify',
+    heading: 'Needs a source or a measurement',
+    blurb:
+      'A number, price, link, or claim that is absent rather than guessed. Each says what evidence would close it.',
+  },
+  {
+    kind: 'confirm-on-hardware',
+    heading: 'Needs the physical hardware',
+    blurb:
+      'Procedures written out but never performed on a real board. No page containing one can be marked verified.',
+  },
+  {
+    kind: 'confirm',
+    heading: 'Needs a decision',
+    blurb: 'Open design questions, waiting on a maintainer call rather than on evidence.',
+  },
+  {
+    kind: 'photo',
+    heading: 'Needs a photograph',
+    blurb: 'Image slots, each describing what the photograph has to show.',
+  },
+]
 
 export const metadata: Metadata = {
   title: 'Status',
@@ -19,6 +46,7 @@ const CHIP: Record<string, string> = {
 export default function Status() {
   const rows = pageStatuses()
   const totals = repoMarkerTotals()
+  const markers = repoMarkers()
   const written = rows.filter((r) => r.status !== 'not written').length
   const verified = rows.filter((r) => r.status === 'verified').length
 
@@ -131,18 +159,60 @@ export default function Status() {
         <h2 className="text-xl font-semibold text-white">Why so much is missing</h2>
         <p className="mt-3 text-[var(--color-muted)]">
           The hardware is a design on paper. Nothing has been fabricated, assembled, weighed,
-          priced, or flown. Each of the {totals.total} markers counted above is a place where a
-          specific number was deliberately left out rather than guessed at, and each records what
-          evidence would close it.
+          priced, or flown. Each of the {totals.total} markers below is a place where a specific
+          number was deliberately left out rather than guessed at, and each records what evidence
+          would close it.
         </p>
         <p className="mt-3 text-[var(--color-muted)]">
-          The full list lives in{' '}
-          <a href="https://github.com/Xaxis/oapogee.space/blob/main/TODO-VERIFY.md">
-            TODO-VERIFY.md
-          </a>
-          , generated from the content files and checked in the build, so it cannot drift out of
-          date.
+          This list is read from the content files when the site is built, so it cannot go stale.
+          Closing one means doing the measurement, not editing an index.
         </p>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-semibold text-white">Every open question</h2>
+        <div className="mt-6 flex flex-col gap-10">
+          {MARKER_GROUPS.map((group) => {
+            const mine = markers.filter((m) => m.kind === group.kind)
+            if (!mine.length) return null
+
+            const byFile = new Map<string, typeof mine>()
+            for (const m of mine) {
+              if (!byFile.has(m.file)) byFile.set(m.file, [])
+              byFile.get(m.file)!.push(m)
+            }
+
+            return (
+              <div key={group.kind} id={group.kind} className="scroll-mt-24">
+                <h3 className="text-lg font-semibold text-white">{group.heading}</h3>
+                <p className="mt-1 max-w-2xl text-sm text-[var(--color-muted)]">{group.blurb}</p>
+
+                <div className="mt-5 flex flex-col gap-6">
+                  {[...byFile.entries()].sort().map(([file, entries]) => (
+                    <div key={file}>
+                      <a
+                        href={`https://github.com/Xaxis/oapogee.space/blob/main/${file}`}
+                        className="font-mono text-xs !text-[var(--color-dim)] hover:!text-white"
+                      >
+                        {file}
+                      </a>
+                      <ul className="mt-2 flex max-w-3xl flex-col gap-2">
+                        {entries.map((m) => (
+                          <li key={`${m.file}:${m.line}`} className="flex gap-3 text-sm">
+                            <span className="shrink-0 font-mono text-xs text-[var(--color-dim)]">
+                              L{m.line}
+                            </span>
+                            <span className="text-[var(--color-muted)]">{m.text}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </section>
     </div>
   )

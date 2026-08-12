@@ -14,8 +14,6 @@
     "start": "yarn workspace @oapogee/web start",
     "lint": "yarn workspace @oapogee/web lint",
     "type-check": "yarn workspace @oapogee/web type-check",
-    "todos": "node tools/collect-todos.mjs",
-    "check:todos": "node tools/collect-todos.mjs --check",
     "check:prose": "node tools/check-prose.mjs",
     "check:data": "node tools/check-data.mjs",
     "check": "make check"

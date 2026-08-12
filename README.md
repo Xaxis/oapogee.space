@@ -18,8 +18,11 @@ That is a design boundary and it will not change. See
 **This is a design on paper.** Nothing has been fabricated, assembled, weighed,
 priced, or flown. Every cost, mass, range and endurance figure on the site is
 missing rather than estimated, and each gap records what evidence would close
-it. See [TODO-VERIFY.md](TODO-VERIFY.md), which is generated from the content
-files and checked in CI.
+it. The full list is at [oapogee.space/status](https://oapogee.space/status),
+read from the content files when the site is built so it cannot go stale.
+
+Design decisions that are still open are in
+[docs/open-questions.md](docs/open-questions.md).
 
 ## The rule everything else follows from
 
@@ -64,11 +67,8 @@ make install     # dependencies, pinned to match CI
 make dev         # the site, locally
 make check       # everything CI runs
 make check-fast  # the same without the site build
-make todos       # regenerate TODO-VERIFY.md after editing content
+make hw          # re-render the schematic from hardware/oapogee.tsx
 ```
-
-Run `make todos` after adding or closing a verification marker and commit the
-result. `make check-todos` fails otherwise.
 
 ## Contributing
 
@@ -77,9 +77,9 @@ wrong. The safety and regulatory pages in particular are written carefully and
 have not been reviewed by anyone with formal expertise in the rules they
 describe.
 
-Read [CONTENT-STYLE.md](CONTENT-STYLE.md) before writing anything. It covers the
-accuracy rule, the voice, and the naming conventions, all of which are enforced
-in CI.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first, then
+[CONTENT-STYLE.md](CONTENT-STYLE.md). Between them they cover the accuracy rule,
+the voice, and the naming conventions, all of which are enforced in CI.
 
 ## Naming
 

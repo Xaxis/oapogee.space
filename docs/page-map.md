@@ -80,11 +80,10 @@ that lives in `docs/spec/`, so there is exactly one copy.
 
 **Status at `/status` [added].** This is the page that makes the accuracy rule
 visible instead of merely internal. It lists every page, its `status` value, and
-its open `TODO(verify)` count, generated from frontmatter. Given that the
+every open marker, read from the content files at build time. Given that the
 hardware does not exist yet, a reader landing on this site deserves to see the
-project's actual maturity in one click rather than inferring it. It also makes
-`TODO-VERIFY.md` self-maintaining: the page is the index, the file is a build
-artifact of it.
+project's actual maturity in one click rather than inferring it. Being generated
+at build time, it is the index and cannot go stale.
 
 **Changelog at `/changelog` [added].** Errata for a flight computer are safety
 information. If a firmware release changes an apogee detection threshold,
