@@ -111,12 +111,25 @@ const browser = spawn(
     '--no-default-browser-check',
     '--disable-gpu',
     '--hide-scrollbars',
+    // CI runners run as a user without the kernel namespaces Chrome's sandbox
+    // needs, and /dev/shm is small in containers. Without these the browser
+    // exits before it opens the debug port, and the only symptom is a timeout
+    // that says nothing about why.
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
     `--remote-debugging-port=${DEBUG_PORT}`,
     '--user-data-dir=/tmp/oapogee-responsive-profile',
     'about:blank',
   ],
-  { stdio: 'ignore' }
+  { stdio: ['ignore', 'ignore', 'pipe'] }
 )
+
+// Kept so a startup failure can say what the browser actually complained about
+// rather than only that it never appeared.
+let browserStderr = ''
+browser.stderr.on('data', (chunk) => {
+  browserStderr += chunk.toString()
+})
 
 const cleanup = () => {
   try {
@@ -134,7 +147,13 @@ process.on('SIGINT', () => {
   process.exit(130)
 })
 
-const version = await waitFor(`http://127.0.0.1:${DEBUG_PORT}/json/version`)
+const version = await waitFor(`http://127.0.0.1:${DEBUG_PORT}/json/version`).catch((e) => {
+  console.error(`Chrome never opened its debug port: ${e.message}`)
+  console.error(`  binary: ${chrome}`)
+  if (browserStderr.trim()) console.error(browserStderr.trim().split('\n').slice(-12).join('\n'))
+  cleanup()
+  process.exit(1)
+})
 const ws = new WebSocket(version.webSocketDebuggerUrl)
 await new Promise((resolve, reject) => {
   ws.onopen = resolve
