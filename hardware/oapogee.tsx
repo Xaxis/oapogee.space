@@ -1,0 +1,392 @@
+/**
+ * oApogee payload, functional schematic.
+ *
+ * READ THIS BEFORE USING ANY PART OF IT
+ *
+ * This is a netlist, not a pinout. It says what connects to what, which is the
+ * design decision worth capturing and reviewing. It does NOT say which physical
+ * pin of any package a signal lands on, and the pin numbers below are
+ * structural placeholders assigned in the order the labels are written, not
+ * read from a datasheet.
+ *
+ * That distinction is the whole reason this file exists in this form. This
+ * project's rule is that it never publishes a number it has not measured or
+ * sourced, and a datasheet pin number recalled from memory is exactly the kind
+ * of confident, plausible, wrong figure the rule exists to prevent. Mapping
+ * these functional pins onto real packages is a separate step, done against
+ * datasheets, and it is tracked as such.
+ *
+ * So: the connectivity here is reviewable and is meant to be reviewed. The pin
+ * numbers are not. Do not lay a board out from this file and do not send it to
+ * a fabricator.
+ *
+ * One board, three tiers. Everything is on the same schematic because that is
+ * the claim the project makes: Solo, Link and Track are the same PCB with
+ * different footprints populated, and a schematic that showed three different
+ * boards would quietly contradict it. Tier membership is in the comment above
+ * each block and in data/system.yaml.
+ *
+ * Cross-checked against data/bom.yaml by tools/check-hardware.mjs: every chip
+ * here names a part that exists in the bill of materials, and every part in the
+ * bill of materials that belongs on the board appears here.
+ */
+
+export default () => (
+  <board width="22mm" height="60mm" routingDisabled>
+    {/* ---------------------------------------------------------------------
+        Power. USB-C in, charger, cell, 3V3 rail.
+
+        A single lithium cell runs from about 4.2 V down to about 3.0 V, which
+        crosses 3.3 V partway through the discharge. A plain buck browns out at
+        the bottom and a plain LDO wastes headroom at the top, so the rail is a
+        buck-boost. Tiers: all.
+        --------------------------------------------------------------------- */}
+
+    <chip
+      name="J1"
+      manufacturerPartNumber="USB-C-16P"
+      pinLabels={{ pin1: 'VBUS', pin2: 'GND', pin3: 'DP', pin4: 'DM', pin5: 'CC1', pin6: 'CC2' }}
+      schX={-20}
+      schY={-8}
+    />
+
+    {/* USB-C sinks advertise their current draw with two 5.1k pulldowns, one
+        per CC line. Without them a compliant source supplies nothing and the
+        board looks dead on a good cable, which is indistinguishable from the
+        much more common charge-only-cable fault. */}
+    <resistor name="R1" resistance="5.1k" schX={-20} schY={-12} />
+    <resistor name="R2" resistance="5.1k" schX={-20} schY={-13.5} />
+
+    <chip
+      name="U1"
+      manufacturerPartNumber="MCP73831"
+      pinLabels={{ pin1: 'STAT', pin2: 'VSS', pin3: 'VBAT', pin4: 'VDD', pin5: 'PROG' }}
+      schX={-15}
+      schY={-8}
+    />
+
+    {/* Sets the charge current. The value is not chosen yet: it follows from
+        the cell capacity, which follows from the endurance requirement, which
+        follows from measured current draw. All three are open. */}
+    <resistor name="R3" resistance="10k" schX={-15} schY={-11} />
+
+    <chip
+      name="J2"
+      manufacturerPartNumber="S2B-PH-K-S"
+      pinLabels={{ pin1: 'VBAT', pin2: 'GND' }}
+      schX={-15}
+      schY={-14}
+    />
+
+    <chip
+      name="U2"
+      manufacturerPartNumber="TODO-BUCK-BOOST"
+      pinLabels={{ pin1: 'VIN', pin2: 'GND', pin3: 'EN', pin4: 'VOUT' }}
+      schX={-10}
+      schY={-8}
+    />
+
+    <capacitor name="C1" capacitance="10uF" schX={-12} schY={-11} />
+    <capacitor name="C2" capacitance="10uF" schX={-8} schY={-11} />
+
+    {/* ---------------------------------------------------------------------
+        Compute. RP2350 and its QSPI flash.
+
+        Drag-and-drop UF2 flashing is why this family was chosen: a first-time
+        builder installs no toolchain to get a working payload, and that removes
+        the most common place people give up. Tiers: all.
+        --------------------------------------------------------------------- */}
+
+    <chip
+      name="U3"
+      manufacturerPartNumber="RP2350A"
+      pinLabels={{
+        pin1: 'VDD',
+        pin2: 'GND',
+        pin3: 'USB_DP',
+        pin4: 'USB_DM',
+        pin5: 'QSPI_SCK',
+        pin6: 'QSPI_CS',
+        pin7: 'QSPI_D0',
+        pin8: 'QSPI_D1',
+        pin9: 'QSPI_D2',
+        pin10: 'QSPI_D3',
+        pin11: 'SDA',
+        pin12: 'SCL',
+        pin13: 'SPI_SCK',
+        pin14: 'SPI_MOSI',
+        pin15: 'SPI_MISO',
+        pin16: 'CS_IMU',
+        pin17: 'CS_HIGHG',
+        pin18: 'CS_RADIO',
+        pin19: 'RADIO_BUSY',
+        pin20: 'RADIO_DIO1',
+        pin21: 'GNSS_TX',
+        pin22: 'GNSS_RX',
+        pin23: 'BUZZER',
+        pin24: 'LED',
+        pin25: 'VBAT_SENSE',
+        pin26: 'RUN',
+      }}
+      schX={0}
+      schY={0}
+      schWidth={4.4}
+      schHeight={9}
+      /* Pins grouped by what they do and placed on the side they leave towards,
+         so the sheet reads the same way the block diagram does: power and the
+         host connection on the left, sensors and outputs on the right. Left to
+         the default the pins land in declaration order on two sides and every
+         net crosses the part. */
+      schPinArrangement={{
+        leftSide: {
+          direction: 'top-to-bottom',
+          pins: [
+            'VDD',
+            'GND',
+            'USB_DP',
+            'USB_DM',
+            'VBAT_SENSE',
+            'RUN',
+            'QSPI_SCK',
+            'QSPI_CS',
+            'QSPI_D0',
+            'QSPI_D1',
+            'QSPI_D2',
+            'QSPI_D3',
+          ],
+        },
+        rightSide: {
+          direction: 'top-to-bottom',
+          pins: [
+            'SDA',
+            'SCL',
+            'SPI_SCK',
+            'SPI_MOSI',
+            'SPI_MISO',
+            'CS_IMU',
+            'CS_HIGHG',
+            'CS_RADIO',
+            'RADIO_BUSY',
+            'RADIO_DIO1',
+            'GNSS_TX',
+            'GNSS_RX',
+            'BUZZER',
+            'LED',
+          ],
+        },
+      }}
+    />
+
+    <capacitor name="C3" capacitance="100nF" schX={-6} schY={-3} />
+
+    {/* Soldered down, deliberately. A microSD card is held in by a friction
+        detent and boost acceleration is enough to unseat one, with the worst
+        failure mode available: the flight proceeds normally and the data is
+        gone. Tiers: all. */}
+    <chip
+      name="U4"
+      manufacturerPartNumber="W25Q128JVSIQ"
+      pinLabels={{
+        pin1: 'CS',
+        pin2: 'DO',
+        pin3: 'WP',
+        pin4: 'GND',
+        pin5: 'DI',
+        pin6: 'CLK',
+        pin7: 'HOLD',
+        pin8: 'VCC',
+      }}
+      schX={-7}
+      schY={4}
+    />
+
+    {/* ---------------------------------------------------------------------
+        Sensing.
+
+        The barometer sits on I2C and the high rate parts sit on SPI, so the
+        sample rate is not limited by the bus. Tiers: baro and IMU on all,
+        high-g on Link and Track.
+        --------------------------------------------------------------------- */}
+
+    <chip
+      name="U5"
+      manufacturerPartNumber="BMP390"
+      pinLabels={{ pin1: 'VDD', pin2: 'GND', pin3: 'SDA', pin4: 'SCL', pin5: 'SDO' }}
+      schX={8}
+      schY={7}
+    />
+
+    {/* One set of pull-ups on the bus, on the board. On the Modules path each
+        breakout brings its own and several in parallel load the bus enough to
+        stop it working, which presents as intermittent dropouts. */}
+    <resistor name="R4" resistance="4.7k" schX={12} schY={9} />
+    <resistor name="R5" resistance="4.7k" schX={12} schY={10.5} />
+
+    <chip
+      name="U6"
+      manufacturerPartNumber="ICM-42688-P"
+      pinLabels={{
+        pin1: 'VDD',
+        pin2: 'GND',
+        pin3: 'SCLK',
+        pin4: 'SDI',
+        pin5: 'SDO',
+        pin6: 'CS',
+        pin7: 'INT1',
+      }}
+      schX={8}
+      schY={3}
+    />
+
+    {/* A general purpose IMU tops out around 16 g and reports its maximum
+        rather than an error, so boost above a C motor comes back as a flat
+        plateau that looks like data. This part is why the boost phase means
+        anything. Tiers: Link, Track. */}
+    <chip
+      name="U7"
+      manufacturerPartNumber="ADXL375"
+      pinLabels={{
+        pin1: 'VDD',
+        pin2: 'GND',
+        pin3: 'SCLK',
+        pin4: 'SDI',
+        pin5: 'SDO',
+        pin6: 'CS',
+      }}
+      schX={8}
+      schY={-1}
+    />
+
+    {/* ---------------------------------------------------------------------
+        Radio. Tiers: Link, Track.
+        --------------------------------------------------------------------- */}
+
+    <chip
+      name="U8"
+      manufacturerPartNumber="SX1262"
+      pinLabels={{
+        pin1: 'VDD',
+        pin2: 'GND',
+        pin3: 'SCK',
+        pin4: 'MOSI',
+        pin5: 'MISO',
+        pin6: 'NSS',
+        pin7: 'BUSY',
+        pin8: 'DIO1',
+        pin9: 'ANT',
+      }}
+      schX={8}
+      schY={-5}
+    />
+
+    <chip
+      name="J3"
+      manufacturerPartNumber="ANT-902-928"
+      pinLabels={{ pin1: 'ANT', pin2: 'GND' }}
+      schX={13}
+      schY={-5}
+    />
+
+    {/* ---------------------------------------------------------------------
+        Position. Tiers: Track.
+
+        The receiver defaults to a dynamic platform model that assumes ground
+        vehicle behaviour and rejects its own solutions under rocket
+        acceleration. The airborne model has to be configured in firmware; no
+        amount of correct wiring fixes it.
+        --------------------------------------------------------------------- */}
+
+    <chip
+      name="U9"
+      manufacturerPartNumber="MAX-M10S"
+      pinLabels={{ pin1: 'VCC', pin2: 'GND', pin3: 'TXD', pin4: 'RXD', pin5: 'RF_IN' }}
+      schX={8}
+      schY={-9}
+    />
+
+    {/* ---------------------------------------------------------------------
+        Recovery aids. Tiers: all.
+
+        On a Solo build the buzzer is the only recovery aid there is, so it
+        earns its mass.
+        --------------------------------------------------------------------- */}
+
+    <chip
+      name="LS1"
+      manufacturerPartNumber="PIEZO-BUZZER"
+      pinLabels={{ pin1: 'IN', pin2: 'GND' }}
+      schX={8}
+      schY={-13}
+    />
+
+    <chip
+      name="D1"
+      manufacturerPartNumber="RGB-LED"
+      pinLabels={{ pin1: 'DIN', pin2: 'VDD', pin3: 'GND', pin4: 'DOUT' }}
+      schX={8}
+      schY={-16}
+    />
+
+    {/* ---------------------------------------------------------------------
+        Nets.
+        --------------------------------------------------------------------- */}
+
+    {/* Power path: USB in, charge, cell, rail. */}
+    <trace from=".J1 .VBUS" to=".U1 .VDD" />
+    <trace from=".J1 .CC1" to=".R1 .pin1" />
+    <trace from=".J1 .CC2" to=".R2 .pin1" />
+    <trace from=".U1 .PROG" to=".R3 .pin1" />
+    <trace from=".U1 .VBAT" to=".J2 .VBAT" />
+    <trace from=".U1 .VBAT" to=".U2 .VIN" />
+    <trace from=".U2 .VIN" to=".C1 .pin1" />
+    <trace from=".U2 .VOUT" to=".C2 .pin1" />
+
+    {/* USB data straight to the microcontroller. One connector does power,
+        charging, configuration and offload. */}
+    <trace from=".J1 .DP" to=".U3 .USB_DP" />
+    <trace from=".J1 .DM" to=".U3 .USB_DM" />
+
+    {/* QSPI flash. */}
+    <trace from=".U3 .QSPI_SCK" to=".U4 .CLK" />
+    <trace from=".U3 .QSPI_CS" to=".U4 .CS" />
+    <trace from=".U3 .QSPI_D0" to=".U4 .DI" />
+    <trace from=".U3 .QSPI_D1" to=".U4 .DO" />
+    <trace from=".U3 .QSPI_D2" to=".U4 .WP" />
+    <trace from=".U3 .QSPI_D3" to=".U4 .HOLD" />
+
+    {/* I2C, barometer. */}
+    <trace from=".U3 .SDA" to=".U5 .SDA" />
+    <trace from=".U3 .SCL" to=".U5 .SCL" />
+    <trace from=".U5 .SDA" to=".R4 .pin1" />
+    <trace from=".U5 .SCL" to=".R5 .pin1" />
+
+    {/* SPI bus, shared by the IMU, the high-g part and the radio, with a chip
+        select each. */}
+    <trace from=".U3 .SPI_SCK" to=".U6 .SCLK" />
+    <trace from=".U3 .SPI_MOSI" to=".U6 .SDI" />
+    <trace from=".U3 .SPI_MISO" to=".U6 .SDO" />
+    <trace from=".U3 .CS_IMU" to=".U6 .CS" />
+
+    <trace from=".U3 .SPI_SCK" to=".U7 .SCLK" />
+    <trace from=".U3 .SPI_MOSI" to=".U7 .SDI" />
+    <trace from=".U3 .SPI_MISO" to=".U7 .SDO" />
+    <trace from=".U3 .CS_HIGHG" to=".U7 .CS" />
+
+    <trace from=".U3 .SPI_SCK" to=".U8 .SCK" />
+    <trace from=".U3 .SPI_MOSI" to=".U8 .MOSI" />
+    <trace from=".U3 .SPI_MISO" to=".U8 .MISO" />
+    <trace from=".U3 .CS_RADIO" to=".U8 .NSS" />
+    <trace from=".U3 .RADIO_BUSY" to=".U8 .BUSY" />
+    <trace from=".U3 .RADIO_DIO1" to=".U8 .DIO1" />
+    <trace from=".U8 .ANT" to=".J3 .ANT" />
+
+    {/* GNSS on a UART. Crossed, because TX on one end is RX on the other, and
+        this is the single most common wiring mistake on a serial link. */}
+    <trace from=".U3 .GNSS_TX" to=".U9 .RXD" />
+    <trace from=".U3 .GNSS_RX" to=".U9 .TXD" />
+
+    {/* Recovery aids. */}
+    <trace from=".U3 .BUZZER" to=".LS1 .IN" />
+    <trace from=".U3 .LED" to=".D1 .DIN" />
+  </board>
+)

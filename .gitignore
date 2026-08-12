@@ -24,3 +24,7 @@ dist/
 *.iml
 .DS_Store
 .vscode/
+
+# tscircuit keeps its own node_modules, outside the yarn workspace
+hardware/node_modules/
+hardware/.build/

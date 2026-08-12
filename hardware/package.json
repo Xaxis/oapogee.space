@@ -1,0 +1,12 @@
+{
+  "name": "@oapogee/hardware",
+  "version": "0.1.0",
+  "private": true,
+  "description": "tscircuit source for the oApogee payload. Deliberately outside the yarn workspace: installing tscircuit at the repository root rehoists node_modules and moves next out of where eslint expects it, breaking lint and build for everyone who has never opened a schematic. This directory keeps its own node_modules and is installed on demand by `make hw-deps`.",
+  "scripts": {
+    "postinstall": "echo '  tscircuit installed. Run `make hw` from the repository root.'"
+  },
+  "devDependencies": {
+    "tscircuit": "0.0.2308"
+  }
+}

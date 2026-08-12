@@ -40,6 +40,15 @@ todos: ## Regenerate TODO-VERIFY.md from the markers in content, data and docs
 check-todos: ## TODO-VERIFY.md matches the markers actually in the sources
 	@node tools/collect-todos.mjs --check
 
+hw-deps: ## Install the tscircuit toolchain, isolated from the web workspace on purpose
+	@cd hardware && npm install --silent
+
+hw: ## Render the circuit source to schematic, netlist, circuit JSON and KiCad
+	@node tools/build-hardware.mjs
+
+check-hw: ## The committed hardware artifacts match hardware/oapogee.tsx
+	@node tools/build-hardware.mjs --check
+
 schematic: ## Regenerate the system block diagram from data/system.yaml
 	@node tools/gen-schematic.mjs
 

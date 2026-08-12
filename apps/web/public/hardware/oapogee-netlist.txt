@@ -1,0 +1,302 @@
+COMPONENTS:
+ - J1: USB-C-16P
+ - R1: 5.1kΩ resistor
+ - R2: 5.1kΩ resistor
+ - U1: MCP73831
+ - R3: 10kΩ resistor
+ - J2: S2B-PH-K-S
+ - U2: TODO-BUCK-BOOST
+ - C1: 10uF capacitor
+ - C2: 10uF capacitor
+ - U3: RP2350A
+ - C3: 100nF capacitor
+ - U4: W25Q128JVSIQ
+ - U5: BMP390
+ - R4: 4.7kΩ resistor
+ - R5: 4.7kΩ resistor
+ - U6: ICM-42688-P
+ - U7: ADXL375
+ - U8: SX1262
+ - J3: ANT-902-928
+ - U9: MAX-M10S
+ - LS1: PIEZO-BUZZER
+ - D1: RGB-LED
+
+NET: U1_VDD
+  - J1 VBUS
+  - U1 VDD
+
+NET: R1_pos
+  - J1 CC1
+  - R1 pin1
+
+NET: R2_pos
+  - J1 CC2
+  - R2 pin1
+
+NET: U1_PROG
+  - U1 PROG
+  - R3 pin1
+
+NET: U1_VBAT
+  - U1 VBAT
+  - J2 VBAT
+  - U2 VIN
+  - C1 pin1 (+)
+
+NET: U2_VOUT
+  - U2 VOUT
+  - C2 pin1 (+)
+
+NET: J1_DP
+  - J1 DP
+  - U3 USB_DP
+
+NET: J1_DM
+  - J1 DM
+  - U3 USB_DM
+
+NET: U3_QSPI_SCK
+  - U3 QSPI_SCK
+  - U4 CLK
+
+NET: U3_QSPI_CS
+  - U3 QSPI_CS
+  - U4 CS
+
+NET: U4_DI
+  - U3 QSPI_D0
+  - U4 DI
+
+NET: U4_DO
+  - U3 QSPI_D1
+  - U4 DO
+
+NET: U4_WP
+  - U3 QSPI_D2
+  - U4 WP
+
+NET: U4_HOLD
+  - U3 QSPI_D3
+  - U4 HOLD
+
+NET: U3_SDA
+  - U3 SDA
+  - U5 SDA
+  - R4 pin1
+
+NET: U3_SCL
+  - U3 SCL
+  - U5 SCL
+  - R5 pin1
+
+NET: U3_CS_IMU
+  - U3 CS_IMU
+  - U6 CS
+
+NET: U3_CS_HIGHG
+  - U3 CS_HIGHG
+  - U7 CS
+
+NET: U6_SCLK
+  - U3 SPI_SCK
+  - U6 SCLK
+  - U7 SCLK
+  - U8 SCK
+
+NET: U3_SPI_MOSI
+  - U3 SPI_MOSI
+  - U6 SDI
+  - U7 SDI
+  - U8 MOSI
+
+NET: U3_SPI_MISO
+  - U3 SPI_MISO
+  - U6 SDO
+  - U7 SDO
+  - U8 MISO
+
+NET: U3_CS_RADIO
+  - U3 CS_RADIO
+  - U8 NSS
+
+NET: U3_RADIO_BUSY
+  - U3 RADIO_BUSY
+  - U8 BUSY
+
+NET: U3_RADIO_DIO1
+  - U3 RADIO_DIO1
+  - U8 DIO1
+
+NET: U8_ANT
+  - U8 ANT
+  - J3 ANT
+
+NET: U3_GNSS_TX
+  - U3 GNSS_TX
+  - U9 RXD
+
+NET: U3_GNSS_RX
+  - U3 GNSS_RX
+  - U9 TXD
+
+NET: U3_BUZZER
+  - U3 BUZZER
+  - LS1 IN
+
+NET: U3_LED
+  - U3 LED
+  - D1 DIN
+
+
+COMPONENT_PINS:
+J1 (USB-C-16P)
+- pin1(VBUS): NETS(U1_VDD)
+- pin2(GND): NOT_CONNECTED
+- pin3(DP): NETS(J1_DP)
+- pin4(DM): NETS(J1_DM)
+- pin5(CC1): NETS(R1_pos)
+- pin6(CC2): NETS(R2_pos)
+
+R1 (5.1kΩ undefined)
+- pin1(anode, pos, left): NETS(R1_pos)
+- pin2(cathode, neg, right): NOT_CONNECTED
+
+R2 (5.1kΩ undefined)
+- pin1(anode, pos, left): NETS(R2_pos)
+- pin2(cathode, neg, right): NOT_CONNECTED
+
+U1 (MCP73831)
+- pin1(STAT): NOT_CONNECTED
+- pin2(VSS): NOT_CONNECTED
+- pin3(VBAT): NETS(U1_VBAT)
+- pin4(VDD): NETS(U1_VDD)
+- pin5(PROG): NETS(U1_PROG)
+
+R3 (10kΩ undefined)
+- pin1(anode, pos, left): NETS(U1_PROG)
+- pin2(cathode, neg, right): NOT_CONNECTED
+
+J2 (S2B-PH-K-S)
+- pin1(VBAT): NETS(U1_VBAT)
+- pin2(GND): NOT_CONNECTED
+
+U2 (TODO-BUCK-BOOST)
+- pin1(VIN): NETS(U1_VBAT)
+- pin2(GND): NOT_CONNECTED
+- pin3(EN): NOT_CONNECTED
+- pin4(VOUT): NETS(U2_VOUT)
+
+C1 (10uF undefined)
+- pin1(pos): NETS(U1_VBAT)
+- pin2(neg): NOT_CONNECTED
+
+C2 (10uF undefined)
+- pin1(pos): NETS(U2_VOUT)
+- pin2(neg): NOT_CONNECTED
+
+U3 (RP2350A)
+- pin1(VDD): NOT_CONNECTED
+- pin2(GND): NOT_CONNECTED
+- pin3(USB_DP): NETS(J1_DP)
+- pin4(USB_DM): NETS(J1_DM)
+- pin5(QSPI_SCK): NETS(U3_QSPI_SCK)
+- pin6(QSPI_CS): NETS(U3_QSPI_CS)
+- pin7(QSPI_D0): NETS(U4_DI)
+- pin8(QSPI_D1): NETS(U4_DO)
+- pin9(QSPI_D2): NETS(U4_WP)
+- pin10(QSPI_D3): NETS(U4_HOLD)
+- pin11(SDA): NETS(U3_SDA)
+- pin12(SCL): NETS(U3_SCL)
+- pin13(SPI_SCK): NETS(U6_SCLK)
+- pin14(SPI_MOSI): NETS(U3_SPI_MOSI)
+- pin15(SPI_MISO): NETS(U3_SPI_MISO)
+- pin16(CS_IMU): NETS(U3_CS_IMU)
+- pin17(CS_HIGHG): NETS(U3_CS_HIGHG)
+- pin18(CS_RADIO): NETS(U3_CS_RADIO)
+- pin19(RADIO_BUSY): NETS(U3_RADIO_BUSY)
+- pin20(RADIO_DIO1): NETS(U3_RADIO_DIO1)
+- pin21(GNSS_TX): NETS(U3_GNSS_TX)
+- pin22(GNSS_RX): NETS(U3_GNSS_RX)
+- pin23(BUZZER): NETS(U3_BUZZER)
+- pin24(LED): NETS(U3_LED)
+- pin25(VBAT_SENSE): NOT_CONNECTED
+- pin26(RUN): NOT_CONNECTED
+
+C3 (100nF undefined)
+- pin1(pos): NOT_CONNECTED
+- pin2(neg): NOT_CONNECTED
+
+U4 (W25Q128JVSIQ)
+- pin1(CS): NETS(U3_QSPI_CS)
+- pin2(DO): NETS(U4_DO)
+- pin3(WP): NETS(U4_WP)
+- pin4(GND): NOT_CONNECTED
+- pin5(DI): NETS(U4_DI)
+- pin6(CLK): NETS(U3_QSPI_SCK)
+- pin7(HOLD): NETS(U4_HOLD)
+- pin8(VCC): NOT_CONNECTED
+
+U5 (BMP390)
+- pin1(VDD): NOT_CONNECTED
+- pin2(GND): NOT_CONNECTED
+- pin3(SDA): NETS(U3_SDA)
+- pin4(SCL): NETS(U3_SCL)
+- pin5(SDO): NOT_CONNECTED
+
+R4 (4.7kΩ undefined)
+- pin1(anode, pos, left): NETS(U3_SDA)
+- pin2(cathode, neg, right): NOT_CONNECTED
+
+R5 (4.7kΩ undefined)
+- pin1(anode, pos, left): NETS(U3_SCL)
+- pin2(cathode, neg, right): NOT_CONNECTED
+
+U6 (ICM-42688-P)
+- pin1(VDD): NOT_CONNECTED
+- pin2(GND): NOT_CONNECTED
+- pin3(SCLK): NETS(U6_SCLK)
+- pin4(SDI): NETS(U3_SPI_MOSI)
+- pin5(SDO): NETS(U3_SPI_MISO)
+- pin6(CS): NETS(U3_CS_IMU)
+- pin7(INT1): NOT_CONNECTED
+
+U7 (ADXL375)
+- pin1(VDD): NOT_CONNECTED
+- pin2(GND): NOT_CONNECTED
+- pin3(SCLK): NETS(U6_SCLK)
+- pin4(SDI): NETS(U3_SPI_MOSI)
+- pin5(SDO): NETS(U3_SPI_MISO)
+- pin6(CS): NETS(U3_CS_HIGHG)
+
+U8 (SX1262)
+- pin1(VDD): NOT_CONNECTED
+- pin2(GND): NOT_CONNECTED
+- pin3(SCK): NETS(U6_SCLK)
+- pin4(MOSI): NETS(U3_SPI_MOSI)
+- pin5(MISO): NETS(U3_SPI_MISO)
+- pin6(NSS): NETS(U3_CS_RADIO)
+- pin7(BUSY): NETS(U3_RADIO_BUSY)
+- pin8(DIO1): NETS(U3_RADIO_DIO1)
+- pin9(ANT): NETS(U8_ANT)
+
+J3 (ANT-902-928)
+- pin1(ANT): NETS(U8_ANT)
+- pin2(GND): NOT_CONNECTED
+
+U9 (MAX-M10S)
+- pin1(VCC): NOT_CONNECTED
+- pin2(GND): NOT_CONNECTED
+- pin3(TXD): NETS(U3_GNSS_RX)
+- pin4(RXD): NETS(U3_GNSS_TX)
+- pin5(RF_IN): NOT_CONNECTED
+
+LS1 (PIEZO-BUZZER)
+- pin1(IN): NETS(U3_BUZZER)
+- pin2(GND): NOT_CONNECTED
+
+D1 (RGB-LED)
+- pin1(DIN): NETS(U3_LED)
+- pin2(VDD): NOT_CONNECTED
+- pin3(GND): NOT_CONNECTED
+- pin4(DOUT): NOT_CONNECTED
