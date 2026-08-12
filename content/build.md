@@ -28,9 +28,13 @@ Have the [bill of materials](/bom) open. Check every part against it before you
 heat the iron, including the ones you already own, because a substitution you
 made months ago is not a substitution you will remember today.
 
-Work somewhere you can leave things out. This is a two-session build for most
-people even though it is a short one, and putting a half-finished board in a
+Work somewhere you can leave things out. Putting a half-finished board in a
 drawer loses more than it saves.
+
+TODO(verify): say how long this build actually takes, and whether it is
+realistically one sitting or two, once `build_time_estimate` in
+`data/tiers.yaml` is filled from timing people who have soldered before. The
+brief's "an evening" is a target, not a measurement.
 
 ## Stage 0: Sort and inspect
 
@@ -93,17 +97,25 @@ the bill of materials for the selection criteria.
 > Try a different cable before anything else. Charge-only USB-C cables look
 > identical to data cables and are the most common cause of both symptoms.
 
-### Stage 2M: Sensors onto the bus
+### Stage 2M: Sensors onto their buses
 
-Fit the barometer first, on its own, and confirm it before adding anything else.
-Debugging one part on a bus is straightforward; debugging four is not.
+The sensors do not share one bus. The barometer sits on I2C, the IMU and the
+high-g accelerometer share an SPI bus with a chip select each, and the GNSS
+receiver sits on a UART. Fit the barometer first, on its own, and confirm it
+before adding anything else, so that one part is proven before a second bus
+exists to complicate the picture.
 
 1. Fit the barometer breakout.
-2. Wire power, ground, and the two bus lines.
-3. **Check the pull-up resistors.** Each breakout brings its own. Several sets in
-   parallel can load the bus enough to stop it working, and this is the single
-   most common Modules-path failure. Most breakouts have a jumper or a solder
-   bridge to remove them. Leave exactly one set on the bus.
+2. Wire power, ground, SDA and SCL.
+3. **Check the I2C pull-up resistors.** The barometer is the only part on this
+   bus, so there should be exactly one pull-up pair on SDA and SCL. Count any
+   the carrier or the microcontroller module already provides, not just the
+   pair the breakout brings. Most breakouts have a jumper or a solder bridge to
+   remove theirs.
+
+TODO(confirm-on-hardware): this guide does not rank the Modules-path failure
+modes by how often they happen, because ranking them needs reports from builds
+that have actually happened.
 
 > **Checkpoint 2M.** The serial console reports the barometer present and prints
 > a pressure. At sea level expect roughly 100000 Pa; the plausible range across
@@ -111,16 +123,18 @@ Debugging one part on a bus is straightforward; debugging four is not.
 > A reading of zero, or a part that never appears at all, means
 > [the barometer never appears on the bus](/troubleshooting#baro-missing).
 
-4. Fit the IMU. Confirm it before continuing.
-5. Fit the high-g accelerometer if you are building one. Confirm it.
-6. Fit the GNSS receiver if you are building Track. Confirm it.
+4. Fit the IMU on the SPI bus: SCK, MOSI, MISO, and a chip select of its own.
+   Confirm it before continuing.
+5. Fit the high-g accelerometer if you are building one, on the same SPI bus,
+   with a second chip select that is not shared with anything. Confirm it.
+6. Fit the GNSS receiver if you are building Track, on a UART, with TX and RX
+   crossed. Confirm it.
 
 > **Checkpoint 2M-b.** Every sensor you fitted reports present, and the values
 > move sensibly when you move the board: tilting changes the accelerometer axes,
 > rotating changes the gyroscope, and lifting it changes the pressure very
 > slightly. Intermittent dropouts as you add parts mean
-> [sensors drop out intermittently](/troubleshooting#intermittent-sensor), and
-> the answer is almost always the pull-ups.
+> [sensors drop out intermittently](/troubleshooting#intermittent-sensor).
 
 ### Stage 3M: Radio, recovery aids, and power
 

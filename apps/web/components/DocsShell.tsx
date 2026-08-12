@@ -68,6 +68,11 @@ export function DocsShell({ children }: { children: React.ReactNode }) {
                     <li key={item.href}>
                       <Link
                         href={item.href}
+                        // The (docs) layout stays mounted across navigations
+                        // within the group, so this state survives the click.
+                        // Without closing it the destination page opens
+                        // underneath a phone screenful of navigation.
+                        onClick={() => setOpen(false)}
                         aria-current={active ? 'page' : undefined}
                         className={`-ml-px flex border-l-2 py-1.5 pl-3 text-sm leading-snug !no-underline transition-colors ${
                           active

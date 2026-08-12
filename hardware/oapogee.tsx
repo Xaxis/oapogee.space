@@ -127,6 +127,7 @@ export default () => (
         pin24: 'LED',
         pin25: 'VBAT_SENSE',
         pin26: 'RUN',
+        pin27: 'ARM',
       }}
       schX={0}
       schY={0}
@@ -172,6 +173,7 @@ export default () => (
             'GNSS_RX',
             'BUZZER',
             'LED',
+            'ARM',
           ],
         },
       }}
@@ -327,19 +329,58 @@ export default () => (
       schY={-16}
     />
 
+
+    {/* ---------------------------------------------------------------------
+        Arming.
+
+        The flight state machine's first transition is operator-driven, and the
+        board previously had no way for an operator to drive it. Arming is what
+        starts the pressure reference settling and the pre-arm ring buffer, so
+        without an input there is no flight.
+
+        The switch is on a GPIO rather than in the power path. oApogee is a
+        passive payload, so cutting power arms nothing and protects nobody; what
+        the operator needs is to power the payload up, let the GNSS get a fix and
+        the barometer settle, and then arm it once the rocket is on the rail.
+        Tiers: all.
+        --------------------------------------------------------------------- */}
+
+    <chip
+      name="SW1"
+      manufacturerPartNumber="ARM-SWITCH"
+      pinLabels={{ pin1: 'A', pin2: 'B' }}
+      schX={13}
+      schY={-16}
+    />
+
+    {/* Pulled up, switch pulls down. A floating input reads as noise, and an
+        input that reads as noise arms a rocket at random. */}
+    <resistor name="R6" resistance="100k" schX={11} schY={-18} />
+
+    {/* ---------------------------------------------------------------------
+        Battery sense.
+
+        The telemetry format transmits a battery voltage in every FLIGHT and
+        STATUS packet, and the recovery beacon's endurance is the number that
+        decides whether a payload is findable the next morning. Neither is
+        measurable without a divider: a single cell reaches 4.2 V, which is above
+        the 3V3 rail and above what the microcontroller's ADC will accept.
+        Tiers: all.
+        --------------------------------------------------------------------- */}
+
+    <resistor name="R7" resistance="100k" schX={-14} schY={-17} />
+    <resistor name="R8" resistance="100k" schX={-14} schY={-19} />
+
     {/* ---------------------------------------------------------------------
         Nets.
         --------------------------------------------------------------------- */}
 
     {/* Power path: USB in, charge, cell, rail. */}
     <trace from=".J1 .VBUS" to=".U1 .VDD" />
+    <trace from=".C2 .pin1" to="net.V3V3" />
     <trace from=".J1 .CC1" to=".R1 .pin1" />
     <trace from=".J1 .CC2" to=".R2 .pin1" />
     <trace from=".U1 .PROG" to=".R3 .pin1" />
-    <trace from=".U1 .VBAT" to=".J2 .VBAT" />
-    <trace from=".U1 .VBAT" to=".U2 .VIN" />
-    <trace from=".U2 .VIN" to=".C1 .pin1" />
-    <trace from=".U2 .VOUT" to=".C2 .pin1" />
 
     {/* USB data straight to the microcontroller. One connector does power,
         charging, configuration and offload. */}
@@ -388,5 +429,71 @@ export default () => (
     {/* Recovery aids. */}
     <trace from=".U3 .BUZZER" to=".LS1 .IN" />
     <trace from=".U3 .LED" to=".D1 .DIN" />
+
+    {/* --- power and ground -------------------------------------------------
+        Every part's supply and return. These were missing entirely, which meant
+        the pull-ups had nothing to pull towards and the decoupling had nothing
+        to decouple against. A netlist without them describes a board that cannot
+        work.
+        --------------------------------------------------------------------- */}
+
+    <trace from=".J1 .GND" to="net.GND" />
+    <trace from=".R1 .pin2" to="net.GND" />
+    <trace from=".R2 .pin2" to="net.GND" />
+    <trace from=".U1 .VSS" to="net.GND" />
+    <trace from=".R3 .pin2" to="net.GND" />
+    <trace from=".J2 .GND" to="net.GND" />
+    <trace from=".U2 .GND" to="net.GND" />
+    <trace from=".C1 .pin2" to="net.GND" />
+    <trace from=".C2 .pin2" to="net.GND" />
+    <trace from=".U3 .GND" to="net.GND" />
+    <trace from=".C3 .pin2" to="net.GND" />
+    <trace from=".U4 .GND" to="net.GND" />
+    <trace from=".U5 .GND" to="net.GND" />
+    <trace from=".U6 .GND" to="net.GND" />
+    <trace from=".U7 .GND" to="net.GND" />
+    <trace from=".U8 .GND" to="net.GND" />
+    <trace from=".J3 .GND" to="net.GND" />
+    <trace from=".U9 .GND" to="net.GND" />
+    <trace from=".LS1 .GND" to="net.GND" />
+    <trace from=".D1 .GND" to="net.GND" />
+    <trace from=".SW1 .B" to="net.GND" />
+    <trace from=".R8 .pin2" to="net.GND" />
+
+    {/* The barometer's address select pin is tied low rather than left to
+        float, so the part answers at a known address instead of an arbitrary
+        one. */}
+    <trace from=".U5 .SDO" to="net.GND" />
+
+    <trace from=".U2 .VOUT" to="net.V3V3" />
+    <trace from=".U3 .VDD" to="net.V3V3" />
+    <trace from=".C3 .pin1" to="net.V3V3" />
+    <trace from=".U4 .VCC" to="net.V3V3" />
+    <trace from=".U5 .VDD" to="net.V3V3" />
+    <trace from=".R4 .pin2" to="net.V3V3" />
+    <trace from=".R5 .pin2" to="net.V3V3" />
+    <trace from=".U6 .VDD" to="net.V3V3" />
+    <trace from=".U7 .VDD" to="net.V3V3" />
+    <trace from=".U8 .VDD" to="net.V3V3" />
+    <trace from=".U9 .VCC" to="net.V3V3" />
+    <trace from=".D1 .VDD" to="net.V3V3" />
+    <trace from=".R6 .pin2" to="net.V3V3" />
+
+    {/* The regulator runs whenever the cell is connected. There is no soft power
+        control, because a payload that can switch itself off is a payload that
+        can stop beaconing while you are still looking for it. */}
+    <trace from=".U2 .EN" to="net.VBAT" />
+    <trace from=".U1 .VBAT" to="net.VBAT" />
+    <trace from=".J2 .VBAT" to="net.VBAT" />
+    <trace from=".U2 .VIN" to="net.VBAT" />
+    <trace from=".C1 .pin1" to="net.VBAT" />
+    <trace from=".R7 .pin1" to="net.VBAT" />
+
+    {/* Arming and battery sense into the microcontroller. */}
+    <trace from=".SW1 .A" to=".U3 .ARM" />
+    <trace from=".R6 .pin1" to=".U3 .ARM" />
+    <trace from=".R7 .pin2" to=".U3 .VBAT_SENSE" />
+    <trace from=".R8 .pin1" to=".U3 .VBAT_SENSE" />
   </board>
+
 )

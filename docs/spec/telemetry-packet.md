@@ -83,7 +83,7 @@ field costs a byte on every packet to describe something already known.
 | 1 | 1 | u8 | `flags` | Bit field, see below. |
 | 2 | 1 | u8 | `seq` | Increments per transmitted packet, wraps at 255. |
 | 3 | 1 | u8 | `state` | Flight state, see below. |
-| 4 | 4 | u32 | `t_ms` | Milliseconds since the transition into `ARMED`. |
+| 4 | 4 | u32 | `t_ms` | Milliseconds since the transition into `ARMED`. Transmitted as 0 while `state` is `PAD_IDLE`. |
 
 `hdr` packs version and type into one byte because both are small and a whole
 byte for each is a byte per packet spent on nothing. Version 1 with a `FLIGHT`
@@ -102,18 +102,27 @@ constraint anyone will meet. The zero point is arming rather than launch because
 launch detection happens after the fact, and a timebase that only becomes valid
 retroactively is a poor timebase.
 
+Before arming there is no elapsed time to report, so `t_ms` is transmitted as 0
+in every packet whose `state` is `PAD_IDLE`. It is not the power-on uptime: the
+payload's uptime counter is a firmware implementation detail and is never on the
+air. A pad packet is therefore identified by `state`, not by a clock, and a run
+of `STATUS` packets on the pad all carry `t_ms` of 0.
+
 ### Flags
 
-| Bit | Name | Meaning when set |
-|---|---|---|
-| 0 | `GNSS_FIX` | The GNSS receiver has a position fix. |
-| 1 | `HIGH_G` | The high-g accelerometer is present and healthy. |
-| 2 | `BARO_FAULT` | The barometer has failed or is returning implausible values. |
-| 3 | `IMU_FAULT` | The IMU has failed or is returning implausible values. |
-| 4 | `LOG_FULL` | Onboard storage is full. Logging has stopped. |
-| 5 | `LOW_BATT` | Battery below the low threshold. |
-| 6 | `SIM` | This packet was produced by a simulation or bench test, not a flight. |
-| 7 | reserved | Must be transmitted as 0 and ignored on receive. |
+This table is the normative home for the bit assignments. The mask column is
+here so that nothing elsewhere has to restate them to be useful.
+
+| Bit | Mask | Name | Meaning when set |
+|---|---|---|---|
+| 0 | `0x01` | `GNSS_FIX` | The GNSS receiver has a position fix. |
+| 1 | `0x02` | `HIGH_G` | The high-g accelerometer is present and healthy. |
+| 2 | `0x04` | `BARO_FAULT` | The barometer has failed or is returning implausible values. |
+| 3 | `0x08` | `IMU_FAULT` | The IMU has failed or is returning implausible values. |
+| 4 | `0x10` | `LOG_FULL` | Onboard storage is full. Logging has stopped. |
+| 5 | `0x20` | `LOW_BATT` | Battery below the low threshold. |
+| 6 | `0x40` | `SIM` | This packet was produced by a simulation or bench test, not a flight. |
+| 7 | `0x80` | reserved | Must be transmitted as 0 and ignored on receive. |
 
 `SIM` is not optional decoration. A bench test transmits real-looking packets,
 and a flight log archive that cannot distinguish a bench run from a flight will
@@ -125,6 +134,12 @@ to be omitted, because omission would change the packet length. A faulted
 sensor's fields carry the last value read, and the flag is what tells you not to
 trust them. The alternative, transmitting a sentinel, produces a plot with a
 spike in it rather than a gap, which is worse.
+
+That rule governs a sensor that is reading badly. Position is the other case:
+with no fix there is no last value worth carrying, so `lat_e7` and `lon_e7`
+carry `INT32_MIN` in both `BEACON` and `POSITION`, and `GNSS_FIX` says which it
+is. A sentinel is right when the quantity is absent and wrong when it is merely
+suspect.
 
 ### Flight state
 
@@ -164,14 +179,25 @@ away from the rail. Low rate by design.
 
 | Offset | Size | Type | Field | Encoding |
 |---|---|---|---|---|
-| 8 | 2 | u16 | `pad_pressure_dpa` | Ground reference pressure, decapascals. |
+| 8 | 2 | u16 | `pad_pressure_pa_off` | Ground reference pressure, offset pascals. |
 | 10 | 1 | u8 | `batt` | Battery, see encoding below. |
 
-`pad_pressure_dpa` is the establishing pressure reference in units of 10 Pa,
-offset so it fits in 16 bits: the transmitted value is
-`(pressure_pa - 50000) / 10`, covering 50000 to 105535 Pa. That range spans sea
-level to well above any plausible launch site. Values outside it are clamped and
-`BARO_FAULT` is set.
+`pad_pressure_pa_off` is the establishing pressure reference in whole pascals,
+offset so the useful range fills 16 bits exactly: the transmitted value is
+`pressure_pa - 50000`, and the 65536 representable values cover 50000 to 115535
+Pa. The low end is roughly 5500 m of pressure altitude and the high end is above
+any recorded surface pressure, so the band covers any plausible launch site. A
+reading below 50000 Pa is transmitted as 0, a reading above 115535 Pa is
+transmitted as 65535, and `BARO_FAULT` is set in either case.
+
+The offset is what earns the resolution. Without it a u16 of whole pascals would
+stop at 65535 Pa, which is lower than the pressure at any launch site anyone
+flies from, so the reference would not be representable at all. With it, the
+same two bytes carry 1 Pa steps across the whole band. Whole pascals also match
+`calibration.pad_pressure_pa` in the [log format](./log-format.md), so the same
+quantity is not on two scales in two specifications. This field is the zero the
+entire altitude column is measured against, which is why it is not coarsened to
+save arithmetic.
 
 ### 0x2 FLIGHT
 
@@ -198,7 +224,8 @@ far more than needed and costs nothing over a tighter scale. Positive is up.
 deliberately wider than a 6-axis IMU can measure, because the field carries the
 high-g accelerometer's reading when that part is fitted. When `HIGH_G` is clear,
 the value came from the IMU and is subject to saturation: a boost that reads a
-flat 1600 is a saturated IMU, not a constant acceleration.
+flat value at the IMU's full-scale limit is saturation, not a constant
+acceleration.
 
 ### 0x3 APOGEE
 
@@ -256,9 +283,22 @@ airtime at the flight packet rate.
 
 | Offset | Size | Type | Field | Encoding |
 |---|---|---|---|---|
-| 8 | 4 | i32 | `lat_e7` | Latitude, degrees times 10^7. |
-| 12 | 4 | i32 | `lon_e7` | Longitude, degrees times 10^7. |
-| 16 | 1 | u8 | `sats` | Satellites used in the fix. |
+| 8 | 4 | i32 | `lat_e7` | Latitude, degrees times 10^7. `INT32_MIN` if no fix. |
+| 12 | 4 | i32 | `lon_e7` | Longitude, degrees times 10^7. `INT32_MIN` if no fix. |
+| 16 | 1 | u8 | `sats` | Satellites used in the fix. Zero when `GNSS_FIX` is clear. |
+
+`POSITION` is transmitted on its scheduled slot whether or not the receiver has
+a fix. Suppressing it would make a fix outage indistinguishable from a lost
+packet, and `seq` gaps are supposed to mean lost packets and nothing else. When
+`GNSS_FIX` is clear, both position fields carry `INT32_MIN` and `sats` carries
+zero, for the same reason `BEACON` uses that sentinel: zero is a real
+coordinate.
+
+`GNSS_FIX` in the header is authoritative. A receiver **must** check it before
+plotting, and **must not** plot a position from a packet whose `GNSS_FIX` is
+clear, even if the coordinate fields look plausible. A fix lost under boost is
+normal, and the log format records the same outage as a gap rather than as a
+coordinate.
 
 ## CRC
 
@@ -310,6 +350,11 @@ A conforming receiver:
 - **must** treat unknown packet types as unreadable rather than misparsing them
 - **must** treat unknown state values as unknown rather than as an error
 - **must not** clamp `alt_cm` at zero
+- **must not** treat `t_ms` as elapsed time while `state` is `PAD_IDLE`, where it
+  is always 0, and must not compute an interval spanning the transition out of
+  `PAD_IDLE`
+- **must not** plot a position from a packet whose `GNSS_FIX` is clear, in which
+  case both coordinate fields carry `INT32_MIN`
 - **should** count sequence gaps and CRC failures and expose both
 - **should** display the `SIM` flag prominently, and must never publish a `SIM`
   packet to a flight archive as a real flight
@@ -326,6 +371,7 @@ import struct
 MAGIC_VERSION = 1
 TYPE_NAMES = {1: "STATUS", 2: "FLIGHT", 3: "APOGEE", 4: "BEACON", 5: "POSITION"}
 BODY_LEN = {1: 3, 2: 9, 3: 8, 4: 12, 5: 9}
+INT32_MIN = -(2 ** 31)
 
 
 def crc16_ccitt_false(data: bytes) -> int:
@@ -372,7 +418,13 @@ def decode(packet: bytes) -> dict:
         "t_ms": struct.unpack_from("<I", packet, 4)[0],
     }
 
-    if ptype == 2:  # FLIGHT
+    if ptype == 1:  # STATUS
+        pad_off, batt = struct.unpack_from("<HB", packet, 8)
+        out.update(
+            pad_pressure_pa=50000 + pad_off,
+            battery_v=2.5 + batt / 100.0,
+        )
+    elif ptype == 2:  # FLIGHT
         alt_cm, vel_dm_s, accel_cg, batt = struct.unpack_from("<ihhB", packet, 8)
         out.update(
             altitude_m=alt_cm / 100.0,
@@ -383,9 +435,27 @@ def decode(packet: bytes) -> dict:
     elif ptype == 3:  # APOGEE
         apogee_cm, t_apogee_ms = struct.unpack_from("<iI", packet, 8)
         out.update(apogee_m=apogee_cm / 100.0, t_apogee_ms=t_apogee_ms)
+    elif ptype == 4:  # BEACON
+        lat_e7, lon_e7, apogee_cm = struct.unpack_from("<iii", packet, 8)
+        no_fix = lat_e7 == INT32_MIN or lon_e7 == INT32_MIN
+        out.update(
+            lat=None if no_fix else lat_e7 / 1e7,
+            lon=None if no_fix else lon_e7 / 1e7,
+            apogee_m=apogee_cm / 100.0,
+        )
     elif ptype == 5:  # POSITION
         lat_e7, lon_e7, sats = struct.unpack_from("<iiB", packet, 8)
-        out.update(lat=lat_e7 / 1e7, lon=lon_e7 / 1e7, satellites=sats)
+        no_fix = lat_e7 == INT32_MIN or lon_e7 == INT32_MIN
+        out.update(
+            lat=None if no_fix else lat_e7 / 1e7,
+            lon=None if no_fix else lon_e7 / 1e7,
+            satellites=sats,
+        )
+    else:
+        # Unreachable today. It exists so that adding a type to BODY_LEN without
+        # a body branch fails loudly instead of returning a header-only decode
+        # that looks like a packet with no body.
+        raise ValueError(f"no body decoder for type {ptype}")
 
     return out
 ```

@@ -168,7 +168,8 @@ badly, it flies sideways, into the ground, or into the flight line.
 you fly it.** Not after. Not on the second flight. This is the single most
 important sentence on this page for anyone attaching a payload to a rocket they
 already own and have flown many times, because the rocket flying well ten times
-before tells you nothing about how it flies with 25 g in a new place.
+before tells you nothing about how it flies with a payload in a new place.
+Weigh your assembled payload and simulate with that figure.
 
 Which direction the centre of gravity moves depends entirely on where the
 payload goes. Forward of the current balance point it moves the centre of

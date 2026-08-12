@@ -80,6 +80,35 @@ Pin placement on the microcontroller is set explicitly with
 `schPinArrangement`. Left to the default, pins land in declaration order and
 every net crosses the part.
 
+## Arming, and why it is a GPIO rather than a power switch
+
+The flight state machine's first transition is operator-driven, so the board
+carries an arming input. Arming is what starts the pressure reference settling
+and the pre-arm ring buffer, and without an input there is no flight.
+
+It is a GPIO, not a switch in the power path. oApogee is a passive payload, so
+cutting power arms nothing and protects nobody. What the operator actually needs
+is to power the payload up, let the GNSS get a fix and the barometer settle, and
+then arm it once the rocket is on the rail, which a power switch cannot express.
+
+The input is pulled up and the switch pulls it down, because a floating input
+reads as noise and an input that reads as noise arms a rocket at random.
+
+TODO(confirm): whether the switch is mechanical or magnetic. A slide or screw
+switch is the rocketry convention and needs a hole in the pod. A reed or Hall
+sensor arms through the wall with a magnet, which keeps the enclosure sealed
+apart from its static ports, at the cost of a part that can be armed by anything
+magnetic nearby. Decide before the enclosure is designed, because it changes the
+pod.
+
+## Battery sense
+
+The telemetry format transmits a battery voltage in every FLIGHT and STATUS
+packet, and beacon endurance after landing is the number that decides whether a
+payload is findable the next morning. Neither is measurable without a divider: a
+single cell reaches 4.2 V, which is above the 3V3 rail and above what the
+microcontroller's ADC will accept.
+
 ## Open items
 
 Listed at [oapogee.space/status](https://oapogee.space/status):
@@ -88,4 +117,10 @@ Listed at [oapogee.space/status](https://oapogee.space/status):
 - Choose the buck-boost regulator, currently a placeholder part.
 - Set the charge current programming resistor, which follows from the cell
   capacity, which follows from an endurance requirement nobody has measured.
+- Size the battery sense divider against the microcontroller's ADC input range
+  and its input impedance, and decide whether it needs switching off between
+  readings to stop it draining the cell on the pad.
 - Decide the decoupling network properly rather than one capacitor per rail.
+- Wire the IMU's data-ready interrupt. Polling a high rate sensor gives sample
+  intervals that jitter with whatever else the loop is doing, and the log stores
+  a timestamp per record precisely because that jitter is real.

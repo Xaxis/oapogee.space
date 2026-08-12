@@ -32,6 +32,10 @@ import * as THREE from 'three'
 // Phase boundaries as fractions of the traverse. Chosen to read correctly, not
 // to represent any particular motor: boost is a small fraction of the flight
 // and descent is most of it, which is the proportion that surprises people.
+//
+// PAD_IDLE is deliberately absent. The traverse is the flight, and PAD_IDLE is
+// everything before it starts, so it has no length here. It is still in the
+// legend, where clicking it reads its summary.
 const PHASE_STOPS = [
   { id: 'ARMED', at: 0.0 },
   { id: 'BOOST', at: 0.04 },
@@ -214,24 +218,26 @@ export default function FlightScene({ onPhase }: { onPhase?: (id: string) => voi
 
     // --- loop ---------------------------------------------------------------
     let raf = 0
-    let visible = true
     let u = 0
     let lastPhase = ''
     let last = performance.now()
 
+    // Two independent reasons to stop advancing, tracked separately because
+    // either can clear without the other, and recombined on every event.
+    let inView = true
+    let shown = true
+    let visible = true
+    const sync = () => {
+      visible = inView && shown
+    }
+
     const CYCLE_MS = 17000
     const HOLD_MS = 1400 // pause on the ground before restarting
 
-    function frame(now: number) {
-      raf = requestAnimationFrame(frame)
-      const dt = Math.min(now - last, 64)
-      last = now
-
-      if (visible) {
-        u += dt / CYCLE_MS
-        if (u > 1 + HOLD_MS / CYCLE_MS) u = 0
-      }
-
+    // Everything that puts the scene into the state u describes, with no
+    // scheduling in it, so that a single frame can be drawn without starting
+    // the loop. That is what the reduced motion path below needs.
+    function draw(now: number) {
       const clamped = Math.min(u, 1)
       const p = trajectory(clamped)
       dot.position.copy(p)
@@ -262,14 +268,48 @@ export default function FlightScene({ onPhase }: { onPhase?: (id: string) => voi
 
       renderer.render(scene, camera)
     }
-    raf = requestAnimationFrame(frame)
+
+    function frame(now: number) {
+      raf = requestAnimationFrame(frame)
+      const dt = Math.min(now - last, 64)
+      last = now
+
+      if (visible) {
+        u += dt / CYCLE_MS
+        if (u > 1 + HOLD_MS / CYCLE_MS) u = 0
+      }
+
+      draw(now)
+    }
+
+    // Under prefers-reduced-motion nothing moves: one frame is drawn and the
+    // loop is never started. It is held at apogee because that is the one
+    // labelled point in the scene, and drawing it reports APOGEE to the legend,
+    // so the phase buttons remain the way to read the rest of the sequence.
+    if (reduced) {
+      u = 0.42 // apogee, matching PHASE_STOPS
+      draw(performance.now())
+    } else {
+      raf = requestAnimationFrame(frame)
+    }
 
     // --- lifecycle ----------------------------------------------------------
-    const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting), { threshold: 0.05 })
+    // An IntersectionObserver only fires on a threshold crossing, and returning
+    // to a backgrounded tab is not one, so the tab flag has to restore itself.
+    // Clearing a single shared flag on hide with nothing to set it back froze
+    // the scene permanently after the first tab switch.
+    const io = new IntersectionObserver(
+      ([e]) => {
+        inView = e.isIntersecting
+        sync()
+      },
+      { threshold: 0.05 }
+    )
     io.observe(host)
 
     const onVisibility = () => {
-      if (document.hidden) visible = false
+      shown = !document.hidden
+      sync()
     }
     document.addEventListener('visibilitychange', onVisibility)
 
@@ -278,6 +318,9 @@ export default function FlightScene({ onPhase }: { onPhase?: (id: string) => voi
       if (!w || !h) return
       renderer.setSize(w, h, false)
       baseDist = fit()
+      // fit() moves the camera, and with the loop stopped nothing else will
+      // repaint or re-aim the billboarded apogee ring.
+      if (reduced) draw(performance.now())
     })
     ro.observe(host)
 

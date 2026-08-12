@@ -71,7 +71,6 @@ export function DocTabs({ tabs, label }: { tabs: DocTab[]; label: string }) {
       <div
         role="tablist"
         aria-label={label}
-        id={listId}
         className="no-print flex flex-wrap gap-1 border-b border-[var(--color-line)]"
       >
         {tabs.map((tab, i) => {
@@ -80,6 +79,8 @@ export function DocTabs({ tabs, label }: { tabs: DocTab[]; label: string }) {
             <a
               key={tab.id}
               role="tab"
+              id={`${listId}-tab-${tab.id}`}
+              aria-controls={`${listId}-panel-${tab.id}`}
               href={`#${tab.id}`}
               aria-selected={active}
               className={`-mb-px border-b-2 px-4 py-2.5 text-sm !no-underline transition-colors ${
@@ -94,8 +95,13 @@ export function DocTabs({ tabs, label }: { tabs: DocTab[]; label: string }) {
         })}
       </div>
 
+      {/* Screen only. In print every panel is shown, so each one carries its
+          own copy of this line and a second one here would sit above them all
+          describing whichever panel happened to be open. */}
       {tabs[selected]?.hint && (
-        <p className="mt-4 max-w-2xl text-sm text-[var(--color-muted)]">{tabs[selected].hint}</p>
+        <p className="no-print mt-4 max-w-2xl text-sm text-[var(--color-muted)]">
+          {tabs[selected].hint}
+        </p>
       )}
 
       {tabs.map((tab, i) => (
@@ -103,13 +109,31 @@ export function DocTabs({ tabs, label }: { tabs: DocTab[]; label: string }) {
           key={tab.id}
           data-doctab={tab.id}
           role="tabpanel"
-          aria-labelledby={listId}
+          id={`${listId}-panel-${tab.id}`}
+          // Labelled by its own tab, not by the tablist. The tablist carries the
+          // name of the group, so pointing every panel at it named all of them
+          // "Build path" instead of "Modules path" and "Board path".
+          aria-labelledby={`${listId}-tab-${tab.id}`}
+          // Panel content holds no focusable element of its own and sits inside
+          // scroll containers, so the open panel is made a tab stop to give a
+          // keyboard user something to scroll. Closed panels must not be.
+          tabIndex={i === selected ? 0 : undefined}
           // Closed panels stay in the DOM rather than unmounting, so that the
           // anchor lookup above can find an element inside a panel that is not
           // currently open, and so the print stylesheet gets the whole page.
-          hidden={i !== selected}
-          className="mt-6 print:!block"
+          //
+          // Hidden with a utility class and never with the `hidden` attribute.
+          // Tailwind preflight sets `[hidden] { display: none !important }` in
+          // @layer base, and the cascade reverses layer order for !important, so
+          // nothing in @layer utilities can override it: with the attribute, the
+          // print rule below is dead and closed panels never print at all.
+          className={`mt-6 print:!block ${i === selected ? '' : 'hidden'}`}
         >
+          {/* The tab strip does not print, so on paper a panel has no label
+              unless it carries one. Without these the printed page is several
+              unheaded tables in a row. */}
+          <h2 className="hidden text-lg font-semibold print:!block">{tab.label}</h2>
+          {tab.hint && <p className="hidden text-sm print:!block">{tab.hint}</p>}
           {tab.content}
         </div>
       ))}

@@ -5,27 +5,33 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 /**
  * Pan and zoom for the generated drawings.
  *
- * A schematic in a scroll box is not an interface. It is 1600 pixels wide, the
- * part designators are 8pt, and on a phone you get a letterbox onto one corner
- * of it with no way to find the other corner. The drawing is one of the most
- * useful things this project publishes and it was effectively desktop-only.
+ * A schematic in a scroll box is not an interface. The sheet is over a thousand
+ * pixels wide with 8pt designators, so on a phone you got a letterbox onto one
+ * corner of it and no way to reach another. It is one of the most useful things
+ * this project publishes and it was effectively desktop-only.
  *
- * So: drag to pan, wheel or pinch to zoom, buttons for everyone else, and
- * keyboard for anyone who cannot use a pointer at all. Fit is the default
- * because the first question is always "what am I looking at", and the answer to
- * that is the whole sheet.
+ * ZOOM IS APPLIED TO THE VIEWBOX, NOT AS A CSS TRANSFORM, and that is the whole
+ * design of this component rather than an implementation detail.
  *
- * The transform is applied to a wrapper rather than to the SVG's viewBox, so the
- * browser composites it rather than re-rasterising vector geometry on every
- * frame, and so this works identically for the tscircuit schematic and the
- * generated block diagram without either knowing about it.
+ * The first version scaled a wrapper with `transform: scale()` and promoted it
+ * with `will-change: transform`, on the reasoning that compositing is cheaper
+ * than re-rasterising vector geometry every frame. That reasoning is right and
+ * the trade is wrong: promoting the layer makes the browser rasterise the SVG
+ * once at its current size and then scale that bitmap, so zooming in produced a
+ * blurry enlargement of a small render. Every pin label and every part
+ * designator became unreadable at exactly the magnification somebody had zoomed
+ * in to read them at.
+ *
+ * Driving the viewBox instead re-renders the vectors at every zoom level, so the
+ * text is crisp at any magnification and stays crisp on a high density display.
+ * It costs a repaint per frame, which for a static line drawing is nothing.
  */
 
-const MIN_SCALE = 0.2
-const MAX_SCALE = 8
-const ZOOM_STEP = 1.4
+const MIN_SPAN_FRACTION = 0.02 // deepest zoom: 2% of the drawing fills the view
+const MAX_SPAN_FRACTION = 4 // furthest out: 4x the drawing fits in the view
+const ZOOM_STEP = 1.5
 
-type Transform = { x: number; y: number; scale: number }
+type Box = { x: number; y: number; w: number; h: number }
 
 export function SchematicViewer({
   svg,
@@ -42,88 +48,135 @@ export function SchematicViewer({
   naturalHeight: number
   className?: string
 }) {
-  const viewportRef = useRef<HTMLDivElement>(null)
-  const [t, setT] = useState<Transform>({ x: 0, y: 0, scale: 1 })
-  const [fitScale, setFitScale] = useState(1)
+  const hostRef = useRef<HTMLDivElement>(null)
+  const svgRef = useRef<SVGSVGElement | null>(null)
+  const [box, setBox] = useState<Box>({ x: 0, y: 0, w: naturalWidth, h: naturalHeight })
   const [dragging, setDragging] = useState(false)
+  const [ready, setReady] = useState(false)
+  // The width the fitted view spans, so the readout can report magnification
+  // relative to "the whole sheet", which is what 100% means to a reader.
+  const [fitW, setFitW] = useState(naturalWidth)
 
-  // Live pointers, so two of them can be read as a pinch without a gesture
-  // library. Pointer events cover mouse, touch and pen with one code path.
   const pointers = useRef(new Map<number, { x: number; y: number }>())
-  const pinchStart = useRef<{ dist: number; scale: number } | null>(null)
-  const panStart = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null)
+  const pinch = useRef<{ dist: number; w: number; h: number } | null>(null)
+  const pan = useRef<{ x: number; y: number; box: Box } | null>(null)
 
-  const fit = useCallback(() => {
-    const el = viewportRef.current
+  // Take over the injected SVG once: strip its intrinsic size so it fills the
+  // host, and give it a viewBox if the generator did not (the tscircuit export
+  // carries width and height only).
+  useEffect(() => {
+    const el = hostRef.current?.querySelector('svg')
     if (!el) return
-    const pad = 16
-    const scale = Math.min(
-      (el.clientWidth - pad) / naturalWidth,
-      (el.clientHeight - pad) / naturalHeight
-    )
-    const next = Math.max(Math.min(scale, MAX_SCALE), MIN_SCALE)
-    setFitScale(next)
-    setT({
-      x: (el.clientWidth - naturalWidth * next) / 2,
-      y: (el.clientHeight - naturalHeight * next) / 2,
-      scale: next,
-    })
+    svgRef.current = el
+    if (!el.getAttribute('viewBox')) {
+      el.setAttribute('viewBox', `0 0 ${naturalWidth} ${naturalHeight}`)
+    }
+    el.setAttribute('width', '100%')
+    el.setAttribute('height', '100%')
+    el.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+    el.style.display = 'block'
+    setReady(true)
+  }, [svg, naturalWidth, naturalHeight])
+
+  useEffect(() => {
+    const el = svgRef.current
+    if (!el || !ready) return
+    el.setAttribute('viewBox', `${box.x} ${box.y} ${box.w} ${box.h}`)
+  }, [box, ready])
+
+  /** Frame the whole drawing, matched to the host's aspect so nothing is cropped. */
+  const fit = useCallback(() => {
+    const host = hostRef.current
+    if (!host) return
+    const aspect = host.clientWidth / Math.max(host.clientHeight, 1)
+    const drawingAspect = naturalWidth / naturalHeight
+    // preserveAspectRatio letterboxes for us, so the viewBox only has to contain
+    // the drawing. Matching the host aspect keeps the reported zoom honest.
+    const w = aspect > drawingAspect ? naturalHeight * aspect : naturalWidth
+    const h = aspect > drawingAspect ? naturalHeight : naturalWidth / aspect
+    setFitW(w)
+    setBox({ x: (naturalWidth - w) / 2, y: (naturalHeight - h) / 2, w, h })
   }, [naturalWidth, naturalHeight])
 
+  // Fit once, when the drawing first appears.
   useEffect(() => {
-    fit()
-    const el = viewportRef.current
-    if (!el) return
-    const ro = new ResizeObserver(fit)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [fit])
+    if (ready) fit()
+  }, [ready, fit])
 
-  /** Zoom about a point in viewport coordinates, so the thing under the cursor stays under it. */
-  const zoomAbout = useCallback((factor: number, cx: number, cy: number) => {
-    setT((prev) => {
-      const scale = Math.max(Math.min(prev.scale * factor, MAX_SCALE), MIN_SCALE)
-      const k = scale / prev.scale
-      return { scale, x: cx - (cx - prev.x) * k, y: cy - (cy - prev.y) * k }
+  // On resize, keep where the reader is and what magnification they chose, and
+  // only correct the aspect ratio. Re-fitting here would throw away their zoom
+  // every time a phone rotated, a keyboard opened, or a window was dragged
+  // wider, which is the moment somebody is most likely to be reading closely.
+  useEffect(() => {
+    const host = hostRef.current
+    if (!host || !ready) return
+    const ro = new ResizeObserver(() => {
+      const aspect = host.clientWidth / Math.max(host.clientHeight, 1)
+      setBox((prev) => {
+        const h = prev.w / aspect
+        return { ...prev, y: prev.y + (prev.h - h) / 2, h }
+      })
     })
-  }, [])
+    ro.observe(host)
+    return () => ro.disconnect()
+  }, [ready])
+
+  /** Zoom keeping the drawing point under (px, py), in host pixels, fixed. */
+  const zoomAbout = useCallback(
+    (factor: number, px: number, py: number) => {
+      const host = hostRef.current
+      if (!host) return
+      setBox((prev) => {
+        const minW = naturalWidth * MIN_SPAN_FRACTION
+        const maxW = naturalWidth * MAX_SPAN_FRACTION
+        const w = Math.min(Math.max(prev.w / factor, minW), maxW)
+        const k = w / prev.w
+        const h = prev.h * k
+        // The fraction of the viewport the cursor sits at is the same fraction
+        // of the viewBox, so the user-space point under it is recoverable.
+        const fx = px / Math.max(host.clientWidth, 1)
+        const fy = py / Math.max(host.clientHeight, 1)
+        return {
+          w,
+          h,
+          x: prev.x + (prev.w - w) * fx,
+          y: prev.y + (prev.h - h) * fy,
+        }
+      })
+    },
+    [naturalWidth]
+  )
 
   const zoomCentre = (factor: number) => {
-    const el = viewportRef.current
-    if (!el) return
-    zoomAbout(factor, el.clientWidth / 2, el.clientHeight / 2)
+    const host = hostRef.current
+    if (!host) return
+    zoomAbout(factor, host.clientWidth / 2, host.clientHeight / 2)
   }
 
-  // Wheel is bound imperatively because React's onWheel is passive, and a
-  // passive listener cannot preventDefault, so the page would scroll away
-  // underneath the drawing while you tried to zoom it.
+  // Bound imperatively: React's onWheel is passive and a passive listener cannot
+  // preventDefault, so the page would scroll away underneath the drawing.
   useEffect(() => {
-    const el = viewportRef.current
-    if (!el) return
+    const host = hostRef.current
+    if (!host) return
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
-      const rect = el.getBoundingClientRect()
-      zoomAbout(
-        Math.exp(-e.deltaY * 0.0015),
-        e.clientX - rect.left,
-        e.clientY - rect.top
-      )
+      const r = host.getBoundingClientRect()
+      zoomAbout(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top)
     }
-    el.addEventListener('wheel', onWheel, { passive: false })
-    return () => el.removeEventListener('wheel', onWheel)
+    host.addEventListener('wheel', onWheel, { passive: false })
+    return () => host.removeEventListener('wheel', onWheel)
   }, [zoomAbout])
 
   const onPointerDown = (e: React.PointerEvent) => {
-    ;(e.target as Element).setPointerCapture?.(e.pointerId)
+    ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
-
     if (pointers.current.size === 1) {
       setDragging(true)
-      panStart.current = { x: e.clientX, y: e.clientY, tx: t.x, ty: t.y }
+      pan.current = { x: e.clientX, y: e.clientY, box }
     } else if (pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()]
-      pinchStart.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), scale: t.scale }
-      panStart.current = null
+      pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), w: box.w, h: box.h }
+      pan.current = null
       setDragging(false)
     }
   }
@@ -131,51 +184,66 @@ export function SchematicViewer({
   const onPointerMove = (e: React.PointerEvent) => {
     if (!pointers.current.has(e.pointerId)) return
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    const host = hostRef.current
+    if (!host) return
 
-    if (pointers.current.size === 2 && pinchStart.current) {
+    if (pointers.current.size === 2 && pinch.current) {
       const [a, b] = [...pointers.current.values()]
       const dist = Math.hypot(a.x - b.x, a.y - b.y)
-      const el = viewportRef.current
-      if (!el) return
-      const rect = el.getBoundingClientRect()
-      const target = pinchStart.current.scale * (dist / pinchStart.current.dist)
-      setT((prev) => {
-        const scale = Math.max(Math.min(target, MAX_SCALE), MIN_SCALE)
-        const k = scale / prev.scale
-        const cx = (a.x + b.x) / 2 - rect.left
-        const cy = (a.y + b.y) / 2 - rect.top
-        return { scale, x: cx - (cx - prev.x) * k, y: cy - (cy - prev.y) * k }
+      const r = host.getBoundingClientRect()
+      const target = pinch.current.w / (dist / pinch.current.dist)
+      setBox((prev) => {
+        const w = Math.min(
+          Math.max(target, naturalWidth * MIN_SPAN_FRACTION),
+          naturalWidth * MAX_SPAN_FRACTION
+        )
+        const k = w / prev.w
+        const h = prev.h * k
+        const fx = ((a.x + b.x) / 2 - r.left) / Math.max(host.clientWidth, 1)
+        const fy = ((a.y + b.y) / 2 - r.top) / Math.max(host.clientHeight, 1)
+        return { w, h, x: prev.x + (prev.w - w) * fx, y: prev.y + (prev.h - h) * fy }
       })
       return
     }
 
-    if (panStart.current) {
-      const s = panStart.current
-      setT((prev) => ({ ...prev, x: s.tx + (e.clientX - s.x), y: s.ty + (e.clientY - s.y) }))
+    if (pan.current) {
+      const start = pan.current
+      // A pixel of drag is worth however much user space one pixel currently
+      // covers, so panning feels the same at every zoom level.
+      const perPxX = start.box.w / Math.max(host.clientWidth, 1)
+      const perPxY = start.box.h / Math.max(host.clientHeight, 1)
+      setBox({
+        ...start.box,
+        x: start.box.x - (e.clientX - start.x) * perPxX,
+        y: start.box.y - (e.clientY - start.y) * perPxY,
+      })
     }
   }
 
   const endPointer = (e: React.PointerEvent) => {
     pointers.current.delete(e.pointerId)
-    if (pointers.current.size < 2) pinchStart.current = null
+    if (pointers.current.size < 2) pinch.current = null
     if (pointers.current.size === 0) {
       setDragging(false)
-      panStart.current = null
+      pan.current = null
     }
   }
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    const step = e.shiftKey ? 120 : 40
+    const host = hostRef.current
+    if (!host) return
+    const nudge = (e.shiftKey ? 0.25 : 0.08) * box.w
+    const nudgeY = (e.shiftKey ? 0.25 : 0.08) * box.h
     const moves: Record<string, [number, number]> = {
-      ArrowLeft: [step, 0],
-      ArrowRight: [-step, 0],
-      ArrowUp: [0, step],
-      ArrowDown: [0, -step],
+      ArrowLeft: [-nudge, 0],
+      ArrowRight: [nudge, 0],
+      ArrowUp: [0, -nudgeY],
+      ArrowDown: [0, nudgeY],
     }
     if (moves[e.key]) {
       e.preventDefault()
       const [dx, dy] = moves[e.key]
-      setT((prev) => ({ ...prev, x: prev.x + dx, y: prev.y + dy }))
+      setBox((prev) => ({ ...prev, x: prev.x + dx, y: prev.y + dy }))
       return
     }
     if (e.key === '+' || e.key === '=') {
@@ -190,7 +258,7 @@ export function SchematicViewer({
     }
   }
 
-  const percent = Math.round((t.scale / (fitScale || 1)) * 100)
+  const percent = Math.round((fitW / Math.max(box.w, 1)) * 100)
 
   const Button = ({
     onClick,
@@ -205,7 +273,7 @@ export function SchematicViewer({
       type="button"
       onClick={onClick}
       aria-label={aria}
-      className="flex h-8 w-8 items-center justify-center rounded border border-[var(--color-line-bright)] bg-[var(--color-ink)]/80 font-mono text-sm text-[var(--color-body)] backdrop-blur transition-colors hover:border-[var(--color-hivis)] hover:text-[var(--color-hivis)]"
+      className="flex h-9 w-9 items-center justify-center rounded border border-[var(--color-line-bright)] bg-[var(--color-ink)]/85 font-mono text-sm text-[var(--color-body)] backdrop-blur transition-colors hover:border-[var(--color-hivis)] hover:text-[var(--color-hivis)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-hivis)]"
     >
       {children}
     </button>
@@ -213,15 +281,14 @@ export function SchematicViewer({
 
   return (
     <figure className={`m-0 ${className}`}>
-      {/* Matched to the paper colour both generators draw on, so the area
-          around a fitted sheet reads as the sheet's margin rather than as a
-          rendering gap. */}
+      {/* Matched to the paper colour both generators draw on, so the area around
+          a fitted sheet reads as the sheet's margin rather than a rendering gap. */}
       <div
         className="relative overflow-hidden rounded-lg border border-[var(--color-line)]"
         style={{ background: '#f5f1ed' }}
       >
         <div
-          ref={viewportRef}
+          ref={hostRef}
           role="img"
           aria-label={`${label}. ${description}`}
           tabIndex={0}
@@ -230,20 +297,10 @@ export function SchematicViewer({
           onPointerMove={onPointerMove}
           onPointerUp={endPointer}
           onPointerCancel={endPointer}
-          className="h-[60vh] max-h-[720px] min-h-[320px] w-full touch-none outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-hivis)]"
+          className="h-[65vh] max-h-[760px] min-h-[340px] w-full touch-none outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-hivis)] [&>svg]:h-full [&>svg]:w-full"
           style={{ cursor: dragging ? 'grabbing' : 'grab' }}
-        >
-          <div
-            aria-hidden
-            className="origin-top-left will-change-transform [&>svg]:block [&>svg]:h-auto [&>svg]:w-auto"
-            style={{
-              transform: `translate3d(${t.x}px, ${t.y}px, 0) scale(${t.scale})`,
-              width: naturalWidth,
-              height: naturalHeight,
-            }}
-            dangerouslySetInnerHTML={{ __html: svg }}
-          />
-        </div>
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
 
         <div className="no-print absolute right-3 top-3 flex flex-col gap-1.5">
           <Button onClick={() => zoomCentre(ZOOM_STEP)} label="Zoom in">
@@ -259,7 +316,7 @@ export function SchematicViewer({
 
         <div
           aria-live="polite"
-          className="no-print pointer-events-none absolute bottom-3 left-3 rounded border border-[var(--color-line-bright)] bg-[var(--color-ink)]/80 px-2 py-1 font-mono text-xs text-[var(--color-muted)] backdrop-blur"
+          className="no-print pointer-events-none absolute bottom-3 left-3 rounded border border-[var(--color-line-bright)] bg-[var(--color-ink)]/85 px-2 py-1 font-mono text-xs text-[var(--color-muted)] backdrop-blur"
         >
           {percent}%
         </div>

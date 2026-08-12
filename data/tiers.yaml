@@ -165,7 +165,18 @@ envelope:
     range, and separately state the practical ceiling from radio range. These are
     different numbers and readers will conflate them.
   regulatory_note: >
-    A payload in this mass class flown on A through E motors sits inside FAA
-    Part 101 Subpart C Class 1 model rocket limits. Adding mass is what moves a
-    rocket toward those limits, so check the total, not just the payload. See the
-    Safety and rules page.
+    FAA Part 101 Subpart C sorts amateur rockets into classes, and the class
+    boundaries are set by propellant mass, total vehicle weight, and
+    construction, not by the payload alone. Adding mass is what moves a rocket
+    toward those limits, so check the total, not just the payload. See the
+    Safety and rules page, which carries the criteria and the retrieval date.
+  regulatory_note_source: https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-101
+  regulatory_note_verify: >
+    TODO(verify): state where an oApogee-equipped low power rocket actually sits
+    relative to Class 1. Closing this needs two things that do not exist yet.
+    First, the Class 1 criteria transcribed from the current text of Part 101
+    Subpart C with the section number and a retrieval date, including the
+    construction requirements, which is tracked on content/safety.md. Second, a
+    weighed payload mass, which is open in data/bom.yaml where every
+    target_mass_g is null. Until both exist this file states the direction of
+    travel and not a conformity conclusion.

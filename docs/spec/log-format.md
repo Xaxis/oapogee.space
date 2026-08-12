@@ -82,9 +82,10 @@ bearing here rather than nice to have.
 ## meta.json
 
 Written when the flight directory is created, then rewritten at `LANDED` with
-the summary filled in. If the payload never reaches `LANDED`, the summary fields
-are absent, which is itself information: it means the flight ended before
-landing was detected.
+the summary filled in. The `summary` object is always present, including in the
+manifest written at creation. Every member is `null` and `landed` is `false`
+until the payload reaches `LANDED`. A manifest whose `landed` is still `false`
+is itself information: the flight ended before landing was detected.
 
 ```json
 {
@@ -138,7 +139,7 @@ landing was detected.
         { "name": "t_ms",   "offset": 0,  "type": "u32", "scale": 0.001, "unit": "s" },
         { "name": "lat_e7", "offset": 4,  "type": "i32", "scale": 1e-7,  "unit": "deg" },
         { "name": "lon_e7", "offset": 8,  "type": "i32", "scale": 1e-7,  "unit": "deg" },
-        { "name": "alt_dm", "offset": 12, "type": "i16", "scale": 0.1,   "unit": "m" },
+        { "name": "alt_m",  "offset": 12, "type": "i16", "scale": 1,     "unit": "m" },
         { "name": "sats",   "offset": 14, "type": "u8",  "scale": 1,     "unit": "count" },
         { "name": "fix",    "offset": 15, "type": "u8",  "scale": 1,     "unit": "enum" }
       ]
@@ -155,8 +156,10 @@ landing was detected.
 }
 ```
 
-Every value shown as `null` or zero above is a placeholder in this document, not
-a default the firmware writes.
+Every value shown as `null` or zero above is a placeholder in this document
+rather than a default the firmware writes, with one exception. The `summary`
+members really are `null` and `landed` really is `false` in the manifest written
+at flight-directory creation.
 
 ### Fields that are not obvious
 
@@ -187,6 +190,14 @@ over a long pad wait, and the reader deserves to know which they have.
 sample intervals are in the records, and they are what should be used. A log rate
 that varies by flight phase makes the nominal figure a hint, not a fact.
 
+`streams` lists exactly the files present in the flight directory, and nothing
+else. A build with no GNSS receiver writes no `gnss.bin` and carries no `gnss`
+key. The manifest above is a Track log; a Solo or Link log has `flight` only.
+This is the one place structure varies by build variant. Within a stream the
+record layout never does, which is why `hg_accel_dg` keeps its six bytes on a
+build with no high-g part. A reader discovers streams by enumerating `streams`,
+never by assuming a name.
+
 ## flight.bin record, 36 bytes
 
 | Offset | Size | Type | Field | Unit | Notes |
@@ -215,6 +226,23 @@ the best-value spend in this format.
 is clear. It occupies its six bytes regardless, because a record layout that
 changes width by build variant is not a fixed-width record.
 
+`gyro_cdps` in hundredths of a degree per second covers plus or minus 327.67
+deg/s, which is under one revolution per second. It is the only field in this
+record whose container is narrower than the quantity it carries: `accel_mg`
+covers plus or minus 32.767 g, and `hg_accel_dg` covers plus or minus 3276.7 g.
+A rocket rolling faster than 327.67 deg/s clips this channel, and a clipped gyro
+axis reads as a flat plateau for exactly the reason a saturated accelerometer
+does.
+
+TODO(verify): state the gyro full-scale range oApogee configures, which is the
+same open question recorded against the `imu` part in `data/bom.yaml`, and
+compare it against the 327.67 deg/s this encoding can hold.
+
+TODO(confirm-on-hardware): record the peak roll rate on a flight. If either that
+figure or the configured range exceeds 327.67 deg/s, widen this field before
+anything depends on `spec_version` 1, because `flight.bin` is a fixed-width
+record and changing it afterwards is a format break.
+
 The state enumeration is the one in `data/flight-phases.yaml` and the packet
 spec: 0 `PAD_IDLE` through 6 `LANDED`.
 
@@ -233,16 +261,27 @@ choice.
 | 0 | 4 | u32 | `t_ms` | ms since arming |
 | 4 | 4 | i32 | `lat_e7` | degrees x 10^7 |
 | 8 | 4 | i32 | `lon_e7` | degrees x 10^7 |
-| 12 | 2 | i16 | `alt_dm` | 0.1 m, GNSS altitude |
+| 12 | 2 | i16 | `alt_m` | 1 m, GNSS altitude |
 | 14 | 1 | u8 | `sats` | satellites used |
 | 15 | 1 | u8 | `fix` | fix type |
 
-`alt_dm` is the receiver's own altitude solution and is **not** the same
+`alt_m` is the receiver's own altitude solution and is **not** the same
 measurement as `alt_cm` in `flight.bin`. GNSS altitude is referenced to an
 ellipsoid, not to the launch pad, and it is considerably less precise than the
 barometer for this application. It is stored because disagreement between the
 two is diagnostically useful, not because it is a better altitude. Anyone
 plotting a flight should use the barometric column.
+
+Whole metres are deliberate. This is an absolute altitude, so unlike `alt_cm`
+the field has to hold the site elevation as well as everything the airframe
+adds. An i16 of metres covers minus 32768 to 32767 m, which is far outside the
+envelope of any airframe this payload is built for. Tenths of a metre in the
+same two bytes would cover only plus or minus 3276.7 m, which a mountain site
+plus a large flight can reach, and the extra digit would be false precision in
+any case, since GNSS vertical accuracy is much coarser than a decimetre. A
+solution outside the representable range is clamped to the endpoint rather than
+allowed to wrap, because a wrapped value decodes as a plausible altitude with
+the wrong sign and nothing marks it as wrong.
 
 Fix types follow the u-blox convention: 0 no fix, 2 two-dimensional, 3
 three-dimensional. Other values are passed through unchanged.
@@ -293,7 +332,14 @@ def load(flight_dir, stream="flight"):
     with open(f"{flight_dir}/meta.json") as f:
         meta = json.load(f)
 
-    spec = meta["streams"][stream]
+    # A stream is absent when the build did not write it, so name what is here
+    # rather than failing on a bare key lookup a caller cannot interpret.
+    spec = meta["streams"].get(stream)
+    if spec is None:
+        raise KeyError(
+            f"no {stream!r} stream in this log; present: {sorted(meta['streams'])}"
+        )
+
     order = "<" if spec["endian"] == "little" else ">"
 
     names, formats, offsets = [], [], []
@@ -327,15 +373,22 @@ def load(flight_dir, stream="flight"):
 A conforming reader:
 
 - **must** read the layout from `meta.json` rather than assuming this document
+- **must** discover streams by enumerating `streams` rather than assuming a
+  stream name is present
 - **must** truncate a trailing partial record rather than failing
+- **must** treat a null summary member, or `landed` false, as not known rather
+  than as a measured zero
 - **must not** treat `session.simulated` as decorative
 - **should** report truncation
-- **should** prefer `alt_cm` over `alt_dm` when plotting altitude, and should say
+- **should** prefer `alt_cm` over `alt_m` when plotting altitude, and should say
   which it used
 
 A conforming writer:
 
 - **must** write `meta.json` before the first record
+- **must** write the `summary` object in the manifest it writes before the first
+  record, with every member `null` and `landed` `false`
+- **must not** list a stream in `streams` that it did not write a file for
 - **must** write the calibration reference actually used
 - **must** set `simulated` on any run not produced by a real flight
 - **should** rewrite `meta.json` with the summary at `LANDED`

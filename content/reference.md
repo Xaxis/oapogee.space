@@ -107,5 +107,6 @@ somebody flying the previous build needs a way to find that out.
 
 ## Changelog
 
-Not yet started. See the repository history at
-[github.com/Xaxis/oapogee.space](https://github.com/Xaxis/oapogee.space).
+Every change and decision so far is in the [changelog](/changelog), rendered
+from `CHANGELOG.md`. Nothing has been released yet, so every entry sits under
+Unreleased. Errata will appear there too.

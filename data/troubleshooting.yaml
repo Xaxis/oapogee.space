@@ -103,12 +103,15 @@ entries:
           and not be. It is also the one that makes the whole part invisible when
           it fails, rather than making it behave oddly.
       - do: Check for a short between the two bus lines
-      - do: Confirm the bus pull-up resistors are present, and only once
+      - do: Confirm the I2C pull-up resistors are present, and only once
         detail: >
-          On the Modules path each breakout brings its own pull-ups, and several
-          in parallel can load the bus enough to stop it working. This presents
-          as intermittent dropouts more often than as total absence, but it can
-          do both.
+          The barometer is the only part on the I2C bus, so there should be one
+          pull-up pair on SDA and SCL. On the Modules path the breakout brings a
+          pair of its own, which duplicates any pair already fitted on the
+          carrier, and two pairs in parallel can load the bus enough to stop it
+          working. No pull-ups at all stops it working too. This presents as
+          intermittent dropouts more often than as total absence, but it can do
+          both.
       - do: Confirm the part is powered
         detail: 3V3 at the sensor's supply pin, measured at the pin, not at the regulator.
     see_also: [intermittent-sensor]
@@ -118,12 +121,20 @@ entries:
     symptom: Sensors drop out intermittently
     tiers: [solo, link, track]
     checks:
-      - do: Count the bus pull-ups
+      - do: Count the I2C pull-ups
         detail: >
-          This is the classic Modules-path failure. Three breakouts on one I2C
-          bus means three sets of pull-ups in parallel, which can pull the bus
-          harder than the parts can drive it. Remove all but one set, or cut the
-          jumper the breakout provides for exactly this.
+          Only the barometer sits on I2C, so exactly one pull-up pair belongs on
+          SDA and SCL. On the Modules path the breakout's own pair duplicates any
+          pair already on the carrier, and two in parallel can pull the bus
+          harder than the parts can drive it. Remove one set, or cut the jumper
+          the breakout provides for exactly this. Removing both leaves the bus
+          with no pull-ups and it will not work either.
+      - do: Check the SPI chip selects
+        detail: >
+          The IMU and the high-g accelerometer share SCK, MOSI and MISO, and
+          each needs a chip select line of its own. Two parts on one chip select
+          drive MISO against each other whenever the bus is read, which reads as
+          one part working and the other appearing and disappearing.
       - do: Shorten the wiring
         detail: Long unshielded jumpers on a fast bus pick up noise from the radio.
       - do: Check for a cold joint by flexing the board gently while watching the console
@@ -184,19 +195,26 @@ entries:
     symptom: The acceleration trace is a flat plateau during boost
     tiers: [solo, link, track]
     checks:
-      - do: Check whether the plateau sits at about 16 g
+      - do: Check whether the plateau sits at the IMU's full-scale limit
         detail: >
-          Then it is not a plateau, it is saturation. A general purpose IMU tops
-          out around there and reports its maximum rather than an error, so real
-          acceleration above the limit looks like a constant. Anything above a C
-          motor will do this.
+          Then it is not a plateau, it is saturation. An accelerometer past full
+          scale reports its maximum rather than an error, so real acceleration
+          above the limit comes back as a constant. Compare the flat value
+          against the configured full-scale range rather than against a
+          remembered figure.
+          TODO(verify): state the full-scale range oApogee configures on the
+          6-axis IMU, quoted from the datasheet, so this check has a number to
+          compare against. Tracked on the high-g entry in the bill of materials.
       - do: Check whether the high-g accelerometer is fitted and healthy
         detail: >
           The HIGH_G flag in the log and in the telemetry says whether the value
           came from the dedicated part or from the IMU. If it came from the IMU,
-          the boost phase is not measurable with what is on the board.
-      - do: Fit the high-g accelerometer if you fly above a C motor
-        detail: This is what that part is for and it is the only fix.
+          the boost phase is not measurable with what is on the board. The
+          high-g accelerometer is specified at Link and above, so on a Solo
+          build there is no dedicated part to fall back to.
+          TODO(confirm): the open questions page asks whether this part should be
+          gated by motor class rather than by tier. Resolve that before the site
+          tells anyone which motor class requires it.
 
   # --- flight --------------------------------------------------------------
   - id: no-launch-detect

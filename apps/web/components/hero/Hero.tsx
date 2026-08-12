@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import type { Phase } from '@/lib/data'
@@ -15,7 +15,31 @@ const FlightScene = dynamic(() => import('./FlightScene'), {
 
 export function Hero({ phases }: { phases: Phase[] }) {
   const [active, setActive] = useState('ARMED')
+
+  // A click pins the legend to what was clicked. Without this the running scene
+  // takes the selection back at its next phase transition, which is at most a
+  // few seconds away and often under one, so clicking a phase to read what it
+  // means did not work. PAD_IDLE is only reachable this way, because the scene
+  // never enters it.
+  const [pinned, setPinned] = useState(false)
+  const pinnedRef = useRef(false)
   const current = phases.find((p) => p.id === active)
+
+  const pin = (id: string) => {
+    pinnedRef.current = true
+    setPinned(true)
+    setActive(id)
+  }
+  const unpin = () => {
+    pinnedRef.current = false
+    setPinned(false)
+  }
+
+  // Reads the flag from a ref rather than closing over it, so the identity
+  // stays stable and the scene can never call a stale copy.
+  const handlePhase = useCallback((id: string) => {
+    if (!pinnedRef.current) setActive(id)
+  }, [])
 
   return (
     <section className="relative min-h-[30rem]">
@@ -35,7 +59,7 @@ export function Hero({ phases }: { phases: Phase[] }) {
             'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 22%, rgba(0,0,0,1) 48%)',
         }}
       >
-        <FlightScene onPhase={setActive} />
+        <FlightScene onPhase={handlePhase} />
       </div>
 
       <div className="py-10 sm:py-16">
@@ -76,7 +100,8 @@ export function Hero({ phases }: { phases: Phase[] }) {
             <span key={phase.id} className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setActive(phase.id)}
+                onClick={() => pin(phase.id)}
+                aria-pressed={phase.id === active}
                 className={`rounded px-2 py-1 font-mono text-xs uppercase tracking-wider transition-colors ${
                   phase.id === active
                     ? 'bg-[var(--color-hivis)] text-black'
@@ -104,6 +129,18 @@ export function Hero({ phases }: { phases: Phase[] }) {
         <p className="mt-4 font-mono text-xs text-[var(--color-dim)]">
           Diagram of the flight state machine, not recorded data.
         </p>
+
+        {/* Once pinned, the legend and the trajectory disagree until this is
+            used, so there has to be a way back. */}
+        {pinned && (
+          <button
+            type="button"
+            onClick={unpin}
+            className="mt-4 font-mono text-xs uppercase tracking-wider text-[var(--color-dim)] hover:text-[var(--color-body)]"
+          >
+            Follow the flight
+          </button>
+        )}
       </div>
     </section>
   )

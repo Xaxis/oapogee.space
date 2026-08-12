@@ -28,14 +28,16 @@ phases:
       Powered on, sensors sampling, nothing recorded to flash. The payload is
       waiting for you to arm it.
     behaviour: >
-      Barometric pressure is averaged continuously to establish the ground
-      reference. This is why the altimeter reports height above the launch site
-      rather than height above sea level, and it is why the payload wants a
-      settling period before you walk away.
+      Pressure and motion are sampled continuously, but nothing is committed and
+      no ground reference is taken yet. The reference is averaged over a settling
+      window that begins when you arm, which is why arming is the last item on
+      the checklist and why the rocket has to be left alone afterwards rather
+      than before.
     caution: >
-      A weather front moving through during a long pad wait shifts the
-      atmospheric pressure, which moves the zero the whole flight is measured
-      against. The longer the pad wait, the more this matters.
+      Where you arm decides what the zero is, because arming is what starts the
+      reference. A payload armed somewhere other than the pad, indoors most
+      often, takes its reference at the wrong pressure and the whole flight is
+      measured against it.
     transitions_to: ARMED
     criteria: Operator arms the payload.
     threshold: null
@@ -44,15 +46,31 @@ phases:
     name: Armed
     order: 1
     summary: >
-      Ground reference locked, ring buffer running, waiting for motion. The
-      status LED and buzzer say so from several metres away.
+      The ground reference settles, the ring buffer runs, and the payload waits
+      for motion. The status LED and buzzer say so from several metres away.
     behaviour: >
-      A pre-arm ring buffer holds the most recent samples continuously, so that
-      when launch is detected the log already contains the moment of ignition
-      rather than starting a fraction of a second after it. Launch detection is
-      inherently late: it cannot fire until enough acceleration has accumulated
-      to be distinguishable from someone knocking the rail. The ring buffer is
-      what recovers the part you would otherwise lose.
+      Barometric pressure is averaged over a settling window that starts on
+      arming, and the ground reference is locked when that window completes.
+      This is why the altimeter reports height above the launch site rather than
+      height above sea level, and it is why you leave the rocket alone after
+      arming rather than before it. A ring buffer holds the most recent samples
+      continuously, so that when launch is detected the log already contains the
+      moment of ignition rather than starting a fraction of a second after it.
+      Launch detection is inherently late: it cannot fire until enough
+      acceleration has accumulated to be distinguishable from someone knocking
+      the rail. The ring buffer is what recovers the part you would otherwise
+      lose.
+    caution: >
+      A weather front moving through between arming and launch shifts the
+      atmospheric pressure, which moves the zero the whole flight is measured
+      against. The longer the wait on the pad after arming, the more this
+      matters.
+    reference_window_verify: >
+      TODO(verify): state the settling window duration from measured barometer
+      noise on real hardware, and state the altitude error incurred if the
+      operator walks away before the window completes. The duration itself is
+      owned by content/firmware.md and data/preflight.yaml; this file records
+      only that the window starts on arming.
     transitions_to: BOOST
     criteria: >
       Sustained upward acceleration above a threshold, held for a minimum number
@@ -70,10 +88,17 @@ phases:
       The motor is thrusting. The highest accelerations of the flight happen
       here, and the log rate is at its fastest.
     behaviour: >
-      This is the phase a general purpose IMU cannot measure honestly. A 6-axis
-      part saturates around 16 g and reports its maximum rather than an error,
-      so boost on anything above a C motor comes back as a flat plateau that
-      looks like data. The high-g accelerometer exists for this phase alone.
+      This is the phase a general purpose IMU may not be able to measure
+      honestly. A 6-axis part has a full-scale range, and past it reports its
+      maximum rather than an error, so a boost that exceeds the range comes back
+      as a flat plateau that looks like data. The high-g accelerometer exists for
+      this phase alone.
+    behaviour_verify: >
+      TODO(verify): state the full-scale range oApogee configures on the 6-axis
+      IMU, quoted from the datasheet, and the peak acceleration of a
+      representative loaded airframe on a C, D, and E motor from OpenRocket, so
+      the motor class at which the IMU saturates is derived rather than
+      asserted. Tracked on the high-g entry in data/bom.yaml.
     caution: >
       Barometric altitude is least trustworthy here. Airflow over the static
       ports disturbs the pressure the sensor sees, which is why the fused

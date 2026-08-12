@@ -48,12 +48,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        {/* Every page inside the docs shell puts the whole route table ahead of
+            its content, so without this a keyboard user tabs through twenty
+            five links to reach the first word of every page. Fixed rather than
+            absolute so the link is still on screen when focus lands on it after
+            a client side navigation on a scrolled page, and above the sticky
+            header's z-50. */}
+        <a
+          href="#main"
+          className="no-print sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded focus:border focus:border-[var(--color-line-bright)] focus:bg-[var(--color-surface)] focus:px-4 focus:py-2 focus:!no-underline"
+        >
+          Skip to content
+        </a>
+
         <header className="no-print sticky top-0 z-50 border-b border-[var(--color-line)] bg-[var(--color-ink)]/90 backdrop-blur">
           <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3 lg:px-8">
             <Link href="/" className="wordmark text-lg !text-white !no-underline">
               <span className="o">o</span>apogee
             </Link>
-            <nav className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+            <nav aria-label="Main" className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
               {HEADER_LINKS.map((item) => (
                 <Link
                   key={item.href}
@@ -70,8 +83,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* No width constraint here. The docs shell needs the full viewport for
             its sidebar, and the homepage sets its own container. A max-width on
-            main would quietly squash one of the two. */}
-        <main>{children}</main>
+            main would quietly squash one of the two.
+
+            tabIndex -1 because the id alone only moves the sequential focus
+            start point, and Safari does not do even that, so the skip link
+            would appear to do nothing. */}
+        <main id="main" tabIndex={-1}>
+          {children}
+        </main>
 
         <footer className="no-print mt-24 border-t border-[var(--color-line)]">
           {/* Deliberately not a link farm. Every docs page carries the full

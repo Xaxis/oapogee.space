@@ -231,8 +231,10 @@ parts:
       verify: >
         TODO(verify): identify a currently-stocked BMP390 breakout and record
         its supplier part number, price, mass, and whether its I2C pull-ups
-        conflict when three breakouts share a bus. Adafruit and SparkFun both
-        list BMP390 boards; neither product number is confirmed here.
+        duplicate a pair already fitted on the carrier. The barometer is the
+        only part on the I2C bus, so the failure to look for is a second pair,
+        not several. Adafruit and SparkFun both list BMP390 boards; neither
+        product number is confirmed here.
 
   - id: imu
     role: imu
@@ -263,6 +265,16 @@ parts:
           Equivalent for this application and often easier to source. Register
           maps differ, so the firmware carries a driver for each.
         confidence: asserted
+    breakout:
+      confidence: unverified
+      verify: >
+        TODO(verify): identify a currently-stocked ICM-42688-P breakout and
+        record whether it exposes the SPI interface and a usable chip select
+        pin. The Board path puts this part on SPI. If no SPI-capable breakout
+        can be sourced, the Modules path does not share the Board path's bus
+        assignment, and the "Same electrical design, two ways to fabricate it"
+        note at the head of this file must be amended rather than quietly left
+        standing.
 
   - id: high_g
     role: high_g_accelerometer
@@ -273,11 +285,16 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): confirm the full-scale range and bandwidth from the
-      datasheet. Then, separately, produce the number that justifies this part:
-      the peak acceleration of a typical loaded airframe on a C, D, and E motor,
-      taken from OpenRocket simulation, so the site can state at which motor
-      class the 6-axis IMU actually saturates instead of asserting it.
+      TODO(verify): confirm the ADXL375 full-scale range and bandwidth from the
+      datasheet, with the table cited, and state the full-scale range oApogee
+      configures on the ICM-42688-P, also quoted from its datasheet. Then,
+      separately, produce the number that justifies this part: the peak
+      acceleration of a representative loaded airframe on a C, D, and E motor,
+      taken from OpenRocket simulation, so the motor class at which the 6-axis
+      IMU saturates is derived rather than asserted. Both halves are needed. A
+      full-scale range with no simulated peaks says nothing about which motors
+      exceed it, and simulated peaks with no range say nothing about which part
+      clips first.
     optional: true
     applies:
       - { tier: link, path: board, qty: 1 }
@@ -285,15 +302,17 @@ parts:
       - { tier: link, path: modules, qty: 1 }
       - { tier: track, path: modules, qty: 1 }
     why: >
-      A general purpose IMU tops out around 16 g. Boost acceleration on anything
-      above a C motor exceeds that, and when an accelerometer saturates it does
-      not report an error, it reports its maximum value for as long as the real
-      acceleration is higher. The result is a boost phase that looks like a flat
-      plateau at exactly 16 g, which is not merely imprecise, it is wrong in a
+      A general purpose IMU has a full-scale range, and boost acceleration can
+      exceed it. When an accelerometer saturates it does not report an error, it
+      reports its maximum value for as long as the real acceleration is higher.
+      The result is a boost phase that looks like a flat plateau sitting exactly
+      at the full-scale limit, which is not merely imprecise, it is wrong in a
       way that looks plausible. Integrating that flat top underestimates
       velocity, which propagates into every fused altitude estimate during the
       part of the flight the fusion is most needed. A dedicated high-g part
-      exists solely so the boost data means something.
+      exists solely so the boost data means something. The full-scale range and
+      the motor class at which the 6-axis IMU actually saturates are recorded in
+      the verify note on this part and are deliberately not stated here.
     substitutes:
       - mpn: H3LIS331DL
         manufacturer: STMicroelectronics
@@ -302,6 +321,16 @@ parts:
           detecting and bounding boost acceleration, less good for integrating
           it. TODO(verify): compare the noise floors.
         confidence: asserted
+    breakout:
+      confidence: unverified
+      verify: >
+        TODO(verify): identify a currently-stocked ADXL375 breakout and record
+        whether it exposes the SPI interface and a usable chip select pin. The
+        Board path puts this part on SPI sharing the IMU's bus. If no
+        SPI-capable breakout can be sourced, the Modules path does not share the
+        Board path's bus assignment, and the "Same electrical design, two ways
+        to fabricate it" note at the head of this file must be amended rather
+        than quietly left standing.
 
   # --- Radio --------------------------------------------------------------
 
@@ -327,8 +356,8 @@ parts:
     why: >
       LoRa trades data rate for link budget, which is exactly the trade a
       telemetry downlink wants: the packets are small and infrequent, and the
-      requirement is that they arrive from a kilometre away through a rocket
-      body tube at an unfavourable angle.
+      requirement is that they arrive from far away through a rocket body tube
+      at an unfavourable angle.
     region_note: >
       902 to 928 MHz for US builds under FCC Part 15. 863 to 870 MHz for EU and
       UK builds. This is a hardware selection issue as well as a firmware one,

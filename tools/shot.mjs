@@ -119,9 +119,23 @@ await send('Page.navigate', { url }, sessionId)
 await Promise.race([loaded, new Promise((r) => setTimeout(r, 20000))])
 await new Promise((r) => setTimeout(r, 1200))
 
+// Optional script run before the capture, so an interaction can be driven and
+// then photographed: --eval='document.querySelector("[aria-label=Zoom in]").click()'
+const evalArg = process.argv.find((a) => a.startsWith('--eval='))
+if (evalArg) {
+  await send('Runtime.enable', {}, sessionId)
+  const r = await send(
+    'Runtime.evaluate',
+    { expression: evalArg.slice('--eval='.length), awaitPromise: true, returnByValue: true },
+    sessionId
+  )
+  if (r.exceptionDetails) console.error('eval threw:', r.exceptionDetails.text)
+  await new Promise((r) => setTimeout(r, 800))
+}
+
 const { data } = await send(
   'Page.captureScreenshot',
-  { format: 'png', captureBeyondViewport: true },
+  { format: 'png', captureBeyondViewport: !process.argv.includes('--viewport') },
   sessionId
 )
 writeFileSync(out, Buffer.from(data, 'base64'))

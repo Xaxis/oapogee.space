@@ -106,15 +106,6 @@ export type Bom = {
 
 export const getBom = (): Bom => load<Bom>('bom.yaml')
 
-export function partsFor(bom: Bom, tier: string, path: string): { part: Part; qty: number }[] {
-  return bom.parts
-    .map((part) => {
-      const applies = part.applies?.find((a) => a.tier === tier && a.path === path)
-      return applies ? { part, qty: applies.qty } : null
-    })
-    .filter((x): x is { part: Part; qty: number } => x !== null)
-}
-
 // --- glossary --------------------------------------------------------------
 
 export type Term = {

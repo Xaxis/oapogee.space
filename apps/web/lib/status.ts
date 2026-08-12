@@ -1,8 +1,8 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
-import { join, extname } from 'node:path'
+import { join, extname, relative, sep } from 'node:path'
 import matter from 'gray-matter'
 import { countMarkers, isoDate, type Frontmatter, type MarkerCount } from './content'
-import { CONTENT_DIR, DATA_DIR, DOCS_DIR } from './repo'
+import { CONTENT_DIR, DATA_DIR, DOCS_DIR, REPO_ROOT } from './repo'
 import { CONTENT_ROUTES, GENERATED_ROUTES } from './routes'
 
 // Every page the site claims to have, with where its content comes from. Built
@@ -164,12 +164,24 @@ export function repoMarkers(): Marker[] {
   const out: Marker[] = []
 
   for (const path of MARKER_SOURCES()) {
-    const file = path.slice(path.indexOf('/oapogee.space/') + '/oapogee.space/'.length)
+    // Relative to the known repository root rather than by searching the
+    // absolute path for a directory name. A CI checkout sits at
+    // /home/runner/work/oapogee.space/oapogee.space, where searching finds the
+    // first of the two and produces a path with the repository name doubled
+    // into it, and a clone under any other name produced nothing usable at all.
+    // These are interpolated into a GitHub blob URL, so separators are
+    // normalised for the Windows case.
+    const file = relative(REPO_ROOT, path).split(sep).join('/')
     const lines = readFileSync(path, 'utf8').split('\n')
 
     for (let i = 0; i < lines.length; i++) {
       const kind = KINDS.find((k) => lines[i].includes(`TODO(${k})`))
       if (!kind) continue
+
+      // Captured before the inner loop advances i past the continuation lines,
+      // which would otherwise report the end of the block and send a reader
+      // following the link to a line below the marker.
+      const startLine = i + 1
 
       const marker = `TODO(${kind})`
       const parts = [lines[i].slice(lines[i].indexOf(marker) + marker.length)]
@@ -189,7 +201,7 @@ export function repoMarkers(): Marker[] {
       out.push({
         kind,
         file,
-        line: i + 1,
+        line: startLine,
         text: parts.join(' ').replace(/^[:\s>]+/, '').replace(/\s+/g, ' ').replace(/["']$/, '').trim(),
       })
     }
