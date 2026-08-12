@@ -235,34 +235,70 @@ export default function Bom() {
       <section>
         <h2 className="text-2xl font-semibold text-white">Tools</h2>
         <p className="mt-2 max-w-2xl text-[var(--color-muted)]">
-          What you need that is not a part. Split honestly, because a long tool list is where a
-          beginner decides the project is not for them.
+          What you need that is not a part. Ordered by whether you can start without it, because a
+          long undifferentiated tool list is where a beginner decides the project is not for them.
         </p>
-        <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          {(
+
+        {/* Grouped and ranked, one card style throughout. Three parallel
+            columns of bullets made the groups look equally important and forced
+            a comparison across columns to answer the only question a reader
+            has, which is what they need before they can start. Repeating a
+            "required" pill on every card in the required group answered that
+            question nine times and added nothing, so the group heading carries
+            it once.
+
+            items-start so a card with no note hugs its content. Stretched to
+            the row height they became tall empty boxes that read as missing
+            information. */}
+        {(
+          [
             [
-              ['Required', bom.tools.required],
-              ['Recommended', bom.tools.recommended],
-              ['For the printed parts', bom.tools.fabrication],
-            ] as const
-          ).map(([label, list]) => (
-            <div key={label} className="rounded-lg border border-[var(--color-line)] p-5">
-              <div className="font-mono text-xs uppercase tracking-widest text-[var(--color-dim)]">
-                {label}
-              </div>
-              <ul className="mt-3 flex flex-col gap-3 text-sm">
-                {list.map((tool) => (
-                  <li key={tool.name}>
-                    <div className="text-[var(--color-body)]">{tool.name}</div>
-                    {tool.note && (
-                      <div className="mt-1 text-[var(--color-muted)]">{tool.note}</div>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              'required',
+              'Required',
+              'You cannot finish the build without these.',
+              bom.tools.required,
+            ],
+            [
+              'recommended',
+              'Recommended',
+              'Not strictly needed, and each one removes a specific frustration.',
+              bom.tools.recommended,
+            ],
+            [
+              'fabrication',
+              'For the printed parts',
+              'The sled and the pod are printed, and there is no non-printed option.',
+              bom.tools.fabrication,
+            ],
+          ] as const
+        ).map(([kind, label, blurb, list]) => (
+          <div key={kind} className="mt-8">
+            <h3 className="text-lg font-semibold text-white">{label}</h3>
+            <p className="mt-1 text-sm text-[var(--color-muted)]">{blurb}</p>
+            <div className="mt-4 grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {list.map((tool) => (
+                <div
+                  key={tool.name}
+                  className={`rounded-lg border bg-[var(--color-surface)] p-4 ${
+                    kind === 'required'
+                      ? 'border-[var(--color-line-bright)] border-l-3 border-l-[var(--color-hivis)]'
+                      : 'border-[var(--color-line)]'
+                  }`}
+                >
+                  <div className="font-medium text-white">{tool.name}</div>
+                  {tool.note && (
+                    <p className="mt-2 text-sm text-[var(--color-muted)]">{tool.note}</p>
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
+
+        <p className="mt-4 max-w-2xl text-sm text-[var(--color-dim)]">
+          Nothing here is priced, for the same reason nothing else on this page is. Most of it you
+          either own already or will keep using long after this build.
+        </p>
       </section>
 
       <p className="text-sm text-[var(--color-muted)]">
