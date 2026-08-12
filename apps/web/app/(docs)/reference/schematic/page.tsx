@@ -48,7 +48,7 @@ export default function Schematic() {
     : null
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="space-y-10">
       <header className="max-w-[46rem]">
         <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl">Schematic</h1>
         <p className="mt-3 text-lg text-[var(--color-muted)]">

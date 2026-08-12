@@ -13,7 +13,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help install dev build start lint type-check format \
-        check check-fast prose data links schematic check-schematic clean
+        check check-fast prose data links schematic check-schematic responsive clean
 
 help: ## List available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -51,7 +51,10 @@ check-schematic: ## The committed schematic matches the data it was drawn from
 
 check-fast: prose data links check-schematic lint type-check ## Everything except the site build
 
-check: check-fast build ## Everything CI runs
+check: check-fast build responsive ## Everything CI runs
+
+responsive: ## No page scrolls sideways at 320px or 390px. Needs a build and Chrome.
+	@node tools/check-responsive.mjs
 
 # --- the site ----------------------------------------------------------------
 

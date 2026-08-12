@@ -60,7 +60,7 @@ export default function Bom() {
   const tierIds = tiers.map((t) => t.id)
 
   return (
-    <div className="flex flex-col gap-16">
+    <div className="space-y-16">
       <header className="max-w-[46rem]">
         <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl">
           Bill of materials

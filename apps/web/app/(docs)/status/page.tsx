@@ -51,7 +51,7 @@ export default function Status() {
   const verified = rows.filter((r) => r.status === 'verified').length
 
   return (
-    <div className="flex flex-col gap-14">
+    <div className="space-y-14">
       <header className="max-w-[46rem]">
         <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl">Status</h1>
         <p className="mt-3 text-lg text-[var(--color-muted)]">

@@ -3,27 +3,94 @@ import Image from 'next/image'
 import { getTiers, getFlightPhases } from '@/lib/data'
 import { Hero } from '@/components/hero/Hero'
 
-// Four sections, in the order somebody decides with: what it does, what it is,
-// which one to build, and what it will not do. The project's honesty about
-// unmeasured numbers is stated once, at the end, rather than repeated on every
-// block until it reads as an apology.
+// The homepage answers one question: what can I do here today.
+//
+// An earlier version led with what had not been built yet and repeated it in
+// three separate places, which is a strange thing for a documentation project
+// to do. The hardware being unbuilt is a fact about a date, not about the
+// site's usefulness: the design, the parts list, the wire formats, the safety
+// groundwork and the schematic all exist and are all buildable from.
+//
+// The accuracy rule still applies, so the state of the numbers is stated. Once,
+// in a line, with a link, rather than as a section with a heading.
+
+const WHATS_HERE = [
+  {
+    href: '/build',
+    title: 'Build guide',
+    what: 'Every step, with an observable checkpoint and a link to the failure branch when a checkpoint does not pass.',
+  },
+  {
+    href: '/bom',
+    title: 'Bill of materials',
+    what: 'Every part, by tier and by build path, with why each was chosen and what substitutes for it.',
+  },
+  {
+    href: '/reference/schematic',
+    title: 'Schematic and KiCad',
+    what: 'The circuit as code. Drawing, netlist, circuit JSON and a KiCad schematic, all from one source.',
+  },
+  {
+    href: '/reference/telemetry-packet',
+    title: 'Wire formats',
+    what: 'The packet and log formats, specified well enough to write your own receiver against.',
+  },
+  {
+    href: '/preflight',
+    title: 'Preflight checklist',
+    what: 'Printable, one action per line, ordered by when it happens rather than by subsystem.',
+  },
+  {
+    href: '/troubleshooting',
+    title: 'Troubleshooting',
+    what: 'Organised by what you saw, not by which component failed, because that is what you know.',
+  },
+]
 
 export default function Home() {
   const { tiers, paths, scope, upgrade_promise } = getTiers()
   const { phases } = getFlightPhases()
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-24 px-5 py-12">
+    <div className="mx-auto max-w-6xl space-y-24 px-5 py-12">
       <Hero phases={phases} />
+
+      <section>
+        <h2 className="text-2xl font-semibold text-white">Everything you need is here</h2>
+        <p className="mt-2 max-w-2xl text-[var(--color-muted)]">
+          The hardware is commodity. The documentation is the product, and it is written to be
+          followed start to finish by somebody who has soldered before and never written firmware.
+        </p>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {WHATS_HERE.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="group rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)] p-5 !no-underline transition-colors hover:border-[var(--color-hivis)]"
+            >
+              <div className="font-medium !text-white group-hover:!text-[var(--color-hivis)]">
+                {item.title}
+              </div>
+              <p className="mt-2 text-sm text-[var(--color-muted)]">{item.what}</p>
+            </Link>
+          ))}
+        </div>
+
+        <p className="mt-6 max-w-2xl text-sm text-[var(--color-dim)]">
+          Nothing has been fabricated or flown yet, so the site carries no prices, masses or ranges:
+          those are measurements and they have not been taken.{' '}
+          <Link href="/status">Exactly what is verified and what is not</Link>.
+        </p>
+      </section>
 
       <section>
         <h2 className="text-2xl font-semibold text-white">The whole payload, one sheet</h2>
         <p className="mt-2 max-w-2xl text-[var(--color-muted)]">
           Four sensors onto one microcontroller, the log written to flash that is soldered down
           rather than to a card that can shake loose, and one connector for power, charging,
-          configuration and offload. Generated from the same parts list the{' '}
-          <Link href="/bom">bill of materials</Link> renders, so it cannot quietly stop matching the
-          hardware.
+          configuration and offload.{' '}
+          <Link href="/reference/schematic">The circuit, in full</Link>.
         </p>
         <div className="mt-6 overflow-x-auto rounded-lg border border-[var(--color-line)]">
           <Image
@@ -32,7 +99,6 @@ export default function Home() {
             width={1168}
             height={616}
             className="min-w-[900px] max-w-none"
-            priority={false}
           />
         </div>
       </section>
@@ -57,7 +123,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-4 text-sm text-[var(--color-muted)]">
+        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--color-muted)]">
           {paths.map((path) => (
             <span key={path.id} className="flex items-center gap-2">
               <span className={`chip ${path.available ? 'chip-verified' : 'chip-blocked'}`}>
@@ -74,21 +140,6 @@ export default function Home() {
         <p className="mt-3 max-w-2xl text-[var(--color-muted)]">{scope.boundary_statement}</p>
         <Link href="/safety" className="mt-4 inline-block text-sm">
           Safety and rules
-        </Link>
-      </section>
-
-      <section className="max-w-2xl border-t border-[var(--color-line)] pt-8">
-        <h2 className="text-xl font-semibold text-white">
-          Nothing here has been built, and nothing has flown.
-        </h2>
-        <p className="mt-3 text-[var(--color-muted)]">
-          So there are no prices, no masses, no ranges and no battery figures anywhere on this site.
-          Not estimates, not placeholders: they are absent, and each gap records what evidence would
-          close it. A page full of confident invented specifications is worse than an empty one when
-          people spend money and fly hardware over other people&rsquo;s heads based on it.
-        </p>
-        <Link href="/status" className="mt-4 inline-block text-sm">
-          See exactly what is verified and what is not
         </Link>
       </section>
     </div>

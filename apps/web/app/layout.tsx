@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { NAV_GROUPS, navFor } from '@/lib/routes'
 import '../styles/globals.css'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://oapogee.space'
@@ -34,18 +33,14 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 }
 
-// Three groups, because the three readers arrive with different intent: the
-// beginner building one, the flier using one, and the engineer who wants the
-// packet format and will skip everything else.
-const NAV = NAV_GROUPS.map((group) => ({ group, items: navFor(group) }))
-
-// The header carries the entry point into each group rather than all twenty
-// links. The footer carries everything.
+// Three links, not twenty. Every page inside the docs shell already carries the
+// full navigation in its sidebar, so a header that repeats it is duplicated
+// chrome that makes the site look larger and harder than it is. These three are
+// the entry points somebody arriving cold actually needs: where to begin, where
+// the reference material is, and where the source lives.
 const HEADER_LINKS = [
   { href: '/start', label: 'Start here' },
-  { href: '/bom', label: 'Bill of materials' },
-  { href: '/build', label: 'Build' },
-  { href: '/safety', label: 'Safety' },
+  { href: '/build', label: 'Build guide' },
   { href: '/reference', label: 'Reference' },
 ]
 
@@ -79,43 +74,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main>{children}</main>
 
         <footer className="no-print mt-24 border-t border-[var(--color-line)]">
+          {/* Deliberately not a link farm. Every docs page carries the full
+              navigation in its sidebar; a footer repeating it adds twenty links
+              that nobody uses and buries the one thing that has to be read. */}
           <div className="mx-auto max-w-[1500px] px-5 py-10 text-sm text-[var(--color-muted)] lg:px-8">
-            <div className="grid gap-8 sm:grid-cols-3">
-              {NAV.map((group) => (
-                <div key={group.group}>
-                  <div className="mb-2 font-mono text-xs uppercase tracking-widest text-[var(--color-dim)]">
-                    {group.group}
-                  </div>
-                  <ul className="flex flex-col gap-1">
-                    {group.items.map((item) => (
-                      <li key={item.href}>
-                        <Link href={item.href} className="!text-[var(--color-muted)] !no-underline hover:!text-white">
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-10 max-w-2xl">
-              <strong className="text-[var(--color-body)]">oApogee is a passive instrumentation
-              payload.</strong>{' '}
+            <p className="max-w-2xl">
+              <strong className="text-[var(--color-body)]">
+                oApogee is a passive instrumentation payload.
+              </strong>{' '}
               It does not fire ejection charges, control deployment, ignite motors, or command any
-              pyrotechnic device.{' '}
-              <Link href="/safety">Read the safety and rules page</Link> before you build or fly
-              anything.
+              pyrotechnic device. <Link href="/safety">Read the safety and rules</Link> before you
+              build or fly anything.
             </p>
 
-            <p className="mt-6 max-w-2xl text-xs text-[var(--color-dim)]">
-              Hardware under CERN-OHL-S 2.0, firmware under Apache 2.0, documentation under CC BY-SA
-              4.0. The design is open, the name is not. <Link href="/about">Licensing in full</Link>
-              . <a href="https://github.com/Xaxis/oapogee.space">Source on GitHub</a>.
-            </p>
-            <p className="mt-2 text-xs text-[var(--color-dim)]">
-              oApogee is not affiliated with Apogee Components.
-            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-[var(--color-dim)]">
+              <a href="https://github.com/Xaxis/oapogee.space">GitHub</a>
+              <Link href="/about">Licence</Link>
+              <Link href="/status">Status</Link>
+              <span>Not affiliated with Apogee Components.</span>
+            </div>
           </div>
         </footer>
       </body>

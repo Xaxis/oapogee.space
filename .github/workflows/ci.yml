@@ -85,3 +85,13 @@ jobs:
       - run: make lint
       - run: make type-check
       - run: make build
+
+      # Drives a real browser at 320px and 390px and measures the real layout.
+      # A flex item does not shrink below its content, so one wide diagram used
+      # to push every page sideways while every other check stayed green.
+      - uses: browser-actions/setup-chrome@v1
+        id: chrome
+      - name: No page scrolls sideways on a phone
+        run: make responsive
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}

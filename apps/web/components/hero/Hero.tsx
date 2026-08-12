@@ -53,16 +53,16 @@ export function Hero({ phases }: { phases: Phase[] }) {
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/bom"
-            className="rounded-md border border-[var(--color-hivis)] px-4 py-2 text-sm font-medium !text-[var(--color-hivis)] !no-underline hover:bg-[var(--color-hivis)] hover:!text-black"
+            href="/start"
+            className="rounded-md border border-[var(--color-hivis)] bg-[var(--color-hivis)] px-4 py-2 text-sm font-medium !text-black !no-underline hover:opacity-90"
           >
-            See what it costs
+            Start here
           </Link>
           <Link
-            href="/safety"
+            href="/reference/schematic"
             className="rounded-md border border-[var(--color-line-bright)] px-4 py-2 text-sm font-medium !text-[var(--color-body)] !no-underline hover:border-[var(--color-body)]"
           >
-            Safety and rules
+            See the circuit
           </Link>
         </div>
       </div>
