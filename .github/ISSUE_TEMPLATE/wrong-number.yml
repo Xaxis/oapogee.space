@@ -1,0 +1,51 @@
+name: A number or claim is wrong
+description: The single most valuable report this project can receive.
+labels: [accuracy]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        oApogee's one rule is that it never publishes a number it has not
+        measured or sourced. If a figure on the site is wrong, unsourced, or
+        stated more confidently than the evidence allows, this is the report
+        that fixes it.
+
+        You do not need to know the right answer. "This is asserted without a
+        source" is a complete and useful report on its own.
+
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: Page URL, or the file and line.
+      placeholder: https://oapogee.space/safety, or content/safety.md:112
+    validations:
+      required: true
+
+  - type: textarea
+    id: claim
+    attributes:
+      label: What it says
+      description: Quote the exact sentence or number.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong with it
+      description: |
+        Wrong value, no source, out of date, contradicts another page, or stated
+        as measured when it was estimated.
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Source, if you have one
+      description: |
+        A datasheet page, a regulation section, a measurement you took, or a
+        flight. If you measured it, say how, with what, and how many times.
+    validations:
+      required: false

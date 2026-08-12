@@ -1,0 +1,65 @@
+name: A build step does not work
+description: A step cannot be followed as written, or a checkpoint does not pass.
+labels: [documentation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Note that nothing has been fabricated yet, so most build steps are
+        marked as needing hardware. A step that is marked unverified and turns
+        out to be wrong is still worth reporting, and is exactly what those
+        markers are for.
+
+  - type: input
+    id: step
+    attributes:
+      label: Which step
+      placeholder: Build guide, Stage 2M, Checkpoint 2M
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: What you are building
+      options:
+        - oApogee Solo
+        - oApogee Link
+        - oApogee Track
+        - Ground station
+        - Not sure yet
+    validations:
+      required: true
+
+  - type: dropdown
+    id: path
+    attributes:
+      label: Build path
+      options:
+        - Modules, breakout boards
+        - Board, custom PCB
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What the checkpoint said you should see
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What you actually saw
+      description: Exact console output, LED behaviour, or meter readings.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you tried from Troubleshooting
+      description: Which entry, and what happened.
+    validations:
+      required: false

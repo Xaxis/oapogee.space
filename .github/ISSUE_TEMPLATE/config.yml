@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Open design questions
+    url: https://github.com/Xaxis/oapogee.space/blob/main/docs/open-questions.md
+    about: Decisions that are deliberately unsettled, with the arguments on each side. Weigh in here.
+  - name: What is verified and what is not
+    url: https://oapogee.space/status
+    about: Every unmeasured number in the project, with what evidence would close it.
+  - name: Wire format specifications
+    url: https://oapogee.space/reference/telemetry-packet
+    about: The packet and log formats, if you are writing your own tooling.

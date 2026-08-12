@@ -1,0 +1,58 @@
+name: Safety or regulatory content is wrong
+description: For anything about lithium cells, radio law, or rocketry rules.
+labels: [safety, accuracy]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The safety and radio pages are written carefully by people who are not
+        lawyers, licensed amateur radio operators, or NAR or Tripoli officials.
+        These are the pages where being wrong has consequences beyond
+        embarrassment, so a correction here outranks almost everything else.
+
+        If you hold an amateur licence, or you are active in a club, please do
+        not assume somebody else has already reported it.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Lithium cell handling
+        - FCC Part 15, unlicensed operation
+        - FCC Part 97, amateur radio
+        - Radio rules outside the US
+        - FAA Part 101 or airspace
+        - NAR or Tripoli safety code
+        - Stability, mass, or flight safety
+        - Recovery, land access, or fire
+        - Something else
+    validations:
+      required: true
+
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      placeholder: https://oapogee.space/safety#radio
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong
+      description: Quote what the site says and say what is actually the case.
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Primary source
+      description: |
+        A section of the regulation, the safety code clause, or the manufacturer
+        documentation. Primary sources only: this project does not paraphrase a
+        safety code from a forum post.
+    validations:
+      required: true
