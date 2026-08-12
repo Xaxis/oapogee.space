@@ -103,7 +103,7 @@ plastic box.
 
 Inspect the cell after every hard landing.
 
-## Ground testing, before it ever goes on a rocket
+## Ground testing
 
 The point of ground testing is that a payload which is going to fail should fail
 on your bench, where the consequence is an evening, rather than at apogee, where
@@ -158,7 +158,7 @@ nothing.
 
 The Preflight checklist page has the flight day version of this.
 
-## Stability, which is a safety issue and not a performance one
+## Stability is a safety issue
 
 Adding mass to a rocket moves its centre of gravity, and a rocket whose centre
 of gravity has moved too far back is unstable. An unstable rocket does not fly

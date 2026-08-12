@@ -7,7 +7,9 @@ import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
 import rehypeSlug from 'rehype-slug'
 import rehypeStringify from 'rehype-stringify'
-import { CONTENT_DIR, DOCS_DIR } from './repo'
+import { CONTENT_DIR, DOCS_DIR, REPO_ROOT } from './repo'
+import { getGlossary, type Term } from './data'
+import { linkGlossaryTerms } from './glossary-links'
 
 export type PageStatus = 'draft' | 'needs-review' | 'verified'
 
@@ -87,14 +89,20 @@ function renderMarkers(html: string): string {
   )
 }
 
-async function toHtml(markdown: string): Promise<string> {
-  const file = await unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(remarkRehype)
-    .use(rehypeSlug)
-    .use(rehypeStringify)
-    .process(markdown)
+// The glossary page itself is excluded, and so is anything that would link a
+// term to its own definition from inside that definition.
+function rehypeGlossary(terms: Term[]) {
+  return (tree: unknown) => {
+    linkGlossaryTerms(tree as Parameters<typeof linkGlossaryTerms>[0], terms)
+  }
+}
+
+async function toHtml(markdown: string, terms?: Term[]): Promise<string> {
+  const processor = unified().use(remarkParse).use(remarkGfm).use(remarkRehype).use(rehypeSlug)
+
+  if (terms) processor.use(() => rehypeGlossary(terms))
+
+  const file = await processor.use(rehypeStringify).process(markdown)
   return String(file)
 }
 
@@ -116,9 +124,20 @@ export async function getPage(slug: string): Promise<Page | null> {
 
   return {
     frontmatter: { ...(data as Frontmatter), updated: isoDate(data.updated) },
-    html: renderMarkers(await toHtml(body)),
+    html: renderMarkers(await toHtml(body, getGlossary().terms)),
     markers,
   }
+}
+
+// CHANGELOG.md lives at the repository root because that is where a contributor
+// looks for it. It renders here too because errata for a flight computer are
+// safety information: somebody flying an older firmware needs to be able to
+// find out that a detection threshold changed, without cloning anything.
+export async function getRepoDoc(name: string): Promise<string | null> {
+  const path = join(REPO_ROOT, `${name}.md`)
+  if (!existsSync(path)) return null
+  const markdown = readFileSync(path, 'utf8').replace(/^\s*#\s+.+\n/, '')
+  return renderMarkers(await toHtml(markdown, getGlossary().terms))
 }
 
 // The two wire format specifications live in docs/spec/ because they are
@@ -139,7 +158,7 @@ export async function getSpec(name: string): Promise<Page | null> {
 
   return {
     frontmatter: { ...(data as Frontmatter), updated: isoDate(data.updated) },
-    html: renderMarkers(await toHtml(body)),
+    html: renderMarkers(await toHtml(body, getGlossary().terms)),
     markers,
   }
 }

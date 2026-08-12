@@ -35,6 +35,7 @@ const GENERATED_SOURCES: Record<string, string> = {
   '/troubleshooting': 'data/troubleshooting.yaml',
   '/flights': 'data/flights.yaml',
   '/glossary': 'data/glossary.yaml',
+  '/changelog': 'CHANGELOG.md',
   '/status': 'every page in this table',
 }
 

@@ -35,6 +35,7 @@ export const GENERATED_ROUTES = [
   { href: '/reference/telemetry-packet', group: 'Reference', nav: 'Packet format' },
   { href: '/reference/log-format', group: 'Reference', nav: 'Log format' },
   { href: '/glossary', group: 'Reference', nav: 'Glossary' },
+  { href: '/changelog', group: 'Reference', nav: 'Changelog' },
   { href: '/status', group: 'Reference', nav: 'Status' },
 ] as const
 
@@ -68,6 +69,7 @@ export function navFor(group: (typeof NAV_GROUPS)[number]) {
       '/reference/log-format',
       '/glossary',
       '/faq',
+      '/changelog',
       '/status',
       '/about',
     ],

@@ -235,6 +235,19 @@ table.data tr:last-child td {
   border-bottom: none;
 }
 
+/* Glossary links are automatic, one per term per page, so they must not shout.
+   A dotted underline reads as "there is a definition here" without competing
+   with the deliberate links an author wrote. */
+.prose a.glossary-link {
+  color: inherit;
+  text-decoration: underline dotted var(--color-hivis-dim);
+  text-underline-offset: 4px;
+}
+.prose a.glossary-link:hover {
+  color: var(--color-hivis);
+  text-decoration: underline solid var(--color-hivis);
+}
+
 /* --- verification markers ------------------------------------------------- */
 
 /*

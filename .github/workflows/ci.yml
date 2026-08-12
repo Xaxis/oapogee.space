@@ -37,6 +37,11 @@ jobs:
       - name: Data cross-references resolve
         run: make data
 
+      # Anchors, not just paths. A build checkpoint that sends a stuck builder to
+      # a troubleshooting symptom has to land on that symptom.
+      - name: Internal links and anchors resolve
+        run: make links
+
       # TODO-VERIFY.md is generated. A stale index would quietly understate how
       # much of this site is unmeasured, which is the one thing it exists to
       # prevent.

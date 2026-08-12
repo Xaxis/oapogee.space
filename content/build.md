@@ -248,7 +248,7 @@ on your bench, where it costs an evening.
    external pod is the most common thing to catch on a rail button.
 
 > **Checkpoint 8.** Your simulated stability margin with the payload fitted is
-> within the range on the [safety page](/safety#stability), and the rocket
+> within the range on the [safety page](/safety#stability-is-a-safety-issue), and the rocket
 > moves freely on the rail.
 
 Then work through the [preflight checklist](/preflight) on the day.
