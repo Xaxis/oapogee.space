@@ -77,9 +77,11 @@ test('sequence gaps are counted across the wrap at 255', () => {
   })
 
   let last: number | null = null
-  last = accumulate(stats, at(254), last)
-  last = accumulate(stats, at(255), last) // consecutive
-  last = accumulate(stats, at(2), last) // 0 and 1 were lost, across the wrap
+  for (const seq of [254, 255, 2]) {
+    // 254 then 255 are consecutive; 2 means 0 and 1 were lost, across the wrap.
+    last = accumulate(stats, at(seq), last)
+  }
+  assert.equal(last, 2)
   assert.equal(stats.lost, 2)
   assert.equal(stats.decoded, 3)
 })
