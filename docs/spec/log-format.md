@@ -156,10 +156,14 @@ is itself information: the flight ended before landing was detected.
 }
 ```
 
-Every value shown as `null` or zero above is a placeholder in this document
-rather than a default the firmware writes, with one exception. The `summary`
-members really are `null` and `landed` really is `false` in the manifest written
-at flight-directory creation.
+**Every value in the example above is illustrative**, including the ones that
+look like measurements. `armed_uptime_ms` is there to show the field's type and
+magnitude, not to report anything: no payload has run, so no uptime has been
+recorded. The example is a shape, not data.
+
+Two values in it are not free to vary, and a writer must emit them as shown: the
+`summary` members really are `null` and `landed` really is `false` in the
+manifest written at flight-directory creation.
 
 ### Fields that are not obvious
 
