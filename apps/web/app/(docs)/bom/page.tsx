@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getBom, getTiers, type Part } from '@/lib/data'
+import { DocTabs } from '@/components/DocTabs'
 
 export const metadata: Metadata = {
   title: 'Bill of materials',
@@ -101,46 +102,52 @@ export default function Bom() {
         </div>
       </section>
 
-      {bom.paths.map((path) => (
-        <section key={path.id}>
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-2xl font-semibold text-white">{path.name} path</h2>
-            <span className={`chip ${path.available ? 'chip-verified' : 'chip-blocked'}`}>
-              {path.available ? 'buildable now' : 'not yet fabricated'}
-            </span>
-          </div>
-          <p className="mt-3 max-w-2xl text-[var(--color-muted)]">{path.summary}</p>
-          <p className="mt-2 max-w-2xl text-sm text-[var(--color-muted)]">
-            <span className="font-mono text-xs uppercase tracking-wider text-[var(--color-dim)]">
-              Tradeoff:{' '}
-            </span>
-            {path.tradeoff}
-          </p>
+      <DocTabs
+        label="Build path"
+        tabs={bom.paths.map((path) => ({
+          id: path.id,
+          label: `${path.name} path`,
+          hint: path.summary,
+          content: (
+            <div>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={`chip ${path.available ? 'chip-verified' : 'chip-blocked'}`}>
+                  {path.available ? 'buildable now' : 'not yet fabricated'}
+                </span>
+                <span className="text-sm text-[var(--color-muted)]">
+                  <span className="font-mono text-xs uppercase tracking-wider text-[var(--color-dim)]">
+                    Tradeoff:{' '}
+                  </span>
+                  {path.tradeoff}
+                </span>
+              </div>
 
-          <div className="table-scroll mt-6">
-            <table className="data">
-              <thead>
-                <tr>
-                  <th>Part</th>
-                  {tiers.map((t) => (
-                    <th key={t.id} className="text-center">
-                      {t.name.replace('oApogee ', '')}
-                    </th>
-                  ))}
-                  <th>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bom.parts
-                  .filter((p) => p.applies?.some((a) => a.path === path.id))
-                  .map((part) => (
-                    <PartRow key={part.id} part={part} tierIds={tierIds} pathId={path.id} />
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ))}
+              <div className="table-scroll mt-6">
+                <table className="data">
+                  <thead>
+                    <tr>
+                      <th>Part</th>
+                      {tiers.map((t) => (
+                        <th key={t.id} className="text-center">
+                          {t.name.replace('oApogee ', '')}
+                        </th>
+                      ))}
+                      <th>Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bom.parts
+                      .filter((p) => p.applies?.some((a) => a.path === path.id))
+                      .map((part) => (
+                        <PartRow key={part.id} part={part} tierIds={tierIds} pathId={path.id} />
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ),
+        }))}
+      />
 
       <section>
         <h2 className="text-2xl font-semibold text-white">Why these parts</h2>

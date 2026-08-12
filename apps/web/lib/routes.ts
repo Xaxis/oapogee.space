@@ -80,3 +80,30 @@ export function navFor(group: (typeof NAV_GROUPS)[number]) {
     .map((href) => all.find((item) => item.href === href))
     .filter((x): x is { href: string; label: string } => Boolean(x))
 }
+
+export type NavItem = { href: string; label: string; group: string }
+
+// The whole site in reading order, which is also the sidebar order and the
+// order the previous/next links walk. One list means those three cannot
+// disagree, which they did on every documentation site any of us has used.
+export const FLAT_NAV: NavItem[] = NAV_GROUPS.flatMap((group) =>
+  navFor(group).map((item) => ({ ...item, group }))
+)
+
+export function findNav(pathname: string): NavItem | undefined {
+  return FLAT_NAV.find((item) => item.href === pathname)
+}
+
+/**
+ * The page before and after this one in reading order.
+ *
+ * Reading order deliberately crosses group boundaries: somebody who finishes
+ * the last page of Build is ready for the first page of Fly, and stopping them
+ * at the edge of a section would be an artefact of how the sidebar is grouped
+ * rather than anything to do with the material.
+ */
+export function neighbours(pathname: string): { prev?: NavItem; next?: NavItem } {
+  const i = FLAT_NAV.findIndex((item) => item.href === pathname)
+  if (i === -1) return {}
+  return { prev: FLAT_NAV[i - 1], next: FLAT_NAV[i + 1] }
+}

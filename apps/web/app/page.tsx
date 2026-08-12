@@ -13,7 +13,7 @@ export default function Home() {
   const { phases } = getFlightPhases()
 
   return (
-    <div className="flex flex-col gap-24">
+    <div className="mx-auto flex max-w-6xl flex-col gap-24 px-5 py-12">
       <Hero phases={phases} />
 
       <section>

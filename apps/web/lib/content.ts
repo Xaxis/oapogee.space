@@ -23,10 +23,58 @@ export type Frontmatter = {
   status: PageStatus
 }
 
+export type TocEntry = { id: string; text: string; depth: 2 | 3 }
+
 export type Page = {
   frontmatter: Frontmatter
   html: string
   markers: MarkerCount
+  toc: TocEntry[]
+}
+
+// Slug generation has to match github-slugger, which is what rehype-slug uses
+// to build the heading ids this links to. tools/check-links.mjs carries the
+// same implementation for the same reason; if one drifts the other catches it,
+// because the checker validates links against real heading ids.
+const slugify = (s: string) =>
+  s
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .replace(/\s+/g, '-')
+
+/**
+ * Headings for the on-page contents rail.
+ *
+ * Only h2 and h3. An h4 in these documents is a detail inside a procedure, and
+ * a contents list deep enough to include them stops being a map and becomes a
+ * second copy of the page.
+ */
+function extractToc(markdown: string): TocEntry[] {
+  const out: TocEntry[] = []
+  const seen = new Map<string, number>()
+  let inFence = false
+
+  for (const line of markdown.split('\n')) {
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence
+      continue
+    }
+    if (inFence) continue
+
+    const m = /^(#{1,6})\s+(.+?)\s*$/.exec(line)
+    if (!m) continue
+
+    const depth = m[1].length
+    const text = m[2].replace(/`([^`]*)`/g, '$1').replace(/\*\*?([^*]*)\*\*?/g, '$1')
+    const base = slugify(text)
+    const n = seen.get(base) ?? 0
+    seen.set(base, n + 1)
+    const id = n === 0 ? base : `${base}-${n}`
+
+    if (depth === 2 || depth === 3) out.push({ id, text, depth })
+  }
+  return out
 }
 
 export type MarkerCount = {
@@ -114,18 +162,17 @@ export async function getPage(slug: string): Promise<Page | null> {
   const { data, content } = matter(raw)
   const markers = countMarkers(content)
 
-  // Strip the leading H1: the layout renders the title from frontmatter, and
-  // two of them is a duplicate heading in the outline.
-  // gray-matter leaves a newline where the frontmatter block was, so an anchor
-  // at the start of the string does not reach the H1. The layout renders the
-  // title from frontmatter, and leaving this in produces a duplicate heading in
-  // the document outline.
+  // Strip the leading H1. The layout renders the title from frontmatter, so
+  // leaving it produces a duplicate heading in the document outline. The \s* is
+  // load-bearing: gray-matter leaves a newline where the frontmatter block was,
+  // so an anchor at the start of the string does not otherwise reach the H1.
   const body = content.replace(/^\s*#\s+.+\n/, '')
 
   return {
     frontmatter: { ...(data as Frontmatter), updated: isoDate(data.updated) },
     html: renderMarkers(await toHtml(body, getGlossary().terms)),
     markers,
+    toc: extractToc(body),
   }
 }
 
@@ -160,5 +207,6 @@ export async function getSpec(name: string): Promise<Page | null> {
     frontmatter: { ...(data as Frontmatter), updated: isoDate(data.updated) },
     html: renderMarkers(await toHtml(body, getGlossary().terms)),
     markers,
+    toc: extractToc(body),
   }
 }

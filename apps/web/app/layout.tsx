@@ -54,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <header className="no-print sticky top-0 z-50 border-b border-[var(--color-line)] bg-[var(--color-ink)]/90 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3">
+          <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3 lg:px-8">
             <Link href="/" className="wordmark text-lg !text-white !no-underline">
               <span className="o">o</span>apogee
             </Link>
@@ -73,10 +73,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </header>
 
-        <main className="mx-auto max-w-6xl px-5 py-12">{children}</main>
+        {/* No width constraint here. The docs shell needs the full viewport for
+            its sidebar, and the homepage sets its own container. A max-width on
+            main would quietly squash one of the two. */}
+        <main>{children}</main>
 
         <footer className="no-print mt-24 border-t border-[var(--color-line)]">
-          <div className="mx-auto max-w-6xl px-5 py-10 text-sm text-[var(--color-muted)]">
+          <div className="mx-auto max-w-[1500px] px-5 py-10 text-sm text-[var(--color-muted)] lg:px-8">
             <div className="grid gap-8 sm:grid-cols-3">
               {NAV.map((group) => (
                 <div key={group.group}>
