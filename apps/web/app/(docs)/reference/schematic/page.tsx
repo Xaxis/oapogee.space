@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import { SchematicViewer } from '@/components/SchematicViewer'
+import { readSvg } from '@/lib/svg'
 import { readFileSync, statSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { REPO_ROOT } from '@/lib/repo'
@@ -43,6 +44,7 @@ function sizeOf(file: string) {
 }
 
 export default function Schematic() {
+  const drawing = readSvg('hardware/oapogee-schematic.svg')
   const netlist = existsSync(join(HW, 'oapogee-netlist.txt'))
     ? readFileSync(join(HW, 'oapogee-netlist.txt'), 'utf8')
     : null
@@ -89,17 +91,19 @@ export default function Schematic() {
             id: 'drawing',
             label: 'Drawing',
             hint: 'Power along the bottom left, the microcontroller in the middle with every bus leaving its right side, sensors and radio in a column on the right. Arranged to read the same way the system block diagram does.',
-            content: (
-              <div className="overflow-x-auto rounded-lg border border-[var(--color-line)] bg-white p-4">
-                <Image
-                  src="/hardware/oapogee-schematic.svg"
-                  alt="oApogee schematic: USB-C into a charge controller and a single lithium cell feeding a buck-boost 3V3 rail, an RP2350 with QSPI flash, a BMP390 barometer on I2C, an ICM-42688-P IMU and an ADXL375 high-g accelerometer on SPI, an SX1262 radio, a MAX-M10S GNSS receiver, and a buzzer and RGB LED."
-                  width={1600}
-                  height={1100}
-                  className="min-w-[900px] max-w-none"
+            content: drawing ? (
+                <SchematicViewer
+                  svg={drawing.svg}
+                  naturalWidth={drawing.width}
+                  naturalHeight={drawing.height}
+                  label="oApogee schematic"
+                  description="USB-C into a charge controller and a single lithium cell feeding a buck-boost 3V3 rail, an RP2350 with QSPI flash, a BMP390 barometer on I2C, an ICM-42688-P IMU and an ADXL375 high-g accelerometer on SPI, an SX1262 radio, a MAX-M10S GNSS receiver, and a buzzer and RGB LED."
                 />
-              </div>
-            ),
+              ) : (
+                <p className="text-[var(--color-muted)]">
+                  Not built. Run <code>make hw</code>.
+                </p>
+              ),
           },
           {
             id: 'netlist',

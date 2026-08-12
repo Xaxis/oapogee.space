@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import { SchematicViewer } from '@/components/SchematicViewer'
+import { readSvg } from '@/lib/svg'
 import { getBom, getTiers, type Part } from '@/lib/data'
 import { DocTabs } from '@/components/DocTabs'
 
@@ -58,6 +59,7 @@ export default function Bom() {
   const bom = getBom()
   const { tiers } = getTiers()
   const tierIds = tiers.map((t) => t.id)
+  const system = readSvg('schematic/system.svg')
 
   return (
     <div className="space-y-16">
@@ -91,15 +93,16 @@ export default function Bom() {
         <p className="mt-2 max-w-2xl text-[var(--color-muted)]">
           The same parts, wired. The ticks on each block show which tiers populate it.
         </p>
-        <div className="mt-6 overflow-x-auto rounded-lg border border-[var(--color-line)]">
-          <Image
-            src="/schematic/system.svg"
-            alt="oApogee system block diagram, showing every part in this bill of materials and how they connect."
-            width={1168}
-            height={616}
-            className="min-w-[900px] max-w-none"
+        {system && (
+          <SchematicViewer
+            className="mt-6"
+            svg={system.svg}
+            naturalWidth={system.width}
+            naturalHeight={system.height}
+            label="oApogee system block diagram"
+            description="Every part in this bill of materials and how they connect. The ticks on each block show which tiers populate it."
           />
-        </div>
+        )}
       </section>
 
       <DocTabs

@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import { SchematicViewer } from '@/components/SchematicViewer'
+import { readSvg } from '@/lib/svg'
 import { getTiers, getFlightPhases } from '@/lib/data'
 import { Hero } from '@/components/hero/Hero'
 
@@ -50,6 +51,7 @@ const WHATS_HERE = [
 export default function Home() {
   const { tiers, paths, scope, upgrade_promise } = getTiers()
   const { phases } = getFlightPhases()
+  const system = readSvg('schematic/system.svg')
 
   return (
     <div className="mx-auto max-w-6xl space-y-24 px-5 py-12">
@@ -92,15 +94,16 @@ export default function Home() {
           configuration and offload.{' '}
           <Link href="/reference/schematic">The circuit, in full</Link>.
         </p>
-        <div className="mt-6 overflow-x-auto rounded-lg border border-[var(--color-line)]">
-          <Image
-            src="/schematic/system.svg"
-            alt="oApogee system block diagram. Barometer, IMU, high-g accelerometer and GNSS connect to an RP2350 over I2C, SPI and UART. The RP2350 writes to QSPI flash, drives a LoRa radio to a ground station, drives a buzzer and LED, and offloads over USB-C. Power runs USB-C to charger to a 1S LiPo cell to a 3V3 buck-boost rail."
-            width={1168}
-            height={616}
-            className="min-w-[900px] max-w-none"
+        {system && (
+          <SchematicViewer
+            className="mt-6"
+            svg={system.svg}
+            naturalWidth={system.width}
+            naturalHeight={system.height}
+            label="oApogee system block diagram"
+            description="oApogee system block diagram. Barometer, IMU, high-g accelerometer and GNSS connect to an RP2350 over I2C, SPI and UART. The RP2350 writes to QSPI flash, drives a LoRa radio to a ground station, drives a buzzer and LED, and offloads over USB-C. Power runs USB-C to charger to a 1S LiPo cell to a 3V3 buck-boost rail."
           />
-        </div>
+        )}
       </section>
 
       <section>
