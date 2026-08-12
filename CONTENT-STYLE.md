@@ -83,8 +83,17 @@ Not:
 > The barometer should be soldered first.
 
 Direct and unhyped. No "revolutionary", no "game-changing", no "unleash", no
-"seamless", no "simply", no "just". "Just solder the header" tells a beginner
-whose hands are shaking that their difficulty is a personal failing.
+"seamless".
+
+**No minimisers in procedures.** "Just solder the header" and "simply flash the
+firmware" tell a beginner whose hands are shaking that their difficulty is a
+personal failing. Delete the word; the sentence is always better without it.
+
+This bans a use, not a word. "You have just moved the centre of gravity" and
+"check the total, not just the payload" are the ordinary senses of the word and
+are fine. That is why this rule is not enforced by `make prose`: a checker that
+flagged every "just" would produce mostly false positives and get ignored, which
+is worse than a rule a human applies with judgement.
 
 Confident about what works, honest about what does not. If the radio range
 collapses in trees, say so with a number and say how the number was obtained.
