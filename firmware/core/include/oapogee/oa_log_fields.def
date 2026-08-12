@@ -1,0 +1,122 @@
+/*
+ * oApogee onboard log record table.
+ *
+ * One description of both binary streams. The record packers, the record
+ * structs, the meta.json manifest writer, and the conformance test that dumps
+ * the layout all expand this same table. The manifest is the part that matters
+ * most: the log format is self-describing, so a manifest that disagreed with
+ * the packer would produce files that decode wrongly and look fine. Emitting
+ * both from one table is what makes that disagreement impossible rather than
+ * unlikely.
+ *
+ * Source of truth: docs/spec/log-format.md, spec_version 1. That document is
+ * normative. If this table and that document disagree, this table is wrong.
+ *
+ * Hooks. Define them before including this file; they are #undef'd at the end
+ * so the file can be included several times in one translation unit.
+ *
+ *   OA_LOG_STREAM_BEGIN(SYM, sym, filename, record_bytes)
+ *   OA_LOG_FIELD(name, wire, offset, scale, unit)
+ *   OA_LOG_FIELD_ARR(name, wire, offset, count, scale, unit)
+ *   OA_LOG_STREAM_END(SYM, sym)
+ *
+ * SYM is the uppercase spelling and sym the lowercase one, for the same reason
+ * as in oa_packet_fields.def: the preprocessor cannot change case.
+ *
+ * `wire` is a bare token, one of u8, u16, u32, i16, i32, so that a consumer can
+ * paste it: oa_##wire##_t is the C type, oa_put_##wire is the little-endian
+ * store, and #wire is the string the manifest prints as the field's "type".
+ *
+ * `scale` and `unit` are string literals, not numbers, and they are copied
+ * verbatim into meta.json. They are strings because the payload has no reason
+ * to own a float formatter: 1e-7 printed from a double is a way to turn an
+ * exact scale factor into an approximate one, on a microcontroller, in the one
+ * file that tells a reader how to interpret every other byte. The exact text
+ * the spec publishes is the text that is written.
+ *
+ * Scalar and array fields have separate hooks rather than a count of 1, because
+ * a struct member declared as a one element array is a worse thing to program
+ * against than a plain member, and because a consumer that silently dropped the
+ * array fields would produce a manifest missing eighteen bytes of every record.
+ * Defining OA_LOG_FIELD without OA_LOG_FIELD_ARR is an error here for exactly
+ * that reason.
+ */
+
+#if !defined(OA_LOG_STREAM_BEGIN) && !defined(OA_LOG_FIELD) && \
+    !defined(OA_LOG_FIELD_ARR) && !defined(OA_LOG_STREAM_END)
+#error "oa_log_fields.def included without defining any hook; nothing would be generated"
+#endif
+
+#if defined(OA_LOG_FIELD) && !defined(OA_LOG_FIELD_ARR)
+#error "define OA_LOG_FIELD_ARR too; silently dropping the array fields loses 18 of the 36 bytes of a flight record"
+#endif
+
+#if defined(OA_LOG_FIELD_ARR) && !defined(OA_LOG_FIELD)
+#error "define OA_LOG_FIELD too; the array hook alone covers only 3 of the 10 flight record fields"
+#endif
+
+#ifndef OA_LOG_STREAM_BEGIN
+#define OA_LOG_STREAM_BEGIN(SYM, sym, filename, record_bytes)
+#endif
+
+#ifndef OA_LOG_FIELD
+#define OA_LOG_FIELD(name, wire, offset, scale, unit)
+#endif
+
+#ifndef OA_LOG_FIELD_ARR
+#define OA_LOG_FIELD_ARR(name, wire, offset, count, scale, unit)
+#endif
+
+#ifndef OA_LOG_STREAM_END
+#define OA_LOG_STREAM_END(SYM, sym)
+#endif
+
+/* ---------------------------------------------------------------------------
+ * flight.bin, 36 bytes per record, high rate.
+ *
+ * Raw and derived are both here deliberately. pressure_pa and the raw IMU axes
+ * are what the sensors said; alt_cm and vel_dm_s are what the fusion concluded.
+ * Twelve of the thirty-six bytes buy the ability to check the payload's own
+ * work, and no other twelve bytes in this format are worth as much.
+ *
+ * hg_accel_dg keeps its six bytes on a build with no high-g part, where it is
+ * all zeros and the HIGH_G flag is clear. A record whose width changed with the
+ * populated footprints would not be a fixed-width record.
+ * ------------------------------------------------------------------------ */
+
+OA_LOG_STREAM_BEGIN(FLIGHT, flight, "flight.bin", 36)
+    OA_LOG_FIELD    (t_ms,        u32,  0,    "0.001", "s")
+    OA_LOG_FIELD    (pressure_pa, i32,  4,    "1",     "Pa")
+    OA_LOG_FIELD    (temp_dc,     i16,  8,    "0.1",   "degC")
+    OA_LOG_FIELD_ARR(accel_mg,    i16, 10, 3, "0.001", "g")
+    OA_LOG_FIELD_ARR(gyro_cdps,   i16, 16, 3, "0.01",  "deg/s")
+    OA_LOG_FIELD_ARR(hg_accel_dg, i16, 22, 3, "0.1",   "g")
+    OA_LOG_FIELD    (alt_cm,      i32, 28,    "0.01",  "m")
+    OA_LOG_FIELD    (vel_dm_s,    i16, 32,    "0.1",   "m/s")
+    OA_LOG_FIELD    (state,       u8,  34,    "1",     "enum")
+    OA_LOG_FIELD    (flags,       u8,  35,    "1",     "bits")
+OA_LOG_STREAM_END(FLIGHT, flight)
+
+/* ---------------------------------------------------------------------------
+ * gnss.bin, 16 bytes per record, low rate, Track only.
+ *
+ * A record is appended only when the receiver reports a fix, so gaps in t_ms
+ * are real and mean there was no solution. alt_m is the receiver's own
+ * ellipsoid-referenced altitude and is not the same measurement as alt_cm in
+ * flight.bin; it is stored because disagreement between the two is
+ * diagnostically useful, not because it is a better altitude.
+ * ------------------------------------------------------------------------ */
+
+OA_LOG_STREAM_BEGIN(GNSS, gnss, "gnss.bin", 16)
+    OA_LOG_FIELD(t_ms,   u32,  0, "0.001", "s")
+    OA_LOG_FIELD(lat_e7, i32,  4, "1e-7",  "deg")
+    OA_LOG_FIELD(lon_e7, i32,  8, "1e-7",  "deg")
+    OA_LOG_FIELD(alt_m,  i16, 12, "1",     "m")
+    OA_LOG_FIELD(sats,   u8,  14, "1",     "count")
+    OA_LOG_FIELD(fix,    u8,  15, "1",     "enum")
+OA_LOG_STREAM_END(GNSS, gnss)
+
+#undef OA_LOG_STREAM_BEGIN
+#undef OA_LOG_FIELD
+#undef OA_LOG_FIELD_ARR
+#undef OA_LOG_STREAM_END

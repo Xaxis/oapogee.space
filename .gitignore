@@ -28,3 +28,8 @@ dist/
 # tscircuit keeps its own node_modules, outside the yarn workspace
 hardware/node_modules/
 hardware/.build/
+
+# The firmware build tree. CMake writes the enforcement check scripts into it at
+# configure time, so it is generated in full and none of it is source.
+firmware/build/
+firmware/build-*/

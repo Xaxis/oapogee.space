@@ -1,0 +1,42 @@
+# oApogee output allowlist
+#
+# THIS IS THE PASSIVE PAYLOAD BOUNDARY. Read this file to confirm it without
+# reading any C.
+#
+# Every physical output the firmware is permitted to drive appears here, one per
+# line, with the schematic reference designator, the pin label it lands on, and
+# what it is for. There are exactly two. Both exist to help a person find a
+# rocket or to tell a person what the payload is doing.
+#
+# oApogee does not fire ejection charges, control deployment, ignite motors, or
+# command any pyrotechnic device. There is no output on this list that could, and
+# there is no output that is not on this list.
+#
+# HOW THIS FILE IS ENFORCED
+#
+# The check-outputs build target compares this list, name for name, against the
+# oa_out_t enumerators in port/include/oapogee_port/oa_out.h. Adding an output to
+# either one alone fails the build. Adding one to both is a change to the passive
+# payload boundary, and that is a project decision made in the open, not a
+# firmware change made in passing.
+#
+# WHAT IS NOT ON THIS LIST, AND WHY
+#
+# Bus and peripheral lines (I2C, SPI, UART, QSPI, and the radio) are not on this
+# list. They are declared in port/include/oapogee_port/oa_port.h. They carry
+# bytes to parts soldered to the board, and none of them is a general purpose
+# output a builder could connect something to. The property this list protects is
+# that no output exists that could be wired to an igniter.
+#
+# The radio deserves its own sentence. It transmits and never receives: there is
+# no receive function in the port layer at all. A ground station cannot arm this
+# payload, cannot trigger anything, and cannot deploy anything, because there is
+# no code path from the air into this firmware.
+#
+# NOTHING HERE HAS RUN ON HARDWARE. No board has been fabricated.
+#
+# Format: NAME  designator  pin  purpose
+# Lines beginning with # and blank lines are ignored.
+
+OA_OUT_BUZZER      LS1  BUZZER  Piezo buzzer. Arm indication, and the recovery beacon pattern after landing. On a Solo build it is the only recovery aid there is.
+OA_OUT_STATUS_LED  D1   LED     Status LED. Shows flight state and fault conditions to a person standing next to the rocket.

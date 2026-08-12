@@ -1,0 +1,59 @@
+# oApogee core: the complete list of external symbols core objects may reference
+#
+# core/ is the part of this firmware that contains the flight state machine, the
+# sensor fusion, the packet builders, the log packers, the scheduler and the
+# configuration validator. It is compiled against no SDK and no libc beyond
+# string.h, stdint.h, stdbool.h and stddef.h, it allocates nothing, and it holds
+# no global mutable state.
+#
+# The check-undefined build target runs nm over every core object and fails if
+# any undefined symbol is not on this list.
+#
+# WHAT THIS CATCHES
+#
+# It catches core reaching for the platform. A call to malloc, to printf, to a
+# Pico SDK function, to a hardware register accessor, or to oa_out_buzzer_set
+# from anywhere in core shows up here as a symbol that is not on this list, and
+# the check fails.
+#
+# That last one is the reason this file is one of the two artifacts that enforce
+# the passive payload boundary. The functions that drive the buzzer and the LED
+# live in port/, and core cannot call them without appearing here. So the state
+# machine, the fusion filter, the scheduler and the packet builders cannot drive
+# anything at all, by construction rather than by convention. See
+# firmware/SAFETY.md and firmware/port/outputs.allowlist.
+#
+# It also catches the quieter problems. Floating point on a core without an FPU
+# pulls in compiler runtime helpers, which appear here. So does a 64-bit divide.
+# So does a switch statement large enough for the compiler to emit a jump table
+# helper. Each of those is worth knowing about in code that runs in the sample
+# path.
+#
+# WHAT IT DOES NOT CATCH
+#
+# It says nothing about whether the code is correct, and nothing about port/ or
+# app/, which are expected to reference the SDK. It only fences core.
+#
+# HOW TO CHANGE THIS LIST
+#
+# By deciding to, in a commit that says why. A symbol appearing here that is not
+# on the list is a fact about the code, and the first question is always whether
+# the code should be doing that, not whether the list should be longer. In
+# particular, a compiler runtime symbol showing up is a signal about the
+# arithmetic in the function that produced it and should be read as one.
+#
+# The list is short on purpose. If it grows past a handful of entries, core has
+# stopped being the thing this project claims it is.
+#
+# NOTHING IN CORE HAS RUN ON HARDWARE, and this check has so far only been run
+# against source files that contain no implementations. It is the contract, not
+# a result.
+#
+# One symbol per line. Names are as they appear in the object file with any
+# platform underscore prefix stripped, so that the same list works for Mach-O on
+# macOS and ELF on Linux. Lines beginning with # and blank lines are ignored.
+
+memcpy
+memset
+memmove
+memcmp

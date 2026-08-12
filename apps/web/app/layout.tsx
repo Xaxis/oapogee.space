@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Search } from '@/components/Search'
+import { buildSearchIndex } from '@/lib/search-index'
 import '../styles/globals.css'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://oapogee.space'
@@ -45,6 +47,10 @@ const HEADER_LINKS = [
 ]
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Built here rather than fetched, so search works on the first keystroke and
+  // there is no index file to keep in sync with a deploy.
+  const searchDocs = buildSearchIndex()
+
   return (
     <html lang="en">
       <body>
@@ -77,7 +83,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </Link>
               ))}
             </nav>
-            <span className="chip chip-draft ml-auto">v0.1 design stage</span>
+            <div className="ml-auto flex items-center gap-3">
+              <Search docs={searchDocs} />
+              <span className="chip chip-draft hidden sm:inline-flex">v0.1 design stage</span>
+            </div>
           </div>
         </header>
 

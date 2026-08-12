@@ -1,0 +1,124 @@
+/*
+ * oApogee downlink packet field table.
+ *
+ * This file is the single description of the wire format. The encoder, the
+ * decoder used by tests, the body structs, and the conformance test that dumps
+ * the layout all expand this same table. A field that moves moves here, once,
+ * and everything that disagrees stops compiling or stops passing.
+ *
+ * Source of truth: docs/spec/telemetry-packet.md, spec_version 1. That document
+ * is normative. If this table and that document disagree, this table is wrong.
+ *
+ * Hooks. Define any subset before including this file; the ones you leave
+ * undefined expand to nothing, and all of them are #undef'd at the end so the
+ * file can be included several times in one translation unit.
+ *
+ *   OA_PKT_HDR_FIELD(name, wire, offset)
+ *       One line per field of the 8 byte header that every packet carries.
+ *
+ *   OA_PKT_TYPE_BEGIN(SYM, sym, code, body_len, total_len)
+ *   OA_PKT_BODY_FIELD(name, wire, offset)
+ *   OA_PKT_TYPE_END(SYM, sym)
+ *       Body fields are nested between BEGIN and END rather than carrying the
+ *       packet name on every line, because the preprocessor cannot compare
+ *       tokens, so a flat table could not be filtered down to one packet type
+ *       to generate that type's struct.
+ *
+ * SYM is the uppercase spelling and sym the lowercase one. Both are passed
+ * because the preprocessor cannot change case, and generated code needs
+ * OA_PKT_STATUS for an enumerator and oa_status_body_t for a type.
+ *
+ * `wire` is one of u8, u16, u32, i16, i32. It is a bare token so that a
+ * consumer can paste it: oa_##wire##_t is the C type (see oa_types.h),
+ * oa_put_##wire is the little-endian store, and #wire is the string the
+ * layout dump prints. There is no i8 or u64 on the wire today.
+ *
+ * `offset` is bytes from the start of the packet, so header fields start at 0
+ * and body fields start at 8. Offsets are absolute rather than body-relative
+ * because that is how the spec tables state them, and a table that has to be
+ * mentally rebased to be checked against the spec will eventually be checked
+ * wrong.
+ *
+ * There is no field here that could command the vehicle, and there is no
+ * inbound table at all. See firmware/SAFETY.md.
+ */
+
+#if !defined(OA_PKT_HDR_FIELD) && !defined(OA_PKT_TYPE_BEGIN) && \
+    !defined(OA_PKT_BODY_FIELD) && !defined(OA_PKT_TYPE_END)
+#error "oa_packet_fields.def included without defining any hook; nothing would be generated"
+#endif
+
+#ifndef OA_PKT_HDR_FIELD
+#define OA_PKT_HDR_FIELD(name, wire, offset)
+#endif
+
+#ifndef OA_PKT_TYPE_BEGIN
+#define OA_PKT_TYPE_BEGIN(SYM, sym, code, body_len, total_len)
+#endif
+
+#ifndef OA_PKT_BODY_FIELD
+#define OA_PKT_BODY_FIELD(name, wire, offset)
+#endif
+
+#ifndef OA_PKT_TYPE_END
+#define OA_PKT_TYPE_END(SYM, sym)
+#endif
+
+/* ---------------------------------------------------------------------------
+ * Header, 8 bytes, identical in every packet type.
+ *
+ * hdr packs the format version in the high nibble and the packet type in the
+ * low nibble. t_ms is milliseconds since the transition into ARMED, and is
+ * transmitted as 0 in every packet whose state is PAD_IDLE.
+ * ------------------------------------------------------------------------ */
+
+OA_PKT_HDR_FIELD(hdr,   u8,  0)
+OA_PKT_HDR_FIELD(flags, u8,  1)
+OA_PKT_HDR_FIELD(seq,   u8,  2)
+OA_PKT_HDR_FIELD(state, u8,  3)
+OA_PKT_HDR_FIELD(t_ms,  u32, 4)
+
+/* ---------------------------------------------------------------------------
+ * Bodies. body_len is the body alone; total_len is header + body + 2 byte CRC.
+ * oa_packet.h turns that pair into a _Static_assert, so a body_len edited
+ * without its total_len fails the build rather than the flight.
+ * ------------------------------------------------------------------------ */
+
+/* 0x1 STATUS, body 3, total 13. Sent on the pad, low rate. */
+OA_PKT_TYPE_BEGIN(STATUS, status, 0x1, 3, 13)
+    OA_PKT_BODY_FIELD(pad_pressure_pa_off, u16,  8)
+    OA_PKT_BODY_FIELD(batt,                u8,  10)
+OA_PKT_TYPE_END(STATUS, status)
+
+/* 0x2 FLIGHT, body 9, total 19. Boost through descent, high rate. */
+OA_PKT_TYPE_BEGIN(FLIGHT, flight, 0x2, 9, 19)
+    OA_PKT_BODY_FIELD(alt_cm,   i32,  8)
+    OA_PKT_BODY_FIELD(vel_dm_s, i16, 12)
+    OA_PKT_BODY_FIELD(accel_cg, i16, 14)
+    OA_PKT_BODY_FIELD(batt,     u8,  16)
+OA_PKT_TYPE_END(FLIGHT, flight)
+
+/* 0x3 APOGEE, body 8, total 18. Sent the instant apogee is detected, repeated. */
+OA_PKT_TYPE_BEGIN(APOGEE, apogee, 0x3, 8, 18)
+    OA_PKT_BODY_FIELD(apogee_cm,   i32,  8)
+    OA_PKT_BODY_FIELD(t_apogee_ms, u32, 12)
+OA_PKT_TYPE_END(APOGEE, apogee)
+
+/* 0x4 BEACON, body 12, total 22. After landing, long interval. */
+OA_PKT_TYPE_BEGIN(BEACON, beacon, 0x4, 12, 22)
+    OA_PKT_BODY_FIELD(lat_e7,    i32,  8)
+    OA_PKT_BODY_FIELD(lon_e7,    i32, 12)
+    OA_PKT_BODY_FIELD(apogee_cm, i32, 16)
+OA_PKT_TYPE_END(BEACON, beacon)
+
+/* 0x5 POSITION, body 9, total 19. Track only, interleaved with FLIGHT. */
+OA_PKT_TYPE_BEGIN(POSITION, position, 0x5, 9, 19)
+    OA_PKT_BODY_FIELD(lat_e7, i32,  8)
+    OA_PKT_BODY_FIELD(lon_e7, i32, 12)
+    OA_PKT_BODY_FIELD(sats,   u8,  16)
+OA_PKT_TYPE_END(POSITION, position)
+
+#undef OA_PKT_HDR_FIELD
+#undef OA_PKT_TYPE_BEGIN
+#undef OA_PKT_BODY_FIELD
+#undef OA_PKT_TYPE_END
