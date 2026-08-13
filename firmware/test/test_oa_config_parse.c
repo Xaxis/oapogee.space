@@ -353,6 +353,15 @@ static void test_crlf_parses_the_same_as_lf(void)
     static const char lf_text[]   = "sample_rate_hz = 200\nsimulated = true\ncallsign = N0CALL\n";
     static const char crlf_text[] = "sample_rate_hz = 200\r\nsimulated = true\r\ncallsign = N0CALL\r\n";
 
+    /* Zeroed before parsing so the byte comparison below is meaningful. These
+     * two are built independently rather than copied from one another, so their
+     * padding is whatever was on the stack, and memcmp reads it. The same
+     * oversight in the fusion determinism test passed under clang and failed
+     * under gcc. Where a test does memcmp after a memcpy the padding matches by
+     * construction and no zeroing is needed; here it does not. */
+    memset(&lf, 0, sizeof lf);
+    memset(&crlf, 0, sizeof crlf);
+
     assert(parse(lf_text, &lf, &report) == OA_OK);
     assert(parse(crlf_text, &crlf, &report) == OA_OK);
     assert(memcmp(&lf, &crlf, sizeof lf) == 0);

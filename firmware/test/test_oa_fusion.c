@@ -473,7 +473,20 @@ static void test_is_deterministic(void)
         }
     }
 
-    assert(memcmp(&first, &second, sizeof(first)) == 0);
+    /* Compared through the accessor rather than with memcmp over the struct.
+     * memcmp reads the padding between members, which no assignment writes and
+     * which the compiler is free to leave holding whatever was on the stack. It
+     * matched under clang and differed under gcc, so the test claimed the filter
+     * was non-deterministic when what was non-deterministic was the padding. The
+     * filter's determinism is a claim about its outputs, so that is what this
+     * compares. */
+    {
+        int32_t a_alt = 0, a_vel = 0, b_alt = 0, b_vel = 0;
+        assert(oa_fusion_get(&first, &a_alt, &a_vel) == OA_OK);
+        assert(oa_fusion_get(&second, &b_alt, &b_vel) == OA_OK);
+        assert(a_alt == b_alt);
+        assert(a_vel == b_vel);
+    }
 }
 
 /* SPEC: oa_fusion.h. The filter is driven by the measured interval rather than
