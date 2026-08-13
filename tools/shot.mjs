@@ -130,6 +130,7 @@ if (evalArg) {
     sessionId
   )
   if (r.exceptionDetails) console.error('eval threw:', r.exceptionDetails.text)
+  else if (r.result?.value !== undefined) console.log('eval:', r.result.value)
   await new Promise((r) => setTimeout(r, 800))
 }
 

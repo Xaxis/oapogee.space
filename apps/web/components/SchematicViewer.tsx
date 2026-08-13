@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
 /**
  * Pan and zoom for the generated drawings.
@@ -26,6 +26,33 @@ import { useCallback, useEffect, useRef, useState } from 'react'
  * text is crisp at any magnification and stays crisp on a high density display.
  * It costs a repaint per frame, which for a static line drawing is nothing.
  */
+
+/**
+ * The injected drawing, isolated so React never re-renders it.
+ *
+ * This is load bearing rather than an optimisation. The viewer mutates the
+ * SVG's viewBox directly, because that is the only way to zoom vectors without
+ * rasterising them. React owns any element it renders with
+ * dangerouslySetInnerHTML, and re-applies that html on re-render, which replaces
+ * the SVG node and silently detaches the one the effect was mutating. The
+ * symptom is precise and baffling: the zoom readout updates, the pointer
+ * handlers fire, and the drawing never moves, because every viewBox write lands
+ * on an element that is no longer in the document.
+ *
+ * memo with a prop that never changes means the first commit is the only commit,
+ * so the node the effect takes hold of stays the node on screen.
+ */
+const Sheet = memo(
+  function Sheet({ svg }: { svg: string }) {
+    return (
+      <div
+        className="h-full w-full [&>svg]:h-full [&>svg]:w-full"
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+    )
+  },
+  (a, b) => a.svg === b.svg
+)
 
 const MIN_SPAN_FRACTION = 0.02 // deepest zoom: 2% of the drawing fills the view
 const MAX_SPAN_FRACTION = 4 // furthest out: 4x the drawing fits in the view
@@ -297,10 +324,11 @@ export function SchematicViewer({
           onPointerMove={onPointerMove}
           onPointerUp={endPointer}
           onPointerCancel={endPointer}
-          className="h-[65vh] max-h-[760px] min-h-[340px] w-full touch-none outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-hivis)] [&>svg]:h-full [&>svg]:w-full"
+          className="h-[65vh] max-h-[760px] min-h-[340px] w-full touch-none outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-hivis)]"
           style={{ cursor: dragging ? 'grabbing' : 'grab' }}
-          dangerouslySetInnerHTML={{ __html: svg }}
-        />
+        >
+          <Sheet svg={svg} />
+        </div>
 
         <div className="no-print absolute right-3 top-3 flex flex-col gap-1.5">
           <Button onClick={() => zoomCentre(ZOOM_STEP)} label="Zoom in">
