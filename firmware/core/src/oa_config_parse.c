@@ -541,11 +541,19 @@ oa_result_t oa_config_parse(const char               *text,
 {
     oa_result_t r;
 
-    if (cfg == NULL || (text == NULL && len > 0u)) {
+    /* Zeroed before the argument check, not after, because the header says the
+     * report's line number is 0 on every NULL-argument rejection, and a caller
+     * that prints the report it was handed must not read a stale line number
+     * from a call that never looked at a line. */
+    oa_config_parse_report_init(report);
+
+    /* A NULL text is an error even with a length of zero. An empty configuration
+     * file is a real and valid thing, and it arrives as a real pointer with a
+     * length of zero; a NULL pointer is a caller that did not read the file. The
+     * header draws the line there and this is where it is drawn. */
+    if (text == NULL || cfg == NULL) {
         return OA_ERR_NULL;
     }
-
-    oa_config_parse_report_init(report);
 
     /* Pass one validates and writes nothing. A file whose last line is a typo
      * must not leave a payload holding half of it: the operator would fix the

@@ -120,10 +120,13 @@ set(OA_CORE_SOURCES
     core/src/oa_baro.c
     core/src/oa_battery.c
     core/src/oa_config.c
+    core/src/oa_config_parse.c
     core/src/oa_crc.c
     core/src/oa_flags.c
     core/src/oa_fusion.c
-    core/src/oa_log.c
+    core/src/oa_health.c
+    core/src/oa_log_manifest.c
+    core/src/oa_log_record.c
     core/src/oa_packet.c
     core/src/oa_ringbuf.c
     core/src/oa_sched.c
@@ -142,6 +145,40 @@ target_include_directories(oa_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/gen)
 
 target_compile_options(oa_core PRIVATE ${OA_WARNINGS})
+
+# core is compiled as freestanding, with the host's hardening opt-ins turned off.
+#
+# -ffreestanding is a statement of fact rather than a workaround. core includes
+# stdint.h, stdbool.h, stddef.h and string.h and nothing else, holds no global
+# mutable state, allocates nothing, and has no hosted runtime under it. Declaring
+# that is also what stops the compiler rewriting core's calls into calls core did
+# not make: on Darwin, Clang lowers memset(p, 0, n) into bzero, which is the same
+# operation under a name that is not on core/allowed-undefined.txt.
+#
+# The other two switch off host hardening that inserts its own symbols:
+# _FORTIFY_SOURCE redirects memcpy and memset to __memcpy_chk and __memset_chk
+# through Apple's headers, and the default stack protector emits __stack_chk_fail
+# and __stack_chk_guard.
+#
+# The reason to care about six symbols is that core/allowed-undefined.txt is one
+# of the two artifacts enforcing the passive payload boundary. Every name on it
+# weakens what it proves, and a list long enough to stop being read proves
+# nothing. All six are also host-only: none is on by default on the bare metal
+# toolchain this eventually cross-compiles with, so leaving them in would mean the
+# check that runs today and the check that runs on the target were inspecting
+# different code.
+#
+# The cost is real and worth stating: core's own objects lose the fortified bounds
+# check on memcpy and memset here, and lose the stack canary. Neither protects the
+# target build, where neither is enabled. The tests are compiled without these
+# flags and are where that checking belongs.
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    target_compile_options(oa_core PRIVATE
+        -ffreestanding
+        -U_FORTIFY_SOURCE
+        -D_FORTIFY_SOURCE=0
+        -fno-stack-protector)
+endif()
 
 # ---------------------------------------------------------------------------
 # port
@@ -162,18 +199,22 @@ target_link_libraries(oa_port INTERFACE oa_core)
 # ---------------------------------------------------------------------------
 # Tests.
 #
-# Picked up when they exist. They do not yet: this commit is the contract only.
-# The conformance tests that expand the same X-macro tables as the encoders are
-# the next thing written, and they are the reason those tables are shaped the
-# way they are.
+# The directory is test/, singular. An earlier revision of this file looked for
+# tests/ and every test written since went into test/, so nothing was wired into
+# ctest at all while twelve test files sat there passing individually. The
+# directory that exists wins.
+#
+# Tests are not compiled with the fortify and stack-protector opt-outs that core
+# carries. They are host-only code, they may use libc freely, and the checks are
+# worth having in the code that drives the checking.
 # ---------------------------------------------------------------------------
 
 enable_testing()
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt)
-    add_subdirectory(tests)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt)
+    add_subdirectory(test)
 else()
-    message(STATUS "firmware: no tests/ yet, configuring core only")
+    message(STATUS "firmware: no test/ yet, configuring core only")
 endif()
 
 # ---------------------------------------------------------------------------
@@ -268,13 +309,27 @@ file(WRITE ${CMAKE_BINARY_DIR}/oa_check_undefined.cmake [==[
 # first has a symbol to reject, which is the worst time for a check to break.
 cmake_minimum_required(VERSION 3.16)
 
-# Check every external symbol core objects reference against
+# Check every symbol core needs from OUTSIDE core against
 # core/allowed-undefined.txt.
 #
 # Catches: core reaching for the platform. malloc, printf, an SDK call, a
 # compiler runtime helper pulled in by floating point or a 64-bit divide, and,
 # most importantly, any call from core into the two functions in port/oa_out.h
 # that drive the buzzer and the status LED.
+#
+# "Outside core" is the load-bearing phrase, and it is why this script makes two
+# passes. nm -u on a single object reports every symbol that object does not
+# itself define, which includes oa_crc16 called from oa_packet.c and
+# oa_config_is_flightworthy called from oa_state.c. Those are calls from core into
+# core: the state machine is required by its own header to ask the configuration
+# whether it may arm. Reporting them as violations would say nothing about the
+# platform boundary, and the repair everyone would reach for is to add oa_* names
+# to the allowlist, which is exactly the repair that would gut it: oa_out_buzzer_set
+# matches that shape too.
+#
+# So pass one collects every symbol the core objects define between them, and pass
+# two subtracts that set before comparing. What is left is what core genuinely
+# needs from outside itself, which is the property SAFETY.md actually claims.
 
 if(NOT OA_NM)
     message(FATAL_ERROR
@@ -300,10 +355,12 @@ if(_n_objs EQUAL 0)
         "inspects nothing must not report success. Build oa_core first.")
 endif()
 
-set(_violations "")
-foreach(_obj IN LISTS _objs)
+# GNU nm prints "         U symbol" and "0000 T symbol"; Mach-O nm prints the name
+# with a leading underscore. Take the last field either way, then strip the Mach-O
+# underscore prefix, so one allowlist covers both platforms.
+function(oa_symbols _obj _outvar)
     execute_process(
-        COMMAND "${OA_NM}" -u "${_obj}"
+        COMMAND "${OA_NM}" ${ARGN} "${_obj}"
         OUTPUT_VARIABLE _out
         ERROR_VARIABLE _err
         RESULT_VARIABLE _rc
@@ -311,18 +368,39 @@ foreach(_obj IN LISTS _objs)
     if(NOT _rc EQUAL 0)
         message(FATAL_ERROR "check-undefined: nm failed on ${_obj}: ${_err}")
     endif()
-    string(REPLACE "\n" ";" _out_lines "${_out}")
-    foreach(_l IN LISTS _out_lines)
+    string(REPLACE "\n" ";" _lines "${_out}")
+    set(_syms "")
+    foreach(_l IN LISTS _lines)
         string(STRIP "${_l}" _l)
         if(_l STREQUAL "" OR _l MATCHES ":$")
             continue()
         endif()
-        # GNU nm prints "         U symbol"; Mach-O nm prints "_symbol". Take the
-        # last field either way, then strip the Mach-O underscore prefix so one
-        # allowlist covers both platforms.
         string(REGEX REPLACE "^.*[ \t]" "" _sym "${_l}")
         string(REGEX REPLACE "^_" "" _sym "${_sym}")
-        if(_sym STREQUAL "")
+        if(NOT _sym STREQUAL "")
+            list(APPEND _syms "${_sym}")
+        endif()
+    endforeach()
+    set(${_outvar} "${_syms}" PARENT_SCOPE)
+endfunction()
+
+# Pass one: everything core defines. A call from one core translation unit into
+# another is not core reaching outside core.
+set(_defined "")
+foreach(_obj IN LISTS _objs)
+    oa_symbols("${_obj}" _d -g --defined-only)
+    list(APPEND _defined ${_d})
+endforeach()
+if(_defined)
+    list(REMOVE_DUPLICATES _defined)
+endif()
+
+# Pass two: what is left after subtracting both core's own symbols and the list.
+set(_violations "")
+foreach(_obj IN LISTS _objs)
+    oa_symbols("${_obj}" _u -u)
+    foreach(_sym IN LISTS _u)
+        if(_sym IN_LIST _defined)
             continue()
         endif()
         if(NOT _sym IN_LIST _allowed)
@@ -343,7 +421,10 @@ if(_violations)
         "physical output, core has crossed the passive payload boundary.")
 endif()
 
-message(STATUS "check-undefined: OK, ${_n_objs} core objects, no unlisted external symbols")
+list(LENGTH _defined _n_defined)
+message(STATUS
+    "check-undefined: OK, ${_n_objs} core objects defining ${_n_defined} symbols "
+    "between them, and nothing needed from outside core that is not on the list")
 ]==])
 
 add_custom_target(check-outputs

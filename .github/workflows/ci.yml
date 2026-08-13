@@ -48,6 +48,31 @@ jobs:
       - name: Schematic matches the hardware
         run: make check-schematic
 
+  firmware:
+    name: firmware core builds and passes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      # Nothing to install but cmake and a compiler, both already on the runner.
+      # The core is deliberately free of the Pico SDK so it can be built and
+      # tested on a laptop, which is the only way any of it can be verified
+      # while no board exists.
+      - run: make fw-build
+      - run: make fw-test
+
+      # The passive boundary and the no-invented-numbers rule, checked rather
+      # than promised.
+      - run: make fw-check
+
+      # The C encoder and the TypeScript one must produce identical bytes. They
+      # were written from the same specification by different hands, so a
+      # difference is a defect in the document rather than in either of them.
+      - run: make crossimpl
+
   hardware:
     name: schematic matches the circuit source
     runs-on: ubuntu-latest

@@ -12,8 +12,9 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help install dev build start lint type-check format \
-        check check-fast prose data links schematic check-schematic responsive clean
+.PHONY: help install dev build start lint type-check format test \
+        check check-fast prose data links schematic check-schematic responsive \
+        fw-build fw-test fw-check crossimpl clean
 
 help: ## List available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -34,6 +35,22 @@ data: ## Structured data cross-references resolve and the accuracy contract hold
 links: ## Every internal link resolves, and every anchor exists on its target
 	@node tools/check-links.mjs
 
+fw-build: ## Build the firmware core and its tests for the host
+	@cmake -S firmware -B firmware/build -DCMAKE_BUILD_TYPE=Debug >/dev/null
+	@cmake --build firmware/build
+
+fw-test: fw-build ## Run the firmware test suite
+	@ctest --test-dir firmware/build --output-on-failure
+
+fw-check: ## The passive boundary holds and no tuning constant is hardcoded
+	@node tools/check-firmware.mjs
+
+crossimpl: fw-build ## The firmware and the browser encode identical packets
+	@node tools/check-crossimpl.mjs
+
+test: ## Run the web test suite
+	@yarn workspace @oapogee/web test
+
 hw-deps: ## Install the tscircuit toolchain, isolated from the web workspace on purpose
 	# npm ci rather than install, so the lockfile governs and a CI run cannot
 	# resolve a different tree than a local one. Not silenced: this failed once
@@ -52,9 +69,9 @@ schematic: ## Regenerate the system block diagram from data/system.yaml
 check-schematic: ## The committed schematic matches the data it was drawn from
 	@node tools/gen-schematic.mjs --check
 
-check-fast: prose data links check-schematic lint type-check ## Everything except the site build
+check-fast: prose data links check-schematic fw-check lint type-check test ## Everything except the site build
 
-check: check-fast build responsive ## Everything CI runs
+check: check-fast build responsive fw-test crossimpl ## Everything CI runs
 
 responsive: ## No page scrolls sideways at 320px or 390px. Needs a build and Chrome.
 	@node tools/check-responsive.mjs
