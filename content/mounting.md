@@ -19,9 +19,18 @@ flying straight with a payload on it.
 
 ### Form A: the internal sled
 
-A printed sled that slides into a payload bay, cut for the bore of a BT-50 body
-tube. A coupler is narrower than the tube it joins, so it is not the same fit:
-measure yours and re-render with that bore rather than assuming.
+A printed sled that slides into a payload bay, cut for the bore of a BT-55 body
+tube by default.
+
+The two form factors are sized for different rockets on purpose. The pod straps
+to the outside of a tube as small as a BT-50, which is the whole point of it:
+your rocket needs no payload bay. The sled needs a rocket that has one, and a
+rocket with a payload section is a bigger rocket. Sizing the sled for a BT-50
+as well produced a part with 0.6 mm of rail on each side of the board, which a
+slicer will happily emit and a landing will happily break.
+
+A coupler is narrower than the tube it joins, so it is not the same fit either.
+Measure yours and re-render with that bore rather than assuming.
 
 Use this if your rocket already has a payload section. It is the lighter and
 lower-drag option, it does not change the outside of the airframe at all, and it

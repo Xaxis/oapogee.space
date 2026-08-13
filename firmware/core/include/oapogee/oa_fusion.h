@@ -10,13 +10,12 @@
  * the barometer anchors the long term and the accelerometer carries the short
  * term.
  *
- * TODO(confirm): the choice between a complementary filter and a Kalman filter
- * is recorded as open in content/firmware.md. This header implements the
- * complementary filter, which is simpler to implement, to explain, and to check
- * by hand, on a project whose product is its documentation. A Kalman filter is
- * better behaved when the noise characteristics are known, and they are not,
- * because nothing has flown. If that decision is revisited, this interface
- * changes.
+ * Decided: a complementary filter for v1, revisited when there is flight data.
+ * It is simpler to implement, to explain, and to check by hand, on a project
+ * whose product is its documentation. A Kalman filter is better behaved when
+ * the noise characteristics are known, and tuning one now would mean inventing
+ * covariances for a barometer and an IMU that have never flown. The reasoning
+ * is in docs/open-questions.md. If it is revisited, this interface changes.
  *
  * NO FLOATING POINT, DELIBERATELY
  *

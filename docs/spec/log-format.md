@@ -399,12 +399,16 @@ A conforming writer:
 
 ## Open questions
 
-TODO(confirm): decide whether to store a rolling CRC per block in `flight.bin`.
-The argument for is that flash bit rot and a partial-page write on power loss can
-corrupt a record in the middle of a file undetectably. The argument against is
-that it breaks the flat-array property that makes this format one line to load.
-A separate sidecar of block checksums would keep both, at the cost of a third
-file.
+Decided: block checksums go in the manifest, which every flight already writes,
+rather than interleaved into `flight.bin` or into a third file. Interleaving
+would break the flat-array property that makes this format one line to load,
+which is most of why it is shaped this way, and a sidecar would add a file when
+a suitable one already exists. A reader that does not care about integrity
+ignores the manifest exactly as it does today.
+
+TODO(confirm-on-hardware): implement it in the log writer and state the block
+size, which should match the flash page size of the part actually fitted rather
+than be picked now.
 
 TODO(verify): confirm that LittleFS on the chosen flash part actually survives
 power loss mid-write in practice, by testing it: write continuously and cut

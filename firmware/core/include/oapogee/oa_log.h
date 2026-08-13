@@ -186,11 +186,12 @@ oa_result_t oa_log_write_manifest(const oa_log_manifest_t *manifest,
                                   const oa_log_summary_t *summary,
                                   oa_sink_t *sink);
 
-/* TODO(confirm): the manifest has no way to say that accel_bias_mg and
- * gyro_bias_cdps have never been measured. All zeros currently means both "no
- * calibration has been run" and "calibration ran and found no bias", and a
- * reader cannot tell which. Decide whether to add a calibration flag to
- * spec_version 2 or to accept the ambiguity, and record the decision in
+/* Decided: add a calibration flag in spec_version 2 rather than accept the
+ * ambiguity. All zeros meaning both "never calibrated" and "calibrated, no
+ * bias" is precisely the failure this project refuses everywhere else: a
+ * reading that is confidently wrong and indistinguishable from a real one. It
+ * waits for a version bump because the manifest is a published format.
+ * TODO(confirm-on-hardware): land it with spec_version 2, recorded in
  * docs/open-questions.md. */
 
 #ifdef __cplusplus

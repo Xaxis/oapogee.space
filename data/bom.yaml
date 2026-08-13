@@ -330,9 +330,16 @@ parts:
       - { tier: track, path: board, qty: 1 }
       - { tier: link, path: modules, qty: 1 }
       - { tier: track, path: modules, qty: 1 }
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: solo, path: modules, qty: 1 }
     why: >
-      A general purpose IMU has a full-scale range, and boost acceleration can
-      exceed it. When an accelerometer saturates it does not report an error, it
+      Optional at every tier, including Solo, because whether a general purpose
+      IMU saturates depends on the motor and not on whether the board has a
+      radio on it. Tying it to Link put the part behind a capability it has
+      nothing to do with, and left the cheapest build, whose entire value is the
+      logged flight profile, as the one most likely to record a boost phase that
+      is silently wrong. A general purpose IMU has a full-scale range, and boost
+      acceleration can exceed it. When an accelerometer saturates it does not report an error, it
       reports its maximum value for as long as the real acceleration is higher.
       The result is a boost phase that looks like a flat plateau sitting exactly
       at the full-scale limit, which is not merely imprecise, it is wrong in a
@@ -683,12 +690,14 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(confirm): mechanical or magnetic. A slide or screw switch is the
-      rocketry convention and needs a hole in the pod. A reed or Hall sensor arms
-      through the wall with a magnet, which keeps the enclosure sealed apart from
-      its static ports, at the cost of a part that can be armed by anything
-      magnetic nearby. Decide before the enclosure is designed, because it
-      changes the pod. Then TODO(verify): select the specific part and confirm it
+      Decided: mechanical, a slide or screw switch. The sealed-enclosure
+      argument for a reed or Hall sensor does not survive contact with this
+      design, because the pod is deliberately vented: it has static ports cut
+      through it and must have. That leaves a magnetic switch trading an
+      inspectable state for one that can be changed by anything magnetic in a
+      range box, and arm state is the thing an operator has to confirm by eye at
+      the pad. A slide switch shows its position from across a table.
+      TODO(verify): select the specific part and confirm it Then TODO(verify): select the specific part and confirm it
       survives the shake and drop tests without changing state.
     applies:
       - { tier: solo, path: board, qty: 1 }
@@ -936,11 +945,11 @@ ground_station:
     there is nothing to install on the flight line.
   status: proposed
   approval_note: >
-    TODO(confirm): the brief asks for confirmation of the WebSerial approach
-    before this is built out. The tradeoff to decide: WebSerial needs no
-    installation, which is the right answer for a club field where six people
-    want to watch, but it is not supported in Safari or on iOS, which rules out
-    a large share of phones. The alternative is a native app per platform, which
+    Decided: WebSerial, with the browser requirement stated prominently and a
+    documented serial terminal fallback. It needs no installation, which is the
+    right answer for a club field where six people want to watch, and it is not
+    supported in Safari or on iOS. The alternative rejected was a native app per
+    platform, which
     nobody will install. A third option is a small local server the user runs
     once. Recommend WebSerial with an explicit, prominently stated browser
     requirement, and a plain serial terminal fallback documented for everyone

@@ -256,11 +256,19 @@ bool        oa_port_console_connected(void);
 /* ---------------------------------------------------------------------------
  * Watchdog.
  *
- * TODO(confirm): decide whether the watchdog is enabled in flight, and record
- * the decision in docs/open-questions.md with both arguments. A reset recovers a
- * hung payload and keeps the beacon alive; it also loses the in-memory state,
- * including the peak altitude, unless that has been committed. Which of those
- * matters more is not obvious and should not be settled quietly here.
+ * Decided: the watchdog is enabled in flight, and the peak altitude is
+ * committed to flash as it updates so that a reset does not lose it.
+ *
+ * The two arguments are not symmetric once the mitigation is on the table. A
+ * hung payload logs nothing, beacons nothing, and cannot be found; a reset that
+ * keeps the beacon alive preserves recovery, and a rocket you recover can have
+ * its log read afterwards while a rocket you cannot find yields nothing at all.
+ * The cost of the reset, losing the in-memory peak, is the part that is fixable,
+ * so it is fixed rather than accepted. The reasoning is in
+ * docs/open-questions.md.
+ *
+ * TODO(confirm-on-hardware): implement the peak commit and confirm the timeout
+ * against real loop timing once a board exists.
  * ------------------------------------------------------------------------ */
 
 oa_result_t oa_port_watchdog_enable(uint32_t timeout_ms);

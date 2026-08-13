@@ -157,8 +157,11 @@ product.
 This is the standard open hardware posture, and it is the only one that survives
 contact with a manufacturer.
 
-TODO(confirm): whether to formally register the mark. The policy above stands
-either way; registration decides how enforceable it is.
+Not registered, and not being registered yet. Registration costs money and buys
+enforceability against a problem that does not exist: nothing has been
+fabricated and nobody is selling anything called oApogee. Revisit if somebody
+ships a product under the name, or if this project starts selling hardware
+itself. Both are events rather than dates.
 
 ## Status
 

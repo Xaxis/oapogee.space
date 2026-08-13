@@ -17,11 +17,11 @@
 //
 // WHY THE BOARD AND THE CELL LIE END TO END
 //
-// The first version stacked them, cell in the floor and board on posts above.
-// That cannot work in a tube this size and the geometry says so plainly: a
-// 20 mm wide cell only fits inside a 24.1 mm bore between z = 7.1 and z = 16.7,
-// a 20 mm board has the same constraint, and the two intervals are the same
-// interval. Stacking spends the one dimension a payload bay has plenty of.
+// The first version stacked them, cell in the floor and board on posts above,
+// in a BT-50. That cannot work and the geometry says so plainly: a 20 mm cell
+// only fits inside a 24.13 mm bore between z = 7.1 and z = 16.7, a board of the
+// same width has the same constraint, and the two intervals are one interval.
+// Stacking spends the one dimension a payload bay has plenty of.
 //
 // So the sled is a deck across the widest part of the bore, with the board at
 // one end and the cell at the other. It is longer and it fits.
@@ -79,11 +79,14 @@ module sled_blank() {
 // Thin walls along both long edges, rising above the deck. They keep the sled
 // from rocking and give the cell something to sit between.
 module rails() {
-    // Whatever the board leaves, not a fixed wall. A fixed 1.6 mm rail set the
-    // clear width between rails to 20.6 mm, which a 22 mm board does not fit
-    // between, and the outer assert still passed because the board fits the
-    // bore. Fitting the bore and fitting between the rails are two questions.
-    rail_t = (chord - board_width - 2 * fit_clearance) / 2;
+    // A wall where there is room for one, and whatever is left where there is
+    // not. A fixed 1.6 mm rail set the clear width between rails to 20.6 mm,
+    // which a 22 mm board does not fit between, while the outer assert still
+    // passed because the board does fit the bore: fitting the bore and fitting
+    // between the rails are two different questions. Capped rather than simply
+    // derived, because in a tube with room to spare the leftover is 4.8 mm a
+    // side and that is mass on a rocket rather than a wall.
+    rail_t = min(pod_wall, (chord - board_width - 2 * fit_clearance) / 2);
     difference() {
         intersection() {
             bore();

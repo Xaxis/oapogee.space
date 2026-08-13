@@ -182,10 +182,19 @@ const SOURCED = [
       'its own battery at all.',
   },
   {
-    values: ['0.976 in', '0.950 in'],
+    values: ['0.976 in', '0.950 in', '1.283 in', '1.325 in'],
     why:
-      'Estes BT-50 outside and inside diameter, from the published catalogue dimensions, cited ' +
-      'in data/mechanical.yaml beside the millimetre values derived from them.',
+      'Estes BT-50 and BT-55 outside and inside diameters, from the published catalogue ' +
+      'dimensions, cited in data/mechanical.yaml beside the millimetre values derived from them.',
+  },
+  {
+    values: ['24.13 mm', '32.59 mm', '22 mm', '0.6 mm', '4.8 mm'],
+    why:
+      'Arithmetic on dimensions already declared in data/mechanical.yaml with their provenance: ' +
+      'the two tube bores in millimetres, the board width, and the rail left on each side, which ' +
+      'is (bore - board - clearance) / 2. Every input is on the mounting page with its source, ' +
+      'so these restate a derivation rather than introducing a figure. They are listed because ' +
+      'the alternative is a rule that exempts anything it can call a calculation.',
   },
   {
     values: ['2 in'],

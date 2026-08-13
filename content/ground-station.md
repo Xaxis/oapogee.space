@@ -34,9 +34,13 @@ that nobody installs, or a local server the user has to run before they can see
 an altitude. A plain serial terminal fallback is documented below for anyone the
 browser path locks out.
 
-TODO(confirm): the brief asks for confirmation of this approach before building
-it out. The recommendation is WebSerial with the requirement stated prominently,
-plus the terminal fallback.
+Decided: WebSerial, with the requirement stated prominently rather than in a
+footnote, plus the terminal fallback so nobody is locked out. A native app per
+platform will not get installed, and a local server the reader runs before their
+first packet is a worse first-run experience than the entire rest of the
+project. The wire format is specified independently of any receiver, so an iOS
+client is something somebody else can build without asking, which is most of why
+the format is published as a specification.
 
 ## Building it
 

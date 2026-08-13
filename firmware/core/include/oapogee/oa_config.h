@@ -314,9 +314,13 @@ typedef struct {
      * question about which legal regime the operator chose, and the firmware
      * does not know that.
      *
-     * TODO(confirm): decide whether an explicit part15 / part97 mode belongs in
-     * the configuration, so that a missing callsign can be an error in the mode
-     * where it is one. Record the decision in docs/open-questions.md. */
+     * Decided: an explicit part15 / part97 mode belongs here, so that a missing
+     * callsign is an error in the mode where it is one rather than a silent
+     * omission. The safety page says station identification "has to be built
+     * into the firmware, not remembered on the day", and that is only true if
+     * the firmware knows which regime it is operating under.
+     * TODO(confirm-on-hardware): add the mode field and make arming fail
+     * without a callsign in part97. */
     bool simulated;
     char callsign[16];
 } oa_config_t;

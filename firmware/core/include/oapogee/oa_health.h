@@ -49,10 +49,12 @@
  * it. Two homes for tunables is exactly the drift this project avoids
  * everywhere else, and it should not survive the next revision of that table.
  *
- * TODO(confirm): decide whether the high-g accelerometer gets the same
- * treatment. OA_FLAG_HIGH_G means "present and healthy", and this module has no
- * opinion about the second half of that sentence today. Record the decision in
- * docs/open-questions.md.
+ * Decided: the high-g accelerometer gets the same treatment. OA_FLAG_HIGH_G
+ * means "present and healthy", and a health module with no opinion about the
+ * second half of that makes the flag a claim nothing checks, which is worse
+ * than not having it.
+ * TODO(confirm-on-hardware): add its plausibility limits once the part's
+ * full-scale range is known, since the limits are expressed against it.
  *
  * Nothing in this file has run on hardware, and no sensor has ever failed in
  * front of it.

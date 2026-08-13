@@ -101,9 +101,16 @@ cell_squeeze = 0.6;  // mm
 tube_od = 24.8;  // mm
 
 // Body tube inside diameter the sled is sized for. [standard]
-//   Estes BT-50, 0.950 in from the published catalogue dimension. As tube_od,
-//   measure your own.
-tube_id = 24.1;  // mm
+//   Estes BT-55, 1.283 in from the published catalogue dimension. Deliberately a
+//   different airframe from tube_od above, because the two form factors suit
+//   different rockets and pretending otherwise produced a part that did not
+//   work. A BT-50 bore is 24.13 mm, and a 22 mm board inside it leaves 0.6 mm of
+//   rail on each side: printable in the sense that a slicer will emit it, and
+//   nothing in the sense of a part that survives a landing. The pod exists so a
+//   small tube needs no payload bay at all; a sled needs a rocket that has one,
+//   and a rocket with a payload section is a bigger rocket. BT-55 leaves 4.8 mm
+//   a side. Measure your own tube and re-render either way.
+tube_id = 32.59;  // mm
 
 // --------------------------------------------------------------------------
 // POD

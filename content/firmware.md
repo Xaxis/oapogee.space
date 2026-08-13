@@ -157,11 +157,15 @@ short term. Neither alone would be adequate, and saying which one the firmware
 trusted at each instant is why both the raw and the fused values are stored in
 the log.
 
-TODO(confirm): decide between a complementary filter and a Kalman filter, and
-document the choice with its reasoning. A complementary filter is far simpler to
-implement, to explain, and to verify by hand, which on a project whose product is
-its documentation is a real argument. A Kalman filter is better behaved if the
-noise characteristics are known, and they are not yet, because nothing has flown.
+oApogee uses a complementary filter. It is far simpler to implement, to explain,
+and to verify by hand, which on a project whose product is its documentation is
+a real argument rather than a lazy one.
+
+A Kalman filter is better behaved when the noise characteristics are known, and
+they are not known, because nothing has flown. Choosing one now would mean
+inventing covariances, which is the one thing this project does not do. The
+decision is recorded with its reasoning in `docs/open-questions.md` and is worth
+revisiting once several flights exist to characterise the sensors against.
 
 ### Apogee detection
 

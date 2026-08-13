@@ -362,7 +362,7 @@ A conforming receiver:
 - **must not** plot a position from a packet whose `GNSS_FIX` is clear, in which
   case both coordinate fields carry `INT32_MIN`
 - **should** count sequence gaps and CRC failures and expose both
-- **should** display the `SIM` flag prominently, and must never publish a `SIM`
+- **must** display the `SIM` flag prominently, and must never publish a `SIM`
   packet to a flight archive as a real flight
 - **should** surface fault flags next to the affected values rather than hiding
   them
@@ -495,7 +495,9 @@ has gone wrong upstream of the format.
 
 ## Open questions
 
-TODO(confirm): decide whether a `SIM` packet should use a distinct packet type
-rather than a flag. A flag is cheaper and a type is harder to ignore by
-accident. The argument for the flag is that every field means the same thing in
-both cases; the argument for the type is that it makes the mistake impossible.
+Decided: a flag, with the conformance rule strengthened to compensate. A
+distinct type is not one type but a parallel type for every packet type that can
+be simulated, which doubles the type space to encode a property orthogonal to
+what the packet contains, and ten of the sixteen type values are already
+reserved for extension. The risk that a receiver ignores the flag is addressed
+directly instead: displaying `SIM` prominently is a **must**, not a *should*.

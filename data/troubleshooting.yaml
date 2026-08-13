@@ -212,9 +212,12 @@ entries:
           the boost phase is not measurable with what is on the board. The
           high-g accelerometer is specified at Link and above, so on a Solo
           build there is no dedicated part to fall back to.
-          TODO(confirm): the open questions page asks whether this part should be
-          gated by motor class rather than by tier. Resolve that before the site
-          tells anyone which motor class requires it.
+          The part is an optional populate at every tier, including Solo,
+          because saturation depends on the motor rather than on whether the
+          board has a radio. TODO(verify): which motor class actually needs it
+          is still open, and depends on the IMU's configured full-scale range
+          from its datasheet and simulated peak acceleration per motor class.
+          Both are recorded on the high_g part in the bill of materials.
 
   # --- flight --------------------------------------------------------------
   - id: no-launch-detect

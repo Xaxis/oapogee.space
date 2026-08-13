@@ -214,13 +214,20 @@ params:
 
   - id: tube_id
     group: airframe
-    value: 24.1
+    value: 32.59
     unit: mm
     provenance: standard
     what: Body tube inside diameter the sled is sized for.
     source: >
-      Estes BT-50, 0.950 in from the published catalogue dimension. As tube_od,
-      measure your own.
+      Estes BT-55, 1.283 in from the published catalogue dimension. Deliberately
+      a different airframe from tube_od above, because the two form factors suit
+      different rockets and pretending otherwise produced a part that did not
+      work. A BT-50 bore is 24.13 mm, and a 22 mm board inside it leaves 0.6 mm
+      of rail on each side: printable in the sense that a slicer will emit it,
+      and nothing in the sense of a part that survives a landing. The pod exists
+      so a small tube needs no payload bay at all; a sled needs a rocket that
+      has one, and a rocket with a payload section is a bigger rocket. BT-55
+      leaves 4.8 mm a side. Measure your own tube and re-render either way.
 
   # --- pod ------------------------------------------------------------------
   - id: pod_wall
@@ -381,6 +388,12 @@ parts:
       Carries the cell, takes the two straps, and sits on the body tube. The
       saddle is cut for tube_od, so a builder with a different airframe changes
       one number and re-renders rather than asking for a new file.
+    todo: >
+      TODO(confirm-on-hardware): cut an aperture for the arming switch. The
+      switch is now decided as mechanical rather than magnetic, which means the
+      pod needs a hole for it, and the hole cannot be sized until the specific
+      switch is selected. A magnetic switch would have needed no aperture, so
+      this is a direct consequence of that decision rather than an oversight.
     prints_with: >
       Flat split face down, no supports. That puts the saddle facing upward,
       where a concave surface costs nothing, and gives the first layer the
