@@ -20,6 +20,8 @@
  * a flash part.
  */
 
+#include <stdint.h>
+
 #include "oapogee/oa_log.h"
 
 #include <string.h>
@@ -212,12 +214,20 @@ size_t oa_log_stream_record_bytes(oa_log_stream_t stream)
     return 0;
 }
 
-/* TODO(confirm): the log format says a GNSS altitude outside the range of an
- * i16 of metres is clamped to the endpoint rather than allowed to wrap, because
- * a wrapped value decodes as a plausible altitude with the wrong sign. Nothing
- * in core can enforce that: oa_log_gnss_t.alt_m is already an i16, so the
- * narrowing has happened before the record reaches this file. The clamp belongs
- * wherever the receiver's own wider altitude is converted, which is the port
- * layer, and there is no port layer yet. Decide whether core should own that
- * conversion so the clamp has a tested home, and record the decision in
- * docs/open-questions.md. */
+/* Decided: core owns the narrowing, so the clamp has one tested home.
+ *
+ * By the time a record reaches this file the conversion has already happened,
+ * because oa_log_gnss_t.alt_m is an i16. That left the rule stated as a comment
+ * in the port header for every future port author to honour, and a port that
+ * forgot would produce a wrapped altitude, which decodes as a plausible value
+ * with the wrong sign rather than as an obvious fault. Ports call this. */
+int16_t oa_log_clamp_altitude_m(int32_t altitude_m)
+{
+    if (altitude_m > INT16_MAX) {
+        return INT16_MAX;
+    }
+    if (altitude_m < INT16_MIN) {
+        return INT16_MIN;
+    }
+    return (int16_t)altitude_m;
+}

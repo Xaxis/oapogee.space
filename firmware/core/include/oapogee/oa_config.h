@@ -257,7 +257,40 @@ typedef enum {
       "Duty of the recovery pattern, and the dominant current draw during a search.")              \
     X(led_brightness_pct, LED_BRIGHTNESS_PCT, OA_REQ_OPTIONAL, "%",                                \
       "Unset means full brightness. It is optional because it trades visibility against a "        \
-      "current draw that has not been measured, and neither side of that trade is known yet.")
+      "current draw that has not been measured, and neither side of that trade is known yet.")     \
+                                                                                                   \
+    /* --- sensor health, applied by oa_health.c ----------------------------------------- */     \
+    /* These lived in a second table, OA_HEALTH_LIMITS in oa_health.h, which the config     */     \
+    /* parser had never heard of. That made them unsettable: every health check was         */     \
+    /* permanently unset, so BARO_FAULT and IMU_FAULT could never be raised, and the         */     \
+    /* baro_valid gate in the state machine could never fire from a real fault. Three of      */     \
+    /* the baro thresholds were already here, which is what made the split arbitrary rather   */     \
+    /* than principled. OPTIONAL because an unset limit means the check is not performed,     */     \
+    /* which is a state this firmware is comfortable with and reports in checks_unset.       */     \
+    X(baro_stuck_samples, BARO_STUCK_SAMPLES, OA_REQ_OPTIONAL, "samples",                         \
+      "How many byte-identical consecutive pressure readings mean the sensor has stopped rather "  \
+      "than the air being still. Measure the barometer's noise on a settled pad: the count has to "\
+      "be longer than the longest genuine repeat at the configured resolution and output rate.")   \
+    X(baro_stale_ms, BARO_STALE_MS, OA_REQ_OPTIONAL, "ms",                                        \
+      "How long without a successful read before the barometer is declared dead. Measure the "     \
+      "worst case bus retry time on real hardware, since a value shorter than that faults a "      \
+      "healthy sensor during a transient the driver was about to recover from.")                   \
+    X(imu_stuck_samples, IMU_STUCK_SAMPLES, OA_REQ_OPTIONAL, "samples",                           \
+      "As above, for all six IMU axes at once. An exact repeat across six noisy axes is far less " \
+      "likely than across one, so this count can be shorter than the barometer's, but by how "     \
+      "much needs the IMU's measured noise floor to say.")                                         \
+    X(imu_stale_ms, IMU_STALE_MS, OA_REQ_OPTIONAL, "ms",                                          \
+      "As above, for the IMU.")                                                                    \
+    X(imu_accel_max_mg, IMU_ACCEL_MAX_MG, OA_REQ_OPTIONAL, "mg",                                  \
+      "The magnitude beyond which an accelerometer axis is not a reading. It follows from the "    \
+      "full-scale range oApogee configures on the 6-axis part, which is itself an open question "  \
+      "recorded against the imu entry in data/bom.yaml. Note that a reading AT full scale is "     \
+      "saturation and not a fault: the log format says a saturated axis reads as a flat plateau, " \
+      "and this limit exists to catch a part reporting past its own range.")                       \
+    X(imu_gyro_max_cdps, IMU_GYRO_MAX_CDPS, OA_REQ_OPTIONAL, "0.01 deg/s",                        \
+      "As above, for the gyroscope, and bounded also by the 327.67 deg/s the log format's i16 "    \
+      "can hold. The peak roll rate of a real flight has never been recorded, and until it is "    \
+      "there is no honest way to separate a fast roll from a broken part.")
 /* clang-format on */
 
 /* ---------------------------------------------------------------------------

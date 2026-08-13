@@ -42,12 +42,11 @@
  * the point: a health monitor that reported "no fault" when it had not looked
  * would be worse than no health monitor, because somebody would believe it.
  *
- * TODO(confirm): fold these six limits into OA_CONFIG_FIELDS in oa_config.h,
- * which is the normative home for every tunable in this firmware, and delete
- * oa_health_limits_t. They are here only because the field table shipped in the
- * contract commit has no entry for any of them and this header may not change
- * it. Two homes for tunables is exactly the drift this project avoids
- * everywhere else, and it should not survive the next revision of that table.
+ * Every one of them lives in OA_CONFIG_FIELDS in oa_config.h, which is the
+ * normative home for every tunable in this firmware. They used to live in a
+ * second table here, and the cost was not untidiness: the configuration parser
+ * only ever knew OA_CONFIG_FIELDS, so nothing could set them, and a check whose
+ * threshold can never be set is a check that never runs.
  *
  * Decided: the high-g accelerometer gets the same treatment. OA_FLAG_HIGH_G
  * means "present and healthy", and a health module with no opinion about the
@@ -86,75 +85,22 @@ extern "C" {
  * oa_baro_is_plausible. One tunable, one home.
  * ------------------------------------------------------------------------ */
 
-/* clang-format off */
-#define OA_HEALTH_LIMITS(X)                                                                        \
-    X(baro_stuck_samples, BARO_STUCK_SAMPLES, "samples",                                           \
-      "How many byte-identical consecutive pressure readings mean the sensor has stopped rather "  \
-      "than the air being still. Measure the barometer's noise on a settled pad: the count has to "\
-      "be longer than the longest genuine repeat at the configured resolution and output rate.")   \
-    X(baro_stale_ms, BARO_STALE_MS, "ms",                                                          \
-      "How long without a successful read before the barometer is declared dead. Measure the "     \
-      "worst case bus retry time on real hardware, since a value shorter than that faults a "      \
-      "healthy sensor during a transient the driver was about to recover from.")                   \
-    X(imu_stuck_samples, IMU_STUCK_SAMPLES, "samples",                                             \
-      "As above, for all six IMU axes at once. An exact repeat across six noisy axes is far less " \
-      "likely than across one, so this count can be shorter than the barometer's, but by how "     \
-      "much needs the IMU's measured noise floor to say.")                                         \
-    X(imu_stale_ms, IMU_STALE_MS, "ms",                                                            \
-      "As above, for the IMU.")                                                                    \
-    X(imu_accel_max_mg, IMU_ACCEL_MAX_MG, "mg",                                                    \
-      "The magnitude beyond which an accelerometer axis is not a reading. It follows from the "    \
-      "full-scale range oApogee configures on the 6-axis part, which is itself an open question "  \
-      "recorded against the imu entry in data/bom.yaml. Note that a reading AT full scale is "     \
-      "saturation and not a fault: the log format says a saturated axis reads as a flat plateau, " \
-      "and this limit exists to catch a part reporting past its own range.")                       \
-    X(imu_gyro_max_cdps, IMU_GYRO_MAX_CDPS, "0.01 deg/s",                                          \
-      "As above, for the gyroscope, and bounded also by the 327.67 deg/s the log format's i16 "    \
-      "can hold. The peak roll rate of a real flight has never been recorded, and until it is "    \
-      "there is no honest way to separate a fast roll from a broken part.")
-/* clang-format on */
+/* The six limits these checks need now live in OA_CONFIG_FIELDS in oa_config.h,
+ * alongside the three baro thresholds that were always there. They were in a
+ * second table here, which the configuration parser had never heard of, so
+ * nothing could set them: every check was permanently unset, BARO_FAULT and
+ * IMU_FAULT could never be raised, and the baro_valid gate in the state machine
+ * could never fire from a real fault. One normative home, and the parser
+ * reaches all of them. */
 
-#define OA_HEALTH_LIMIT_ENUMERATOR(name, NAME, unit, why) OA_HEALTH_LIM_##NAME,
-
-typedef enum {
-    OA_HEALTH_LIMITS(OA_HEALTH_LIMIT_ENUMERATOR)
-    OA_HEALTH_LIM_COUNT
-} oa_health_limit_t;
-
-#undef OA_HEALTH_LIMIT_ENUMERATOR
-
-#define OA_HEALTH_LIMIT_MEMBER(name, NAME, unit, why) oa_tunable_t name;
-
-typedef struct {
-    OA_HEALTH_LIMITS(OA_HEALTH_LIMIT_MEMBER)
-} oa_health_limits_t;
-
-#undef OA_HEALTH_LIMIT_MEMBER
-
-/* Every limit OA_UNSET. This is the only correct starting state and it is the
- * state a payload with no measurements is in, which is all of them. */
-void oa_health_limits_init(oa_health_limits_t *limits);
-
-/* Read one limit by index, for the console and for tests. */
-oa_result_t oa_health_limit_get(const oa_health_limits_t *limits,
-                                oa_health_limit_t         limit,
-                                oa_tunable_t             *out);
-
-const char *oa_health_limit_name(oa_health_limit_t limit);
-const char *oa_health_limit_unit(oa_health_limit_t limit);
-const char *oa_health_limit_why(oa_health_limit_t limit);
-
-/* Reject a limit that is set to a value the check cannot use.
+/* Reject a limit set to something the checks cannot use, once, at startup
+ * rather than in the sample path, so the sample path can apply a limit without
+ * re-deciding whether it makes sense every time.
  *
- * A stuck count below two would fault every sensor on its first sample, and a
- * negative interval or magnitude is not a quantity. Checked here, once, at
- * startup, rather than in the sample path, so that the sample path can apply the
- * limits without re-deciding whether they make sense every time.
- *
- * Returns OA_OK, OA_ERR_NULL, or OA_ERR_RANGE with *out_limit naming the first
- * offending limit. An unset limit is never an error: unset means the check is
- * not performed, which is a state this firmware is entirely comfortable with. */
-oa_result_t oa_health_limits_check(const oa_health_limits_t *limits, oa_health_limit_t *out_limit);
+ * Returns OA_OK, OA_ERR_NULL, or OA_ERR_RANGE with *out_field naming the first
+ * offending field in table order. An unset limit is never an error: unset means
+ * the check is not performed, which out->checks_unset reports every sample. */
+oa_result_t oa_health_config_check(const oa_config_t *cfg, oa_config_field_t *out_field);
 
 /* ---------------------------------------------------------------------------
  * The checks, as bits.
@@ -292,15 +238,14 @@ oa_result_t oa_health_init(oa_health_t *health, uint32_t now_ms);
  * Pure with respect to the input: it reads `in`, updates `health`, and fills
  * `out`. It never writes through any other pointer and never suppresses a field.
  *
- * `cfg` supplies the barometer's plausible band and its optional maximum rate of
- * change. `limits` supplies the six thresholds this module owns. Both are read
- * only. Returns OA_OK or OA_ERR_NULL. It does not return an error for a missing
+ * `cfg` supplies every threshold these checks use: the barometer's plausible
+ * band and maximum rate of change, and the six stuck, stale and magnitude
+ * limits that used to sit in a table of their own. Read only. Returns OA_OK or OA_ERR_NULL. It does not return an error for a missing
  * threshold: a check it cannot perform is reported in out->checks_unset, and
  * failing the whole sample loop over an unmeasured number would take a payload
  * off the air for a reason the operator can already see. */
 oa_result_t oa_health_step(oa_health_t              *health,
                            const oa_config_t        *cfg,
-                           const oa_health_limits_t *limits,
                            const oa_health_input_t  *in,
                            oa_health_output_t       *out);
 

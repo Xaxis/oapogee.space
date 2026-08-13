@@ -214,6 +214,36 @@ second half makes the flag a claim that nothing checks, which is worse than not
 having the flag at all. The limits are expressed against the part's full-scale
 range, so they land when that number does.
 
+## Where do the sensor health limits live
+
+**Decided: in OA_CONFIG_FIELDS, with the second table deleted.**
+
+This looked like tidiness and was not. The configuration parser only ever knew
+`OA_CONFIG_FIELDS`, and six of the nine health thresholds lived in a separate
+table in `oa_health.h` that the parser had never heard of. Nothing could set
+them. Every check that needed one was permanently unset, `BARO_FAULT` and
+`IMU_FAULT` could never be raised, and the `baro_valid` gate in the state
+machine could never fire from a real sensor fault.
+
+Three baro thresholds were already in the configuration, which is what made the
+split arbitrary rather than principled. They are all in one table now, marked
+optional, because an unset limit means the check is not performed and that is a
+state the firmware reports rather than refuses.
+
+## Who clamps a GNSS altitude into the log
+
+**Decided: core, in `oa_log_clamp_altitude_m`, called by every port.**
+
+The log format says an altitude outside the range of an i16 of metres is clamped
+at the endpoint rather than wrapped, because a wrapped value decodes as a
+plausible altitude with the wrong sign. By the time a record reaches core the
+narrowing has already happened, so the rule was stated as a comment in the port
+header for every future port author to honour.
+
+Ports are per-board and will be written by different people. A rule that depends
+on each of them remembering it is the kind of rule this project makes mechanical
+everywhere else, so core provides the conversion and the port calls it.
+
 ## Trademark registration
 
 The policy is published and stands either way: the design is open, the name is

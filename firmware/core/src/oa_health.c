@@ -42,67 +42,19 @@
  * index without a switch that could fall out of order with the enumeration.
  * ------------------------------------------------------------------------ */
 
-#define OA_HEALTH_LIMIT_OFFSET(name, NAME, unit, why) offsetof(oa_health_limits_t, name),
-#define OA_HEALTH_LIMIT_NAME(name, NAME, unit, why)   #name,
-#define OA_HEALTH_LIMIT_UNIT(name, NAME, unit, why)   unit,
-#define OA_HEALTH_LIMIT_WHY(name, NAME, unit, why)    why,
-
-static const size_t oa_health_limit_offsets[OA_HEALTH_LIM_COUNT] = {
-    OA_HEALTH_LIMITS(OA_HEALTH_LIMIT_OFFSET)
+/* The six cfg this module applies, in the order an operator reading the
+ * configuration would meet them. They are ordinary configuration fields now, so
+ * there is no second table to keep in step and no offsets to walk. */
+static const oa_config_field_t oa_health_fields[] = {
+    OA_CFG_BARO_STUCK_SAMPLES, OA_CFG_BARO_STALE_MS,   OA_CFG_IMU_STUCK_SAMPLES,
+    OA_CFG_IMU_STALE_MS,       OA_CFG_IMU_ACCEL_MAX_MG, OA_CFG_IMU_GYRO_MAX_CDPS,
 };
 
-static const char *const oa_health_limit_names[OA_HEALTH_LIM_COUNT] = {
-    OA_HEALTH_LIMITS(OA_HEALTH_LIMIT_NAME)
-};
-
-static const char *const oa_health_limit_units[OA_HEALTH_LIM_COUNT] = {
-    OA_HEALTH_LIMITS(OA_HEALTH_LIMIT_UNIT)
-};
-
-static const char *const oa_health_limit_whys[OA_HEALTH_LIM_COUNT] = {
-    OA_HEALTH_LIMITS(OA_HEALTH_LIMIT_WHY)
-};
-
-#undef OA_HEALTH_LIMIT_OFFSET
-#undef OA_HEALTH_LIMIT_NAME
-#undef OA_HEALTH_LIMIT_UNIT
-#undef OA_HEALTH_LIMIT_WHY
-
-/* The tables above are the only state in this file, they are const, and they are
- * in flash. core holds no global mutable state; the caller owns the context. */
-
-static bool oa_health_limit_in_range(oa_health_limit_t limit)
+static bool oa_health_value_usable(oa_config_field_t field, oa_tunable_t value)
 {
-    return (int)limit >= 0 && (int)limit < (int)OA_HEALTH_LIM_COUNT;
-}
-
-static oa_tunable_t oa_health_limit_read(const oa_health_limits_t *limits, oa_health_limit_t limit)
-{
-    const uint8_t *base = (const uint8_t *)limits;
-    oa_tunable_t   value;
-
-    /* memcpy rather than a cast through a pointer, because a cast to
-     * oa_tunable_t * assumes the member is aligned for one. It is, here, but the
-     * assumption is invisible at the call site and memcpy costs nothing after
-     * optimisation. */
-    memcpy(&value, base + oa_health_limit_offsets[limit], sizeof value);
-    return value;
-}
-
-/* ---------------------------------------------------------------------------
- * Whether a limit holds something a check can use.
- *
- * One predicate, used by oa_health_limits_check at startup and by the sample
- * path. Two copies of this rule would eventually disagree, and the way that
- * disagreement would show up is a limit accepted at startup and then quietly
- * ignored on every sample.
- * ------------------------------------------------------------------------ */
-
-static bool oa_health_value_usable(oa_health_limit_t limit, oa_tunable_t value)
-{
-    switch (limit) {
-    case OA_HEALTH_LIM_BARO_STUCK_SAMPLES:
-    case OA_HEALTH_LIM_IMU_STUCK_SAMPLES:
+    switch (field) {
+    case OA_CFG_BARO_STUCK_SAMPLES:
+    case OA_CFG_IMU_STUCK_SAMPLES:
         /* A count of one means the first reading of a run is already a repeat,
          * which faults every sensor on its first sample. */
         return value >= 2;
@@ -123,13 +75,16 @@ static bool oa_health_value_usable(oa_health_limit_t limit, oa_tunable_t value)
  * measured or was written down as something that is not a quantity: the caller's
  * question is whether the check ran. oa_health_limits_check is where an
  * unusable limit is rejected loudly, once, at startup. */
-static bool oa_health_limit_usable(const oa_health_limits_t *limits,
-                                   oa_health_limit_t         limit,
-                                   oa_tunable_t             *out)
+static bool oa_health_limit_usable(const oa_config_t *cfg,
+                                   oa_config_field_t  field,
+                                   oa_tunable_t      *out)
 {
-    const oa_tunable_t value = oa_health_limit_read(limits, limit);
+    oa_tunable_t value = OA_UNSET;
 
-    if (!OA_IS_SET(value) || !oa_health_value_usable(limit, value)) {
+    if (oa_config_get(cfg, field, &value) != OA_OK) {
+        return false;
+    }
+    if (!OA_IS_SET(value) || !oa_health_value_usable(field, value)) {
         return false;
     }
     *out = value;
@@ -166,96 +121,32 @@ static int32_t oa_health_abs_axis(int16_t v)
     return (w < 0) ? -w : w;
 }
 
-/* Did the pressure move faster than max_pa_s over elapsed_ms?
+/* Reject a limit set to something the checks cannot use, once, at startup.
  *
- * The natural form is delta / elapsed > max / 1000, and division is what the
- * sample path is not allowed to do. Cross multiplying removes it.
- *
- * Both products are formed in 64 bits. A 32 bit product overflows for a large
- * delta, and an overflow here would wrap a jump into a small number and pass it,
- * which is the failure this check exists to catch. This is a 64 bit MULTIPLY and
- * not a 64 bit divide: the low 64 bits of a 32 by 32 product is inline code on
- * any part with a long multiply, including the Cortex-M33 in the RP2350 named in
- * data/system.yaml. If a future target lacks one, the compiler helper shows up in
- * check-undefined, which is that check doing its job rather than a surprise. */
-static bool oa_health_rate_exceeded(uint32_t delta_pa, uint32_t elapsed_ms, uint32_t max_pa_s)
+ * Returns OA_OK, OA_ERR_NULL, or OA_ERR_RANGE with *out_field naming the first
+ * offending field. An unset limit is never an error: unset means the check is
+ * not performed, which out->checks_unset reports on every sample. */
+oa_result_t oa_health_config_check(const oa_config_t *cfg, oa_config_field_t *out_field)
 {
-    return ((uint64_t)delta_pa * 1000u) > ((uint64_t)max_pa_s * (uint64_t)elapsed_ms);
-}
+    size_t i;
 
-/* ---------------------------------------------------------------------------
- * Limits.
- * ------------------------------------------------------------------------ */
-
-void oa_health_limits_init(oa_health_limits_t *limits)
-{
-    const oa_tunable_t unset = OA_UNSET;
-    int                i;
-
-    if (limits == NULL) {
-        return;
-    }
-
-    /* Written through the offset table rather than by naming each member, so a
-     * limit added to OA_HEALTH_LIMITS cannot be left initialised to whatever was
-     * on the caller's stack. Unset is the only correct starting state. */
-    for (i = 0; i < (int)OA_HEALTH_LIM_COUNT; i++) {
-        memcpy((uint8_t *)limits + oa_health_limit_offsets[i], &unset, sizeof unset);
-    }
-}
-
-oa_result_t oa_health_limit_get(const oa_health_limits_t *limits,
-                                oa_health_limit_t         limit,
-                                oa_tunable_t             *out)
-{
-    if (limits == NULL || out == NULL) {
-        return OA_ERR_NULL;
-    }
-    if (!oa_health_limit_in_range(limit)) {
-        return OA_ERR_RANGE;
-    }
-
-    *out = oa_health_limit_read(limits, limit);
-    return OA_OK;
-}
-
-const char *oa_health_limit_name(oa_health_limit_t limit)
-{
-    return oa_health_limit_in_range(limit) ? oa_health_limit_names[limit] : NULL;
-}
-
-const char *oa_health_limit_unit(oa_health_limit_t limit)
-{
-    return oa_health_limit_in_range(limit) ? oa_health_limit_units[limit] : NULL;
-}
-
-const char *oa_health_limit_why(oa_health_limit_t limit)
-{
-    return oa_health_limit_in_range(limit) ? oa_health_limit_whys[limit] : NULL;
-}
-
-oa_result_t oa_health_limits_check(const oa_health_limits_t *limits, oa_health_limit_t *out_limit)
-{
-    int i;
-
-    if (limits == NULL) {
+    if (cfg == NULL) {
         return OA_ERR_NULL;
     }
 
-    /* In table order, so the limit reported is the first one an operator reading
-     * the list from the top would come to. */
-    for (i = 0; i < (int)OA_HEALTH_LIM_COUNT; i++) {
-        const oa_health_limit_t limit = (oa_health_limit_t)i;
-        const oa_tunable_t      value = oa_health_limit_read(limits, limit);
+    for (i = 0; i < (sizeof oa_health_fields / sizeof oa_health_fields[0]); i++) {
+        const oa_config_field_t field = oa_health_fields[i];
+        oa_tunable_t            value = OA_UNSET;
 
+        if (oa_config_get(cfg, field, &value) != OA_OK) {
+            return OA_ERR_RANGE;
+        }
         if (!OA_IS_SET(value)) {
-            /* Unset is never an error. It means the check is not performed, and
-             * out->checks_unset says so on every sample. */
             continue;
         }
-        if (!oa_health_value_usable(limit, value)) {
-            if (out_limit != NULL) {
-                *out_limit = limit;
+        if (!oa_health_value_usable(field, value)) {
+            if (out_field != NULL) {
+                *out_field = field;
             }
             return OA_ERR_RANGE;
         }
@@ -299,6 +190,11 @@ const char *oa_health_check_name(oa_health_check_t check)
  * The sample path.
  * ------------------------------------------------------------------------ */
 
+static bool oa_health_rate_exceeded(uint32_t delta_pa, uint32_t elapsed_ms, uint32_t max_pa_s)
+{
+    return ((uint64_t)delta_pa * 1000u) > ((uint64_t)max_pa_s * (uint64_t)elapsed_ms);
+}
+
 oa_result_t oa_health_init(oa_health_t *health, uint32_t now_ms)
 {
     if (health == NULL) {
@@ -324,7 +220,6 @@ oa_result_t oa_health_init(oa_health_t *health, uint32_t now_ms)
  * checks it could not perform into *unset. */
 static uint32_t oa_health_step_baro(oa_health_t              *health,
                                     const oa_config_t        *cfg,
-                                    const oa_health_limits_t *limits,
                                     const oa_health_input_t  *in,
                                     uint32_t                 *unset)
 {
@@ -414,7 +309,7 @@ static uint32_t oa_health_step_baro(oa_health_t              *health,
         health->baro_fresh_ms    = in->t_ms;
     }
 
-    if (!oa_health_limit_usable(limits, OA_HEALTH_LIM_BARO_STUCK_SAMPLES, &limit)) {
+    if (!oa_health_limit_usable(cfg, OA_CFG_BARO_STUCK_SAMPLES, &limit)) {
         *unset |= (uint32_t)OA_HEALTH_CHECK_BARO_STUCK;
     } else if (health->baro_repeat >= (uint32_t)limit) {
         faults |= (uint32_t)OA_HEALTH_CHECK_BARO_STUCK;
@@ -424,7 +319,7 @@ static uint32_t oa_health_step_baro(oa_health_t              *health,
 
     /* --- stale -------------------------------------------------------------- */
 
-    if (!oa_health_limit_usable(limits, OA_HEALTH_LIM_BARO_STALE_MS, &limit)) {
+    if (!oa_health_limit_usable(cfg, OA_CFG_BARO_STALE_MS, &limit)) {
         *unset |= (uint32_t)OA_HEALTH_CHECK_BARO_STALE;
     } else if ((in->t_ms - health->baro_fresh_ms) > (uint32_t)limit) {
         faults |= (uint32_t)OA_HEALTH_CHECK_BARO_STALE;
@@ -439,7 +334,7 @@ static uint32_t oa_health_step_baro(oa_health_t              *health,
 
 /* The IMU half. Same shape as the barometer half. */
 static uint32_t oa_health_step_imu(oa_health_t              *health,
-                                   const oa_health_limits_t *limits,
+                                   const oa_config_t *cfg,
                                    const oa_health_input_t  *in,
                                    uint32_t                 *unset)
 {
@@ -449,7 +344,7 @@ static uint32_t oa_health_step_imu(oa_health_t              *health,
 
     /* --- accelerometer range ------------------------------------------------ */
 
-    if (!oa_health_limit_usable(limits, OA_HEALTH_LIM_IMU_ACCEL_MAX_MG, &limit)) {
+    if (!oa_health_limit_usable(cfg, OA_CFG_IMU_ACCEL_MAX_MG, &limit)) {
         *unset |= (uint32_t)OA_HEALTH_CHECK_IMU_ACCEL_RANGE;
     } else if (in->imu_ok) {
         for (axis = 0; axis < 3; axis++) {
@@ -467,7 +362,7 @@ static uint32_t oa_health_step_imu(oa_health_t              *health,
 
     /* --- gyroscope range ---------------------------------------------------- */
 
-    if (!oa_health_limit_usable(limits, OA_HEALTH_LIM_IMU_GYRO_MAX_CDPS, &limit)) {
+    if (!oa_health_limit_usable(cfg, OA_CFG_IMU_GYRO_MAX_CDPS, &limit)) {
         *unset |= (uint32_t)OA_HEALTH_CHECK_IMU_GYRO_RANGE;
     } else if (in->imu_ok) {
         for (axis = 0; axis < 3; axis++) {
@@ -509,7 +404,7 @@ static uint32_t oa_health_step_imu(oa_health_t              *health,
         health->imu_fresh_ms    = in->t_ms;
     }
 
-    if (!oa_health_limit_usable(limits, OA_HEALTH_LIM_IMU_STUCK_SAMPLES, &limit)) {
+    if (!oa_health_limit_usable(cfg, OA_CFG_IMU_STUCK_SAMPLES, &limit)) {
         *unset |= (uint32_t)OA_HEALTH_CHECK_IMU_STUCK;
     } else if (health->imu_repeat >= (uint32_t)limit) {
         faults |= (uint32_t)OA_HEALTH_CHECK_IMU_STUCK;
@@ -519,7 +414,7 @@ static uint32_t oa_health_step_imu(oa_health_t              *health,
 
     /* --- stale -------------------------------------------------------------- */
 
-    if (!oa_health_limit_usable(limits, OA_HEALTH_LIM_IMU_STALE_MS, &limit)) {
+    if (!oa_health_limit_usable(cfg, OA_CFG_IMU_STALE_MS, &limit)) {
         *unset |= (uint32_t)OA_HEALTH_CHECK_IMU_STALE;
     } else if ((in->t_ms - health->imu_fresh_ms) > (uint32_t)limit) {
         faults |= (uint32_t)OA_HEALTH_CHECK_IMU_STALE;
@@ -532,7 +427,6 @@ static uint32_t oa_health_step_imu(oa_health_t              *health,
 
 oa_result_t oa_health_step(oa_health_t              *health,
                            const oa_config_t        *cfg,
-                           const oa_health_limits_t *limits,
                            const oa_health_input_t  *in,
                            oa_health_output_t       *out)
 {
@@ -541,14 +435,14 @@ oa_result_t oa_health_step(oa_health_t              *health,
     uint32_t baro_faults;
     uint32_t imu_faults;
 
-    if (health == NULL || cfg == NULL || limits == NULL || in == NULL || out == NULL) {
+    if (health == NULL || cfg == NULL || cfg == NULL || in == NULL || out == NULL) {
         return OA_ERR_NULL;
     }
 
     memset(out, 0, sizeof *out);
 
-    baro_faults = oa_health_step_baro(health, cfg, limits, in, &unset);
-    imu_faults  = oa_health_step_imu(health, limits, in, &unset);
+    baro_faults = oa_health_step_baro(health, cfg, in, &unset);
+    imu_faults  = oa_health_step_imu(health, cfg, in, &unset);
     faults      = baro_faults | imu_faults;
 
     if (baro_faults != 0u) {

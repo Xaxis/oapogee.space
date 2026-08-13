@@ -131,7 +131,8 @@ typedef struct {
 typedef struct {
     int32_t lat_e7;  /* Degrees x 10^7, the u-blox native scaling. */
     int32_t lon_e7;
-    int16_t alt_m;   /* Ellipsoid referenced, whole metres, clamped not wrapped. */
+    int16_t alt_m;   /* Ellipsoid referenced, whole metres. Narrow the receiver's own
+                      * wider value with oa_log_clamp_altitude_m: clamped, never wrapped. */
     uint8_t sats;
     uint8_t fix;     /* u-blox convention: 0 none, 2 two-dimensional, 3 three-dimensional. */
 } oa_port_gnss_fix_t;

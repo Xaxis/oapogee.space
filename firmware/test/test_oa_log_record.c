@@ -326,8 +326,30 @@ static void test_full_sink_stops_on_a_record_boundary(void)
     assert(store.used == (size_t)OA_LOG_FLIGHT_RECORD_BYTES);
 }
 
+/* CLAIM, from oa_log.h: a GNSS altitude outside the range of an i16 of whole
+ * metres is "clamped at the endpoints rather than wrapping", because a wrapped
+ * altitude decodes as a plausible value with the wrong sign rather than as an
+ * obvious fault. */
+static void test_altitude_clamps_rather_than_wraps(void)
+{
+    assert(oa_log_clamp_altitude_m(0) == 0);
+    assert(oa_log_clamp_altitude_m(1234) == 1234);
+    assert(oa_log_clamp_altitude_m(-500) == -500);
+
+    assert(oa_log_clamp_altitude_m(INT16_MAX) == INT16_MAX);
+    assert(oa_log_clamp_altitude_m(INT16_MIN) == INT16_MIN);
+
+    /* The cases that matter. A plain narrowing cast turns 32768 into -32768,
+     * which is a deep valley rather than a high mountain. */
+    assert(oa_log_clamp_altitude_m(INT16_MAX + 1) == INT16_MAX);
+    assert(oa_log_clamp_altitude_m(INT16_MIN - 1) == INT16_MIN);
+    assert(oa_log_clamp_altitude_m(INT32_MAX) == INT16_MAX);
+    assert(oa_log_clamp_altitude_m(INT32_MIN) == INT16_MIN);
+}
+
 int main(void)
 {
+    test_altitude_clamps_rather_than_wraps();
     test_record_widths();
     test_flight_field_offsets();
     test_gnss_field_offsets();

@@ -104,6 +104,17 @@ typedef enum {
 const char *oa_log_stream_filename(oa_log_stream_t stream);
 size_t      oa_log_stream_record_bytes(oa_log_stream_t stream);
 
+/* Narrow a GNSS altitude to the i16 of whole metres the log format stores,
+ * clamping at the endpoints rather than wrapping.
+ *
+ * Core owns this conversion rather than leaving it to each port. The rule it
+ * enforces is not a preference: a wrapped altitude decodes as a plausible value
+ * with the wrong sign, which is the failure mode this project cares about most,
+ * and stating it in a comment for every future port author to remember is
+ * exactly the kind of rule that gets remembered until it does not. One tested
+ * implementation, called by every port. */
+int16_t oa_log_clamp_altitude_m(int32_t altitude_m);
+
 /* ---------------------------------------------------------------------------
  * Manifest.
  * ------------------------------------------------------------------------ */
