@@ -50,7 +50,6 @@ const ROUTES = [
   '/glossary',
   '/faq',
   '/changelog',
-  '/status',
   '/about',
 ]
 

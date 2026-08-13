@@ -8,23 +8,24 @@ COMPONENTS:
  - U2: TODO-BUCK-BOOST, sot23_5
  - C1: 10uF cap0805 capacitor
  - C2: 10uF cap0805 capacitor
- - U3: RP2350A, qfn60_w7_h7_p0.4
+ - U3: RP2350A
  - C3: 100nF cap0402 capacitor
  - U4: W25Q128JVSIQ, soic8
- - U5: BMP390, lga10
+ - U5: BMP390
  - R4: 4.7kΩ res0402 resistor
  - R5: 4.7kΩ res0402 resistor
- - U6: ICM-42688-P, lga14
- - U7: ADXL375, lga14
- - U8: SX1262, qfn24_w4_h4_p0.5
+ - U6: ICM-42688-P
+ - U7: ADXL375
+ - U8: SX1262
  - J3: ANT-902-928, sma
- - U9: MAX-M10S, lga18
+ - U9: MAX-M10S
  - LS1: PIEZO-BUZZER, pinrow2
  - D1: RGB-LED, led5050
  - SW1: ARM-SWITCH, smdslideswitch
  - R6: 100kΩ res0402 resistor
  - R7: 100kΩ res0402 resistor
  - R8: 100kΩ res0402 resistor
+ - L1: L1, source_component
 
 NET: U1_VDD
   - J1 VBUS
@@ -142,7 +143,63 @@ NET: U3_LED
   - U3 LED
   - D1 DIN
 
+NET: VBAT
+  - R7 pin1
+  - C1 pin1 (+)
+  - U2 VIN
+  - J2 VBAT
+  - U1 VBAT
+  - U2 EN
+
+NET: U3_ARM
+  - R6 pin1
+  - SW1 A
+  - U3 ARM
+
+NET: U3_VBAT_SENSE
+  - R8 pin1
+  - R7 pin2
+  - U3 VBAT_SENSE
+
+NET: U3_VREG_LX
+  - U3 VREG_LX
+  - L1 pin1 (+)
+
+NET: VCORE
+  - U3 DVDD3
+  - U3 DVDD2
+  - U3 DVDD1
+  - U3 VREG_FB
+  - L1 pin2 (-)
+
+NET: V3V3
+  - U3 VREG_VIN
+  - U3 VREG_AVDD
+  - U3 USB_OTP_VDD
+  - U3 QSPI_IOVDD
+  - U3 ADC_AVDD
+  - U3 IOVDD6
+  - U3 IOVDD5
+  - U3 IOVDD4
+  - U3 IOVDD3
+  - U3 IOVDD2
+  - R6 pin2
+  - D1 VDD
+  - U9 VCC
+  - U8 VDD
+  - U7 VDD
+  - U6 VDD
+  - R5 pin2
+  - R4 pin2
+  - U5 VDD
+  - U4 VCC
+  - C3 pin1 (+)
+  - U3 VDD
+  - U2 VOUT
+  - C2 pin1 (+)
+
 NET: GND
+  - U3 VREG_PGND
   - U5 SDO
   - R8 pin2
   - SW1 B
@@ -166,40 +223,6 @@ NET: GND
   - R2 pin2
   - R1 pin2
   - J1 GND
-
-NET: V3V3
-  - R6 pin2
-  - D1 VDD
-  - U9 VCC
-  - U8 VDD
-  - U7 VDD
-  - U6 VDD
-  - R5 pin2
-  - R4 pin2
-  - U5 VDD
-  - U4 VCC
-  - C3 pin1 (+)
-  - U3 VDD
-  - U2 VOUT
-  - C2 pin1 (+)
-
-NET: VBAT
-  - R7 pin1
-  - C1 pin1 (+)
-  - U2 VIN
-  - J2 VBAT
-  - U1 VBAT
-  - U2 EN
-
-NET: U3_ARM
-  - R6 pin1
-  - SW1 A
-  - U3 ARM
-
-NET: U3_VBAT_SENSE
-  - R8 pin1
-  - R7 pin2
-  - U3 VBAT_SENSE
 
 
 COMPONENT_PINS:
@@ -261,32 +284,66 @@ C2 (10uF cap0805)
 
 U3 (RP2350A)
 - pin1(VDD): NETS(V3V3)
-- pin2(GND): NETS(GND)
-- pin3(USB_DP): NETS(J1_DP)
-- pin4(USB_DM): NETS(J1_DM)
-- pin5(QSPI_SCK): NETS(U3_QSPI_SCK)
-- pin6(QSPI_CS): NETS(U3_QSPI_CS)
-- pin7(QSPI_D0): NETS(U4_DI)
-- pin8(QSPI_D1): NETS(U4_DO)
-- pin9(QSPI_D2): NETS(U4_WP)
-- pin10(QSPI_D3): NETS(U4_HOLD)
-- pin11(SDA): NETS(U3_SDA)
-- pin12(SCL): NETS(U3_SCL)
-- pin13(SPI_SCK): NETS(U6_SCLK)
-- pin14(SPI_MOSI): NETS(U3_SPI_MOSI)
-- pin15(SPI_MISO): NETS(U3_SPI_MISO)
-- pin16(CS_IMU): NETS(U3_CS_IMU)
-- pin17(CS_HIGHG): NETS(U3_CS_HIGHG)
-- pin18(CS_RADIO): NETS(U3_CS_RADIO)
-- pin19(RADIO_BUSY): NETS(U3_RADIO_BUSY)
-- pin20(RADIO_DIO1): NETS(U3_RADIO_DIO1)
-- pin21(GNSS_TX): NETS(U3_GNSS_TX)
-- pin22(GNSS_RX): NETS(U3_GNSS_RX)
-- pin23(BUZZER): NETS(U3_BUZZER)
-- pin24(LED): NETS(U3_LED)
-- pin25(VBAT_SENSE): NETS(U3_VBAT_SENSE)
+- pin2(GPIO0): NOT_CONNECTED
+- pin3(GPIO1): NOT_CONNECTED
+- pin4(GPIO2): NOT_CONNECTED
+- pin5(GPIO3): NOT_CONNECTED
+- pin6(DVDD1): NETS(VCORE)
+- pin7(SDA): NETS(U3_SDA)
+- pin8(SCL): NETS(U3_SCL)
+- pin9(GPIO6): NOT_CONNECTED
+- pin10(GPIO7): NOT_CONNECTED
+- pin11(IOVDD2): NETS(V3V3)
+- pin12(GPIO8): NOT_CONNECTED
+- pin13(GPIO9): NOT_CONNECTED
+- pin14(GPIO10): NOT_CONNECTED
+- pin15(GPIO11): NOT_CONNECTED
+- pin16(GPIO12): NOT_CONNECTED
+- pin17(ARM): NETS(U3_ARM)
+- pin18(BUZZER): NETS(U3_BUZZER)
+- pin19(LED): NETS(U3_LED)
+- pin20(IOVDD3): NETS(V3V3)
+- pin21(XIN): NOT_CONNECTED
+- pin22(XOUT): NOT_CONNECTED
+- pin23(DVDD2): NETS(VCORE)
+- pin24(SWCLK): NOT_CONNECTED
+- pin25(SWDIO): NOT_CONNECTED
 - pin26(RUN): NOT_CONNECTED
-- pin27(ARM): NETS(U3_ARM)
+- pin27(SPI_MISO): NETS(U3_SPI_MISO)
+- pin28(CS_IMU): NETS(U3_CS_IMU)
+- pin29(SPI_SCK): NETS(U6_SCLK)
+- pin30(IOVDD4): NETS(V3V3)
+- pin31(SPI_MOSI): NETS(U3_SPI_MOSI)
+- pin32(CS_HIGHG): NETS(U3_CS_HIGHG)
+- pin33(CS_RADIO): NETS(U3_CS_RADIO)
+- pin34(RADIO_BUSY): NETS(U3_RADIO_BUSY)
+- pin35(RADIO_DIO1): NETS(U3_RADIO_DIO1)
+- pin36(GNSS_TX): NETS(U3_GNSS_TX)
+- pin37(GNSS_RX): NETS(U3_GNSS_RX)
+- pin38(IOVDD5): NETS(V3V3)
+- pin39(DVDD3): NETS(VCORE)
+- pin40(VBAT_SENSE): NETS(U3_VBAT_SENSE)
+- pin41(GPIO27): NOT_CONNECTED
+- pin42(GPIO28): NOT_CONNECTED
+- pin43(GPIO29): NOT_CONNECTED
+- pin44(ADC_AVDD): NETS(V3V3)
+- pin45(IOVDD6): NETS(V3V3)
+- pin46(VREG_AVDD): NETS(V3V3)
+- pin47(VREG_PGND): NETS(GND)
+- pin48(VREG_LX): NETS(U3_VREG_LX)
+- pin49(VREG_VIN): NETS(V3V3)
+- pin50(VREG_FB): NETS(VCORE)
+- pin51(USB_DM): NETS(J1_DM)
+- pin52(USB_DP): NETS(J1_DP)
+- pin53(USB_OTP_VDD): NETS(V3V3)
+- pin54(QSPI_IOVDD): NETS(V3V3)
+- pin55(QSPI_D3): NETS(U4_HOLD)
+- pin56(QSPI_SCK): NETS(U3_QSPI_SCK)
+- pin57(QSPI_D0): NETS(U4_DI)
+- pin58(QSPI_D2): NETS(U4_WP)
+- pin59(QSPI_D1): NETS(U4_DO)
+- pin60(QSPI_CS): NETS(U3_QSPI_CS)
+- pin61(GND): NETS(GND)
 
 C3 (100nF cap0402)
 - pin1(pos, anode, left): NETS(V3V3)
@@ -379,6 +436,7 @@ U8 (SX1262)
 - pin22: NOT_CONNECTED
 - pin23: NOT_CONNECTED
 - pin24: NOT_CONNECTED
+- pin25: NOT_CONNECTED
 
 J3 (ANT-902-928)
 - pin1(ANT): NETS(U8_ANT)
@@ -436,3 +494,7 @@ R7 (100kΩ res0402)
 R8 (100kΩ res0402)
 - pin1(anode, pos, left): NETS(U3_VBAT_SENSE)
 - pin2(cathode, neg, right): NETS(GND)
+
+L1
+- pin1(anode, pos, left): NETS(U3_VREG_LX)
+- pin2(cathode, neg, right): NETS(VCORE)

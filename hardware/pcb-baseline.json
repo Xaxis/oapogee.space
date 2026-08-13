@@ -1,10 +1,6 @@
 {
   "note": "Recorded by tools/check-pcb.mjs --update. Counts may fall, never rise.",
   "blockers": {
-    "no-copper": 82,
-    "trace-missing": 39,
-    "pad-clearance": 36,
-    "port-unconnected": 39,
-    "pinout-incomplete": 1
+    "copper-clearance": 55
   }
 }

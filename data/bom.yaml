@@ -726,6 +726,34 @@ parts:
   # 0402 is the smallest package a beginner can hand-solder with the tools on
   # this page. Nothing here is smaller.
 
+  - id: inductor_3u3
+    role: passive
+    name: Inductor, 3.3 uH, 0805
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    designators: [L1]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): confirm the inductance and saturation current against the
+      RP2350 datasheet's recommended values for the internal core regulator, and
+      confirm the saturation current exceeds the peak switch current the
+      regulator draws at full load. An inductor that saturates does not fail
+      obviously: it just stops being an inductor at the current that matters.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      The microcontroller runs its core from an internal switching regulator,
+      and a switching regulator needs an external inductor. It was missing from
+      this list for as long as the microcontroller's pinout was a placeholder,
+      because the pins that need it were not on the schematic: VREG_LX switches
+      into this part, and the far side of it is the core rail. Exactly the kind
+      of gap a placeholder hides, since the design looked complete without it.
+    substitutes: []
+
   - id: res_5k1
     role: passive
     name: Resistor, 5.1k, 0402

@@ -37,7 +37,6 @@ export const GENERATED_ROUTES = [
   { href: '/reference/log-format', group: 'Reference', nav: 'Log format' },
   { href: '/glossary', group: 'Reference', nav: 'Glossary' },
   { href: '/changelog', group: 'Reference', nav: 'Changelog' },
-  { href: '/status', group: 'Reference', nav: 'Status' },
 ] as const
 
 // Navigation order within each group is deliberate: the order somebody does
@@ -72,7 +71,6 @@ export function navFor(group: (typeof NAV_GROUPS)[number]) {
       '/glossary',
       '/faq',
       '/changelog',
-      '/status',
       '/about',
     ],
   }

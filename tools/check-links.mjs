@@ -90,7 +90,6 @@ function generatedAnchors() {
   )
   out.set('/bom', new Set())
   out.set('/flights', new Set())
-  out.set('/status', new Set())
   out.set('/', new Set())
   return out
 }

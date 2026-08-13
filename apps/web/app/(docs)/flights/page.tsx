@@ -35,9 +35,6 @@ export default function FlightLog() {
             real flight to put in it, rather than being filled with a simulation to look
             established.
           </p>
-          <Link href="/status" className="mt-4 inline-block text-sm">
-            What is verified and what is not
-          </Link>
         </section>
       )}
 

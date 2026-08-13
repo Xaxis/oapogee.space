@@ -36,8 +36,8 @@ become that.
 **This is a design on paper.** Nothing has been fabricated, assembled, weighed,
 priced, or flown. There are no cost figures, no mass figures, no range figures
 and no battery life figures anywhere on this site, because none of them have
-been measured. The [status page](/status) lists exactly what is verified and
-what is not.
+been measured. Every missing figure is marked where it would otherwise appear,
+saying what evidence would close it.
 
 What exists today is the design, the parts list, the wire formats, and the
 safety and regulatory groundwork. That is genuinely useful if you want to

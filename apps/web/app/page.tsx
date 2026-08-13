@@ -82,7 +82,6 @@ export default function Home() {
         <p className="mt-6 max-w-2xl text-sm text-[var(--color-dim)]">
           Nothing has been fabricated or flown yet, so the site carries no prices, masses or ranges:
           those are measurements and they have not been taken.{' '}
-          <Link href="/status">Exactly what is verified and what is not</Link>.
         </p>
       </section>
 

@@ -47,9 +47,7 @@ export default function Bom() {
           is a claim that a part is in stock today.
         </p>
         <p className="mt-3 max-w-2xl text-[var(--color-muted)]">
-          See <Link href="/reference/schematic">the schematic</Link> for how these parts connect,
-          and{' '}
-          <Link href="/status">the status page</Link> for every open question behind this one.
+          See <Link href="/reference/schematic">the schematic</Link> for how these parts connect.
         </p>
       </section>
 

@@ -118,7 +118,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-[var(--color-dim)]">
               <a href="https://github.com/Xaxis/oapogee.space">GitHub</a>
               <Link href="/about">Licence</Link>
-              <Link href="/status">Status</Link>
               <span>Not affiliated with Apogee Components.</span>
             </div>
           </div>

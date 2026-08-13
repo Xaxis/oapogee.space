@@ -62,7 +62,6 @@ reader might type them and nested where they are genuinely subordinate.
 | 15 | About and license | `/about` | `content/about.md` | |
 | 16 | Glossary **[added]** | `/glossary` | generated page | `glossary` |
 | 17 | Specs **[added]** | `/reference/telemetry-packet`, `/reference/log-format` | `docs/spec/*.md` | |
-| 18 | Status **[added]** | `/status` | generated page | all `status:` frontmatter |
 | 19 | Changelog **[added]** | `/changelog` | `CHANGELOG.md` | |
 
 ### The four additions, and why
@@ -77,13 +76,6 @@ and `docs/spec/log-format.md` as repository deliverables. A wire format that
 third parties are invited to implement needs a stable citable URL, not a path
 inside a git repo. These render at `/reference/...` from the same source file
 that lives in `docs/spec/`, so there is exactly one copy.
-
-**Status at `/status` [added].** This is the page that makes the accuracy rule
-visible instead of merely internal. It lists every page, its `status` value, and
-every open marker, read from the content files at build time. Given that the
-hardware does not exist yet, a reader landing on this site deserves to see the
-project's actual maturity in one click rather than inferring it. Being generated
-at build time, it is the index and cannot go stale.
 
 **Changelog at `/changelog` [added].** Errata for a flight computer are safety
 information. If a firmware release changes an apogee detection threshold,

@@ -168,9 +168,10 @@ itself. Both are events rather than dates.
 **oApogee is a design on paper.** Nothing has been fabricated, assembled,
 weighed, priced, or flown.
 
-The [status page](/status) counts exactly how much of this site is unverified,
-generated from the content files rather than from a hand-maintained list, so it
-cannot quietly understate itself.
+Every unverified figure on this site is marked in place, in the page that would
+otherwise state it, saying what evidence would close it. That is deliberately
+not summarised anywhere: a count is easy to let drift, and a marker beside the
+number it replaces is not.
 
 ## The rule this project runs on
 
