@@ -193,7 +193,13 @@ const SOFT_MM = 0.15 // what a person laying this out by hand would aim for
     blockers.push({
       id: 'copper-clearance',
       n: hard,
-      what: `${hard} copper pair(s) closer than ${HARD_MM} mm, closest ${worst.toFixed(3)} mm. No fab will build this.`,
+      what:
+        `${hard} copper pair(s) on the same layer and different nets closer than ${HARD_MM} mm, ` +
+        `closest ${worst.toFixed(3)} mm. A negative figure means they cross, which is a short. ` +
+        `tscircuit's own design rule pass reports none of these, and raising the autorouter's ` +
+        `traceClearance does not change them; the sequential_trace preset lays no copper at all ` +
+        `and a four-layer board did not finish routing in ten minutes. This is the autorouter, ` +
+        `not the placement, and it is the one thing between this board and a fab.`,
     })
   } else if (soft > 0) {
     advisories.push(`${soft} copper pair(s) under the comfortable ${SOFT_MM} mm, closest ${worst.toFixed(3)} mm`)
