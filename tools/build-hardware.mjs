@@ -28,6 +28,7 @@
  */
 
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -173,6 +174,14 @@ for (const { format, file } of fab ? FAB_ARTIFACTS : ARTIFACTS) {
     // so it can never match byte for byte on a second machine.
     if (format === 'circuit-json') continue
 
+    // The routed artifacts are not byte-reproducible across platforms. The
+    // autorouter is deterministic on one machine, verified by rendering three
+    // times for the same hash, and gives a different result on Linux than on
+    // macOS. So bytes are the wrong test for them, and the source hash below is
+    // the right one: it catches editing the circuit and forgetting to
+    // re-render, which is the mistake this check exists to catch.
+    if (format === 'pcb-svg' || format === 'assembly-svg') continue
+
     // The KiCad export mints 223 fresh UUIDs on every run, so a byte comparison
     // reports a change that is not one. Normalising them still catches a real
     // design change, because a moved net changes far more than identifiers.
@@ -188,6 +197,34 @@ for (const { format, file } of fab ? FAB_ARTIFACTS : ARTIFACTS) {
     writeFileSync(target, produced)
     console.log(`  ${file}  ${(produced.length / 1024).toFixed(0)} kB`)
   }
+}
+
+// What CI can check without re-rendering: that the artifacts were produced from
+// the circuit source as it stands now.
+const STAMP = join(HW, 'rendered.json')
+const sourceHash = createHash('sha256')
+  .update(readFileSync(join(HW, SOURCE)))
+  .update(readFileSync(join(HW, 'iterator-helpers-polyfill.js')))
+  .digest('hex')
+
+if (check) {
+  if (!existsSync(STAMP)) {
+    stale.push('hardware/rendered.json is missing')
+  } else if (JSON.parse(readFileSync(STAMP, 'utf8')).source !== sourceHash) {
+    stale.push('the artifacts were rendered from a different hardware/oapogee.tsx')
+  }
+} else {
+  writeFileSync(
+    STAMP,
+    JSON.stringify(
+      {
+        note: 'Written by tools/build-hardware.mjs. Hash of the circuit source the committed artifacts came from.',
+        source: sourceHash,
+      },
+      null,
+      2
+    ) + '\n'
+  )
 }
 
 if (check) {
