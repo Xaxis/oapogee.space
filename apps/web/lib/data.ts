@@ -64,13 +64,18 @@ export type Substitute = {
   confidence?: string
 }
 
+// A breakout entry can be an open question rather than a product: an
+// acknowledgement that the Modules path needs an assembled board here and that
+// nobody has found one yet. Those carry `verify` and nothing else, so
+// everything identifying a specific product is optional.
 export type Breakout = {
-  supplier: string
-  product: string
-  url: string
   confidence: string
-  checked: string
+  supplier?: string
+  product?: string
+  url?: string
+  checked?: string
   note?: string
+  verify?: string
 }
 
 export type Part = {
