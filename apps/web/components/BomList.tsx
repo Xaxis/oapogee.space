@@ -119,6 +119,11 @@ function Row({
             </a>
             <span className="text-[var(--color-dim)]">page read {breakout.checked}</span>
           </>
+        ) : path === 'modules' && part.mpn ? (
+          <>
+            <span className="text-[var(--color-orange)]">No assembled board identified yet</span>
+            <a href={search(primary, part.mpn)}>Search {primary.name} for the bare chip</a>
+          </>
         ) : part.mpn ? (
           <a href={search(primary, part.mpn)}>Search {primary.name}</a>
         ) : null}
@@ -339,19 +344,40 @@ export function BomList({
           list talks somebody out of the build they were about to do. */}
       {tier !== 'solo' && (
         <section className="mt-12 rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)] p-6">
-          <h3 className="font-semibold text-white">You also need a ground station</h3>
+          <div className="flex flex-wrap items-center gap-3">
+            <h3 className="font-semibold text-white">You also need a ground station</h3>
+            {bom.ground_station.status && (
+              <span className="chip chip-blocked">{bom.ground_station.status}</span>
+            )}
+          </div>
           <p className="mt-2 max-w-2xl text-sm text-[var(--color-muted)]">
             {bom.ground_station.summary} {tierName(tier)} is not usable without one, so any price
             quoted for this tier is incomplete until you add it.
           </p>
-          <ul className="mt-4 flex flex-col gap-1 text-sm">
+          <ul className="mt-4 flex flex-col gap-2 text-sm">
             {bom.ground_station.parts.map((p) => (
-              <li key={p.id} className="flex gap-3">
-                <span className="font-mono text-[var(--color-hivis)]">{p.qty}&times;</span>
-                <span className="text-[var(--color-body)]">{p.name}</span>
+              <li key={p.id}>
+                <div className="flex gap-3">
+                  <span className="font-mono text-[var(--color-hivis)]">{p.qty}&times;</span>
+                  <span className="text-[var(--color-body)]">{p.name}</span>
+                </div>
+                {/* The parts carry their own open questions. Rendering the list
+                    without them made a proposal look like a decided build. */}
+                {p.verify && (
+                  <Marked
+                    text={p.verify}
+                    className="ml-7 mt-1 max-w-2xl text-[var(--color-muted)]"
+                  />
+                )}
               </li>
             ))}
           </ul>
+          {bom.ground_station.approval_note && (
+            <Marked
+              text={bom.ground_station.approval_note}
+              className="mt-4 max-w-2xl border-l-2 border-[var(--color-orange)] pl-4 text-sm text-[var(--color-muted)]"
+            />
+          )}
         </section>
       )}
     </div>

@@ -115,6 +115,16 @@ int main(void)
         BUILD(oa_packet_build_flight, "flight_seq_max", hdr, body);
         hdr.seq = 0;
         BUILD(oa_packet_build_flight, "flight_seq_wrapped", hdr, body);
+
+        /* Every bit set, including reserved bit 7. The spec says that bit "must
+         * be transmitted as 0 and ignored on receive", so a conforming encoder
+         * masks it rather than forwarding whatever the caller passed. Nothing
+         * covered this: no other vector sets a bit above SIM, so the two
+         * implementations agreed on every packet anybody had thought to try
+         * while the browser encoder was putting a reserved bit on the air. */
+        hdr.seq   = 88;
+        hdr.flags = 0xFFu;
+        BUILD(oa_packet_build_flight, "flight_all_flag_bits", hdr, body);
     }
 
     /* --- APOGEE ----------------------------------------------------------- */

@@ -133,8 +133,27 @@ test('BEACON transmits INT32_MIN for position when there is no fix', () => {
   assert.equal(view.getInt32(16, true), 15000, 'apogee_cm at 16')
 
   const d = decode(packet)
-  assert.equal(d.fields[0].value, 'no fix')
+  assert.equal(d.fields[0].value, 'no fix (GNSS_FIX clear)')
   assert.equal(d.fields[2].value, '150.00 m')
+})
+
+test('a coordinate sent with GNSS_FIX clear is not reported as a position', () => {
+  // The spec makes GNSS_FIX authoritative and forbids plotting a position from
+  // a packet whose flag is clear. A decoder that decides from the INT32_MIN
+  // sentinel alone reports this stale coordinate as usable, which is the exact
+  // failure the rule exists to prevent.
+  const packet = new Uint8Array(19)
+  const view = new DataView(packet.buffer)
+  packet[0] = (1 << 4) | PacketType.POSITION
+  packet[1] = 0 // GNSS_FIX clear
+  view.setInt32(8, 515000000, true) // a real coordinate
+  view.setInt32(12, -1270000000, true)
+  packet[16] = 9
+  view.setUint16(17, crc16(packet.subarray(0, 17)), true)
+
+  const d = decode(packet)
+  assert.equal(d.fields[0].value, 'no fix (GNSS_FIX clear)')
+  assert.equal(d.fields[1].value, 'no fix (GNSS_FIX clear)')
 })
 
 test('POSITION reports no fix and zero satellites when GNSS_FIX is clear', () => {

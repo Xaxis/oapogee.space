@@ -46,8 +46,12 @@ build from with confidence.
 
 ## Which tier
 
-Every tier is the same board and the same firmware. Moving up means populating
-footprints that were already there, not building a new payload.
+Every tier is intended to be the same board and the same firmware, so moving up
+means populating footprints that were already there rather than building a new
+payload. That is a design intention, not a demonstrated fact: it holds only if a
+Solo build leaves the radio and GNSS sections genuinely optional, and nobody can
+know that until a board exists and one unit has been flown as Solo and then
+upgraded and flown again.
 
 ### oApogee Solo
 

@@ -64,6 +64,17 @@ export const FLAG = {
   SIM: 0x40,
 } as const
 
+/**
+ * Every defined flag bit.
+ *
+ * Bit 7 is reserved, and the spec says it "must be transmitted as 0 and ignored
+ * on receive". The firmware enforces that with oa_flags_sanitise; this encoder
+ * trusted its caller, so a caller passing 0xFF put a reserved bit on the air
+ * from the browser and not from the payload. No cross-implementation vector set
+ * a bit above SIM, so the two encoders agreed on every packet anybody tested.
+ */
+export const FLAG_MASK = Object.values(FLAG).reduce((a, b) => a | b, 0)
+
 /** The no-fix sentinel for latitude and longitude. Zero is a real coordinate. */
 export const NO_FIX = -2147483648 // INT32_MIN
 
@@ -116,6 +127,22 @@ export class PacketError extends Error {}
  * rather than guessing at offsets, treat an unknown type as unreadable rather
  * than misparsing it, verify the CRC, and never clamp altitude at zero.
  */
+/**
+ * How a coordinate reads, given the header flags.
+ *
+ * The spec makes GNSS_FIX authoritative: a receiver "must not plot a position
+ * from a packet whose GNSS_FIX is clear". Deciding from the INT32_MIN sentinel
+ * alone, which is what this did and what the spec's own reference decoder did,
+ * reports a coordinate as usable whenever a transmitter sends one with the flag
+ * clear. That is exactly the case the rule exists for: a stale last-known fix
+ * is a real value and a wrong one.
+ */
+function coordText(value: number, flags: number): string {
+  if ((flags & FLAG.GNSS_FIX) === 0) return 'no fix (GNSS_FIX clear)'
+  if (value === NO_FIX) return 'no fix'
+  return `${(value / 1e7).toFixed(7)} deg`
+}
+
 export function decode(packet: Uint8Array): Decoded {
   if (packet.length < HEADER_LEN + CRC_LEN) {
     throw new PacketError(`short packet: ${packet.length} bytes`)
@@ -184,16 +211,16 @@ export function decode(packet: Uint8Array): Decoded {
       const lat = view.getInt32(8, true)
       const lon = view.getInt32(12, true)
       const apogee = view.getInt32(16, true)
-      push('lat_e7', lat, lat === NO_FIX ? 'no fix' : `${(lat / 1e7).toFixed(7)} deg`)
-      push('lon_e7', lon, lon === NO_FIX ? 'no fix' : `${(lon / 1e7).toFixed(7)} deg`)
+      push('lat_e7', lat, coordText(lat, flags))
+      push('lon_e7', lon, coordText(lon, flags))
       push('apogee_cm', apogee, `${(apogee / 100).toFixed(2)} m`)
       break
     }
     case PacketType.POSITION: {
       const lat = view.getInt32(8, true)
       const lon = view.getInt32(12, true)
-      push('lat_e7', lat, lat === NO_FIX ? 'no fix' : `${(lat / 1e7).toFixed(7)} deg`)
-      push('lon_e7', lon, lon === NO_FIX ? 'no fix' : `${(lon / 1e7).toFixed(7)} deg`)
+      push('lat_e7', lat, coordText(lat, flags))
+      push('lon_e7', lon, coordText(lon, flags))
       push('sats', packet[16], `${packet[16]} satellites`)
       break
     }
@@ -301,6 +328,9 @@ export function encode(input: EncodeInput): { packet: Uint8Array; flags: number 
     }
   }
 
+  // Masked on the way out, and returned masked, so the caller sees what went on
+  // the wire rather than what it asked for.
+  flags &= FLAG_MASK
   packet[1] = flags
   view.setUint16(packet.length - CRC_LEN, crc16(packet.subarray(0, packet.length - CRC_LEN)), true)
   return { packet, flags }

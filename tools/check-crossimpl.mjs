@@ -117,6 +117,16 @@ const VECTORS = {
     tMs: 214000,
     body: { altCm: -12345, velDmS: -400, accelCg: -100, battVolts: 3.94 },
   },
+  // Reserved bit 7 must be masked off by a conforming encoder. Until this
+  // vector existed nothing set a flag bit above SIM.
+  flight_all_flag_bits: {
+    type: PacketType.FLIGHT,
+    flags: 0xff,
+    seq: 88,
+    state: 6,
+    tMs: 214000,
+    body: { altCm: -12345, velDmS: -400, accelCg: -100, battVolts: 3.94 },
+  },
   apogee: {
     type: PacketType.APOGEE,
     seq: 91,

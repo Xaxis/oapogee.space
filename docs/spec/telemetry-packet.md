@@ -313,9 +313,15 @@ interface and nothing else. It does not cover the serial link between the
 receiver module and the host, it does not cover a receiver library that hands
 back a truncated buffer, and it does not cover a payload firmware bug that
 assembles a malformed packet and transmits it correctly. Two bytes on a
-nineteen-byte packet is about ten percent of the airtime, which is a real cost,
-and it is worth it: a corrupted altitude that decodes cleanly is indistinguishable
-from a real one, and this project's entire claim is that its numbers are true.
+nineteen-byte packet is a tenth of the payload, and it is worth it: a corrupted
+altitude that decodes cleanly is indistinguishable from a real one, and this
+project's entire claim is that its numbers are true.
+
+TODO(verify): state what those two bytes actually cost in airtime, at the
+spreading factor and bandwidth oApogee ends up using. It is not a tenth. LoRa
+airtime is quantised into symbols and carries a preamble and header that a
+short packet does not amortise, so the fraction has to be computed from the
+modem's own timing formula and stated with the settings it assumes.
 
 A receiver **must** discard any packet whose CRC does not match, and **should**
 count discards so link quality can be reported.
@@ -437,7 +443,10 @@ def decode(packet: bytes) -> dict:
         out.update(apogee_m=apogee_cm / 100.0, t_apogee_ms=t_apogee_ms)
     elif ptype == 4:  # BEACON
         lat_e7, lon_e7, apogee_cm = struct.unpack_from("<iii", packet, 8)
-        no_fix = lat_e7 == INT32_MIN or lon_e7 == INT32_MIN
+        # GNSS_FIX is authoritative, per Conformance. Deciding from the sentinel
+        # alone would plot a coordinate sent with the flag clear, which is the
+        # one thing a receiver must not do.
+        no_fix = not out["gnss_fix"] or lat_e7 == INT32_MIN or lon_e7 == INT32_MIN
         out.update(
             lat=None if no_fix else lat_e7 / 1e7,
             lon=None if no_fix else lon_e7 / 1e7,
@@ -445,7 +454,7 @@ def decode(packet: bytes) -> dict:
         )
     elif ptype == 5:  # POSITION
         lat_e7, lon_e7, sats = struct.unpack_from("<iiB", packet, 8)
-        no_fix = lat_e7 == INT32_MIN or lon_e7 == INT32_MIN
+        no_fix = not out["gnss_fix"] or lat_e7 == INT32_MIN or lon_e7 == INT32_MIN
         out.update(
             lat=None if no_fix else lat_e7 / 1e7,
             lon=None if no_fix else lon_e7 / 1e7,

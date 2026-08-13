@@ -52,6 +52,8 @@ assert(board_width + 2 * fit_clearance < chord,
        "The board is wider than the tube bore. Reduce board_width or raise tube_id.");
 assert(cell_wide < chord,
        "The cell is wider than the tube bore. Reduce cell_width or raise tube_id.");
+assert((chord - board_width - 2 * fit_clearance) / 2 >= nozzle,
+       "No room for a printable rail beside the board. The board needs a larger tube.");
 
 // --- the body ---------------------------------------------------------------
 
@@ -77,7 +79,11 @@ module sled_blank() {
 // Thin walls along both long edges, rising above the deck. They keep the sled
 // from rocking and give the cell something to sit between.
 module rails() {
-    rail_t = pod_wall;
+    // Whatever the board leaves, not a fixed wall. A fixed 1.6 mm rail set the
+    // clear width between rails to 20.6 mm, which a 22 mm board does not fit
+    // between, and the outer assert still passed because the board fits the
+    // bore. Fitting the bore and fitting between the rails are two questions.
+    rail_t = (chord - board_width - 2 * fit_clearance) / 2;
     difference() {
         intersection() {
             bore();

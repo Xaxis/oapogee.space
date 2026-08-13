@@ -167,10 +167,12 @@ sections:
           defines it, and state what the altitude error is if you leave early.
 
       - id: gs-confirm
-        text: Confirm the ground station shows the armed state and a live altitude near zero
+        text: Confirm the ground station shows the armed state and a plausible pad pressure
         why: >
-          This is the last moment the payload is reachable. A reading of zero
-          here means the reference took.
+          This is the last moment the payload is reachable. STATUS is the only
+          packet transmitted while armed and it carries the pad pressure
+          reference and the battery, not altitude: altitude starts arriving at
+          boost. Seeing the reference come down is what tells you it took.
         tiers: [link, track]
 
       - id: leave

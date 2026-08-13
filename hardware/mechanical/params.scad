@@ -15,17 +15,21 @@
 // rather than observations of one that exists.
 
 // Long dimension of the PCB outline. [PROVISIONAL]
-//   TODO(confirm-on-hardware): fix the board outline in the PCB layout, then
-//   measure a fabricated board with calipers and replace this. Until then both
-//   printed parts are sized for a rectangle that does not exist yet.
-board_length = 55;  // mm
+//   TODO(confirm-on-hardware): mirrors the board element in
+//   hardware/oapogee.tsx, which is the closest thing to an outline that exists.
+//   check-data fails if the two disagree, because they did: this file said 55 by
+//   20 while the circuit source said 60 by 22, and the enclosure was being built
+//   for a board nothing else described. Neither is measured until a board is
+//   fabricated and put on calipers.
+board_length = 60;  // mm
 
 // Short dimension of the PCB outline. [PROVISIONAL]
-//   TODO(confirm-on-hardware): as board_length. Bounded from above by the sled:
-//   a BT-50 has a 24.1 mm bore, the sled needs a wall and a print clearance on
-//   each side, and that leaves about 20 mm. The bound is real, the exact figure
-//   is not; the layout decides it.
-board_width = 20;  // mm
+//   TODO(confirm-on-hardware): as board_length, mirrors hardware/oapogee.tsx.
+//   This is the dimension the sled is tightest on: a BT-50 bore is 24.1 mm, so
+//   22 mm of board leaves roughly 0.6 mm of rail on each side. That is above a
+//   nozzle width and the sled asserts it, but there is no margin left, and if
+//   the layout cannot come in under this the sled needs a larger tube.
+board_width = 22;  // mm
 
 // PCB thickness. [standard]
 //   The default thickness for two-layer FR-4 at every prototype fabricator, and

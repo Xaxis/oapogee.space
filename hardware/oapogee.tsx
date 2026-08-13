@@ -26,9 +26,11 @@
  * boards would quietly contradict it. Tier membership is in the comment above
  * each block and in data/system.yaml.
  *
- * Cross-checked against data/bom.yaml by tools/check-hardware.mjs: every chip
- * here names a part that exists in the bill of materials, and every part in the
- * bill of materials that belongs on the board appears here.
+ * Cross-checked against data/bom.yaml by tools/check-data.mjs, which reads the
+ * generated netlist: every reference designator on this sheet is claimed by
+ * exactly one part in the bill of materials and vice versa, asserted part
+ * numbers must match, and the board outline below must agree with
+ * data/mechanical.yaml, because the printed enclosure is built from it.
  */
 
 export default () => (

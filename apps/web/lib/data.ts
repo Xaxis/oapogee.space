@@ -115,7 +115,9 @@ export type Bom = {
   ground_station: {
     summary: string
     status: string
-    parts: { id: string; name: string; qty: number }[]
+    /** The undecided question behind the whole approach. Renders on the page. */
+    approval_note?: string
+    parts: { id: string; name: string; qty: number; verify?: string }[]
   }
   tools: {
     required: { name: string; note?: string }[]

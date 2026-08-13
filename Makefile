@@ -79,7 +79,7 @@ check-schematic: ## The committed schematic matches the data it was drawn from
 
 check-fast: prose data links check-schematic fw-check lint type-check test ## Everything except the site build
 
-check: check-fast build responsive fw-test crossimpl ## Everything CI runs
+check: check-fast build responsive fw-test crossimpl check-hw ## Everything CI runs
 
 responsive: ## No page scrolls sideways at 320px or 390px. Needs a build and Chrome.
 	@node tools/check-responsive.mjs

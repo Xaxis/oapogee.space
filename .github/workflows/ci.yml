@@ -109,6 +109,13 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: make lint
       - run: make type-check
+
+      # The TypeScript half of the packet spec. These guard the independent
+      # implementation that make crossimpl compares the firmware against, and
+      # for a long time they ran only on somebody's laptop: `make check` invoked
+      # them, CI did not, and the Makefile called itself "everything CI runs".
+      - run: make test
+
       - run: make build
 
       # Drives a real browser at 320px and 390px and measures the real layout.

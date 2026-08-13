@@ -175,6 +175,26 @@ const SOURCED = [
       'current draw per tier, and until then this is a shopping constraint rather than a spec.',
   },
   {
+    values: ['4.2 V'],
+    why:
+      'Full-charge terminal voltage of a single lithium polymer cell. A property of the ' +
+      'chemistry, on every cell datasheet, and the reason the board needs a divider to measure ' +
+      'its own battery at all.',
+  },
+  {
+    values: ['0.976 in', '0.950 in'],
+    why:
+      'Estes BT-50 outside and inside diameter, from the published catalogue dimensions, cited ' +
+      'in data/mechanical.yaml beside the millimetre values derived from them.',
+  },
+  {
+    values: ['2 in'],
+    why:
+      'Matched out of "1/2 in hook-and-loop strap", a standard webbing width. The pattern reads ' +
+      'the denominator of a fraction as a quantity, which is a limitation worth knowing about ' +
+      'rather than papering over.',
+  },
+  {
     values: ['10 minutes'],
     why: 'Reading time in frontmatter: an editorial estimate, not a measurement of hardware.',
   },
@@ -182,8 +202,12 @@ const SOURCED = [
 const allowed = new Map()
 for (const entry of SOURCED) for (const v of entry.values) allowed.set(v, entry.why)
 
+// Symbols and the spelled-out forms both. "sixteen g" is out of scope, and a
+// rule that pretends otherwise is worse than one that says what it covers.
 const UNITS =
-  'kg|mAh|mA|MHz|kHz|GHz|Hz|dBm|mm|cm|km|Pa|g|m|V|minutes|hours|seconds|metres|feet|ft'
+  'kg|mAh|mA|MHz|kHz|GHz|Hz|dBm|mm|cm|km|Pa|g|m|V|' +
+  'millimetres|centimetres|kilometres|metres|grams|kilograms|volts|milliamps|' +
+  'minutes|hours|seconds|feet|ft|inches|in'
 const QUANTITY = new RegExp(String.raw`(?<![\w.])(\d+(?:[.,]\d+)?)\s*(${UNITS})\b`, 'g')
 const MONEY = /\$\d+(?:\.\d+)?/g
 
@@ -203,10 +227,14 @@ for (const file of files) {
   // TODO paragraphs run from the marker to the next blank line.
   const raw = text.split('\n')
   const inTodo = new Array(raw.length).fill(false)
+  // The exemption ends at a blank line OR at the next list item or heading. It
+  // used to run to the blank line alone, so one TODO at the top of a bulleted
+  // list exempted every bullet under it, and a number in any of them was
+  // invisible to this check.
   let open = false
   raw.forEach((line, i) => {
     if (/TODO\((verify|confirm|confirm-on-hardware|photo)\)/.test(line)) open = true
-    else if (!line.trim()) open = false
+    else if (!line.trim() || /^\s*([-*+]|\d+\.)\s/.test(line) || /^\s*#/.test(line)) open = false
     inTodo[i] = open
   })
 

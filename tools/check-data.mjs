@@ -99,25 +99,106 @@ if (bom) {
 
     if (!('price_usd' in part)) fail(`data/bom.yaml: part "${part.id}" has no price_usd field`)
 
-    // The accuracy contract, enforced both ways.
+    // The accuracy contract, enforced both ways, over every measured quantity a
+    // part carries. It covered price_usd alone for a long time while this
+    // file's own header claimed it covered mass, so a fabricated mass_g would
+    // have passed CI silently. Mass is the number a stability check depends on,
+    // which makes it the worse one to get wrong.
     const hasMarker = /TODO\((verify|confirm-on-hardware|confirm)\)/.test(part.verify ?? '')
-    if (part.price_usd === null && !hasMarker) {
-      fail(
-        `data/bom.yaml: part "${part.id}" has a null price and no verification marker. ` +
-          'A missing number must say what would close it.'
-      )
-    }
-    if (typeof part.price_usd === 'number' && hasMarker) {
-      warn(
-        `data/bom.yaml: part "${part.id}" has both a price and an open verification marker. ` +
-          'Close the marker or drop the number.'
-      )
+    for (const field of ['price_usd', 'mass_g']) {
+      if (part[field] === null && !hasMarker) {
+        fail(
+          `data/bom.yaml: part "${part.id}" has a null ${field} and no verification marker. ` +
+            'A missing number must say what would close it.'
+        )
+      }
+      if (typeof part[field] === 'number' && hasMarker) {
+        warn(
+          `data/bom.yaml: part "${part.id}" has a ${field} and an open verification marker. ` +
+            'Close the marker or drop the number.'
+        )
+      }
     }
     if (part.confidence && !['asserted', 'unverified'].includes(part.confidence)) {
       fail(`data/bom.yaml: part "${part.id}" has confidence "${part.confidence}"`)
     }
     if (part.mpn && part.confidence !== 'asserted') {
       warn(`data/bom.yaml: part "${part.id}" carries an mpn but is not marked asserted`)
+    }
+  }
+}
+
+// --- the printed parts against the circuit source ---------------------------
+//
+// The enclosure is built around the board outline, and the outline was written
+// down twice: data/mechanical.yaml for the models, and the board element in
+// hardware/oapogee.tsx for the PCB. They disagreed, 55 by 20 against 60 by 22,
+// and nothing noticed, so both printed parts were sized for a board no other
+// file described. Also enforces that every provisional dimension keeps the
+// `closes` field mechanical.yaml promises it has, which was documented and
+// unchecked.
+{
+  const mech = load('mechanical.yaml')
+  const dim = (id) => (mech.params ?? []).find((p) => p.id === id)?.value
+
+  const tsx = readFileSync(join(ROOT, 'hardware/oapogee.tsx'), 'utf8')
+  const board = /<board\s+width="([\d.]+)mm"\s+height="([\d.]+)mm"/.exec(tsx)
+  if (!board) {
+    fail('hardware/oapogee.tsx: could not read the board outline, so nothing checks the enclosure')
+  } else {
+    const [, w, h] = board
+    if (Number(w) !== dim('board_width')) {
+      fail(
+        `board_width is ${dim('board_width')} mm in data/mechanical.yaml and ${w} mm in ` +
+          'hardware/oapogee.tsx. The enclosure is built for the board, so these are one number.'
+      )
+    }
+    if (Number(h) !== dim('board_length')) {
+      fail(
+        `board_length is ${dim('board_length')} mm in data/mechanical.yaml and ${h} mm in ` +
+          'hardware/oapogee.tsx. The enclosure is built for the board, so these are one number.'
+      )
+    }
+  }
+
+  for (const p of mech.params ?? []) {
+    if (p.provenance === 'provisional' && !/TODO\((verify|confirm-on-hardware|confirm)\)/.test(p.closes ?? '')) {
+      fail(
+        `data/mechanical.yaml: "${p.id}" is provisional with no closing condition. ` +
+          'A guess has to say what evidence retires it.'
+      )
+    }
+    if (p.provenance !== 'provisional' && !p.source && p.provenance !== 'practice') {
+      warn(`data/mechanical.yaml: "${p.id}" is ${p.provenance} but cites no source`)
+    }
+  }
+}
+
+// --- tier budgets -----------------------------------------------------------
+//
+// The brief's "under $60" and "under 25 g" are targets, and the whole point of
+// this file is that a target never gets printed as though it were measured.
+// Both currently sit null behind a marker, which is correct, and nothing
+// checked that they stay that way.
+{
+  for (const b of bom.tier_budgets ?? []) {
+    for (const [field, marker] of [
+      ['target_bom_usd', 'target_bom_verify'],
+      ['target_mass_g', 'target_mass_verify'],
+    ]) {
+      const hasMarker = /TODO\((verify|confirm-on-hardware|confirm)\)/.test(b[marker] ?? '')
+      if (b[field] === null && !hasMarker) {
+        fail(
+          `data/bom.yaml: tier budget "${b.id}" has a null ${field} and no ${marker} marker. ` +
+            'A missing number must say what would close it.'
+        )
+      }
+      if (typeof b[field] === 'number' && hasMarker) {
+        warn(
+          `data/bom.yaml: tier budget "${b.id}" has a ${field} and an open ${marker}. ` +
+            'A target published as a figure is the one thing this project does not do.'
+        )
+      }
     }
   }
 }
@@ -284,7 +365,12 @@ function walkMd(dir, acc = []) {
   return acc
 }
 
-for (const file of walkMd(CONTENT)) {
+// docs/spec/ renders at /reference/telemetry-packet and /reference/log-format,
+// which are public routes with the same frontmatter contract as content/. They
+// were exempt, so the rule that a page cannot be `verified` while it still
+// contains a TODO marker did not apply to the two pages a third party
+// implements the wire format from.
+for (const file of [...walkMd(CONTENT), ...walkMd(join(ROOT, 'docs/spec'))]) {
   const rel = file.slice(ROOT.length + 1)
   const { data, content } = matter(readFileSync(file, 'utf8'))
 

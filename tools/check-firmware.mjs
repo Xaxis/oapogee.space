@@ -241,7 +241,10 @@ for (const file of files) {
     // scale height this way, which is exactly the practice this rule wants.
     if (/_Static_assert/.test(line)) return
 
-    for (const m of line.matchAll(/(?<![\w.])(\d+)(?![\w.])/g)) {
+    // Hex counts too. The scan matched decimal only, so a threshold written as
+    // 0x1F walked past the one rule that exists to stop a tuning constant being
+    // buried in a source file.
+    for (const m of line.matchAll(/(?<![\w.])(0[xX][0-9a-fA-F]+|\d+)(?![\w.])/g)) {
       const value = Number(m[1])
       if (ALLOWED.has(value)) continue
       fail(
@@ -252,6 +255,40 @@ for (const file of files) {
       )
     }
   })
+}
+
+// --- 3. contracts that a return type cannot express -------------------------
+
+/**
+ * oa_packet_encode_pad_pressure returns a uint16_t, so it has no way to report
+ * an error, and its out-parameter is the only channel by which a caller learns
+ * the pad reference was clamped. The header says that parameter "may not be
+ * NULL". The implementation guards against NULL anyway, because a null
+ * dereference on a flight computer is worse than a lost flag, and the two
+ * together mean a caller can silently transmit a clamped reference pressure
+ * with no fault raised. Neither the compiler nor the type can catch that, so
+ * the call sites are checked instead.
+ */
+for (const file of files) {
+  if (!file.endsWith('.c')) continue
+  // Tests are exempt, and firmware/test/test_oa_packet.c relies on it: proving
+  // the guard holds means calling it with NULL on purpose. The hazard is a
+  // caller on the transmit path, not a test exercising the boundary.
+  if (file.includes('/test/')) continue
+  const rel = file.slice(ROOT.length)
+  readFileSync(file, 'utf8')
+    .split('\n')
+    .forEach((line, i) => {
+      const call = /oa_packet_encode_pad_pressure\s*\(([^;]*)\)/.exec(line)
+      if (!call || /^uint16_t/.test(line.trim())) return
+      if (/,\s*NULL\s*\)?\s*$/.test(call[1]) || /,\s*NULL\s*[,)]/.test(call[1])) {
+        fail(
+          `${rel}:${i + 1} passes NULL as out_baro_fault. That is the only signal that the pad ` +
+            `reference was clamped, and a packet built from a clamped reference with no ` +
+            `BARO_FAULT flag is a wrong altitude that looks correct.`
+        )
+      }
+    })
 }
 
 // --- report -----------------------------------------------------------------

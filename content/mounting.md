@@ -19,8 +19,9 @@ flying straight with a payload on it.
 
 ### Form A: the internal sled
 
-A printed sled that fits inside a payload bay, sized for a 24 mm coupler or a
-BT-50 tube.
+A printed sled that slides into a payload bay, cut for the bore of a BT-50 body
+tube. A coupler is narrower than the tube it joins, so it is not the same fit:
+measure yours and re-render with that bore rather than assuming.
 
 Use this if your rocket already has a payload section. It is the lighter and
 lower-drag option, it does not change the outside of the airframe at all, and it
