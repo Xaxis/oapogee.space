@@ -4,12 +4,14 @@ import { getPage } from '@/lib/content'
 import { DocPage } from '@/components/DocPage'
 import { CONTENT_ROUTES, routeForSlug } from '@/lib/routes'
 import { GroundStation } from '@/components/GroundStation'
+import { PrintedParts } from '@/components/PrintedParts'
 
 // A few prose pages carry an interactive companion below the text. Keyed by
 // slug here rather than by splitting the route, so the pages stay one file and
 // one code path.
 const COMPANIONS: Record<string, () => React.ReactNode> = {
   'ground-station': () => <GroundStation />,
+  mounting: () => <PrintedParts />,
 }
 
 // One route for every prose page. Pages generated from data (bill of materials,

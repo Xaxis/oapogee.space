@@ -52,14 +52,20 @@ should come from flights rather than from simulation alone.
 
 ### Printed files
 
-TODO(confirm-on-hardware): the models do not exist yet. When they do, publish
-the parametric source rather than only exported STLs, in a format that can be
-opened and edited without a commercial licence. The pod is parametric on tube
-diameter, so a builder with an unusual airframe changes one number rather than
-asking for a new file.
+Both form factors are below, as OpenSCAD source and as rendered STLs, with every
+dimension they are built from and where each one came from.
 
-The parameters that must be exposed: body tube outside diameter, board outline,
-cell dimensions, static port positions, and strap slot width.
+The pod is two parts. A single-piece pod has a cavity that opens somewhere and
+every choice is bad: upward leaves the payload uncovered, downward onto the tube
+leaves nothing holding the board, and neither prints, because the pod is convex
+on top and concave underneath so no orientation puts a flat face on the bed.
+Split at the top of the cell, both halves have a large flat face, both print it
+face down with no supports, and the saddle ends up facing upward where a concave
+surface costs nothing.
+
+TODO(confirm-on-hardware): the board outline is a guess and it is the most
+important input to both parts. Fix it in the PCB layout, measure a fabricated
+board, and update `data/mechanical.yaml`. Until then these print as fit checks.
 
 ## Static ports
 

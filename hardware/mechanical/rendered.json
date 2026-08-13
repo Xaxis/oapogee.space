@@ -1,0 +1,11 @@
+{
+  "note": "Written by tools/render-mechanical.mjs. Verified by tools/gen-mechanical.mjs --check, which needs no OpenSCAD. If this check fails, run `make mech` and commit the result.",
+  "sources": {
+    "common.scad": "77a12e60fc87acbc7cc334d8d26c0ca7484a043e99dca5ad8f9ed5a3e56e0e56",
+    "params.scad": "d2a397f5aebe2127b1e535e0b64f1237c331a8317d3509e40685a44de1ab430d",
+    "pod-base.scad": "ec641159b83381421ba93c3c6b2096078f2926b3d3595c3e60ab8bf7e0a2709d",
+    "pod-cap.scad": "0d920abf89e36610333e8a2d6f3e6ceeefc17464d6b754ab62c55213fae9a347",
+    "pod-shape.scad": "eadc9ea8f8e8c982ea479c6ac2d89fdc19608e5c4d1eb48f3411ff055dcf9988",
+    "sled.scad": "e81d46ee604626e3c87167601114844b855d55c3f7c6aed181ecd38ae6e774c6"
+  }
+}

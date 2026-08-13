@@ -248,3 +248,39 @@ export type Flights = {
 }
 
 export const getFlights = (): Flights => load<Flights>('flights.yaml')
+
+// --- mechanical -------------------------------------------------------------
+
+export type MechProvenance = 'standard' | 'derived' | 'practice' | 'provisional'
+
+export type MechParam = {
+  id: string
+  group: string
+  value: number
+  unit: string
+  provenance: MechProvenance
+  what: string
+  /** Present on everything except provisional values. */
+  source?: string
+  /** Present only on provisional values: what evidence retires the guess. */
+  closes?: string
+}
+
+export type MechPart = {
+  id: string
+  name: string
+  form: string
+  source: string
+  note: string
+  prints_with: string
+}
+
+export type Mechanical = {
+  updated: string
+  status: string
+  groups: { id: string; name: string; note: string }[]
+  params: MechParam[]
+  parts: MechPart[]
+}
+
+export const getMechanical = () => load<Mechanical>('mechanical.yaml')

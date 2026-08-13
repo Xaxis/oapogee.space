@@ -1,0 +1,406 @@
+# Every dimension the printed parts are built from, and where each one came from.
+#
+# WHY THIS FILE EXISTS RATHER THAN NUMBERS IN A CAD FILE
+#
+# No oApogee board has been fabricated. That means the single most important
+# input to both printed parts, the board outline, is a guess, and a guess buried
+# in geometry is indistinguishable from a measurement buried in geometry. So
+# every dimension lives here with a provenance field, hardware/mechanical/
+# params.scad is generated from this file, and the site renders this table with
+# the provenance visible. A reader can see exactly which numbers are real.
+#
+# PROVENANCE VALUES
+#
+#   standard     A published industry dimension. Cited in `source`.
+#   derived      Computed from other values here. The arithmetic is in `source`.
+#   practice     Common making practice, correct to tune for your own machine.
+#   provisional  A placeholder. Not measured, not sourced, and it will change.
+#                Every one of these carries a `closes` field saying exactly what
+#                evidence retires it.
+#
+# THE RULE THIS FILE ENFORCES
+#
+# A provisional dimension may be printed, because a fit-check print is how some
+# of them get measured. It may not be presented as a specification. The site
+# marks them, `make mech` prints them as a banner, and check-data fails if one
+# loses its `closes` field.
+#
+# WHAT IS DELIBERATELY ABSENT
+#
+# Static port diameter. The Mounting page refuses to publish one until it has
+# been derived and flown, and a model that quietly defaulted to 3 mm would make
+# that refusal a lie in the one place a builder actually acts on. The pod prints
+# with dimpled pilot marks at the correct positions, which are known from first
+# principles, and the builder drills them to whatever size the page eventually
+# publishes. Position is knowable today. Diameter is not.
+
+schema_version: 1
+updated: 2026-08-13
+status: draft
+
+groups:
+  - id: board
+    name: Board
+    note: >
+      The payload PCB. Nothing here is measured, because nothing has been
+      fabricated. These are the constraints the board will be designed to meet
+      rather than observations of one that exists.
+
+  - id: cell
+    name: Cell
+    note: >
+      The lithium pouch. Sized for the cell cavity to hold it without
+      compression, because a pouch cell under sustained pressure is a hazard.
+
+  - id: airframe
+    name: Airframe
+    note: >
+      The rocket the payload attaches to. These are the parameters a builder
+      changes for their own vehicle, and the reason the source is published
+      rather than only the STLs.
+
+  - id: pod
+    name: Pod
+    note: The external fairing, Form B.
+
+  - id: sled
+    name: Sled
+    note: The internal carrier, Form A.
+
+  - id: print
+    name: Printing
+    note: >
+      Tuned for the machine, not for the design. Every one of these is worth
+      changing if your first fit-check is tight or loose.
+
+params:
+  # --- board ----------------------------------------------------------------
+  - id: board_length
+    group: board
+    value: 55
+    unit: mm
+    provenance: provisional
+    what: Long dimension of the PCB outline.
+    closes: >
+      TODO(confirm-on-hardware): fix the board outline in the PCB layout, then
+      measure a fabricated board with calipers and replace this. Until then both
+      printed parts are sized for a rectangle that does not exist yet.
+
+  - id: board_width
+    group: board
+    value: 20
+    unit: mm
+    provenance: provisional
+    what: Short dimension of the PCB outline.
+    closes: >
+      TODO(confirm-on-hardware): as board_length. Bounded from above by the
+      sled: a BT-50 has a 24.1 mm bore, the sled needs a wall and a print
+      clearance on each side, and that leaves about 20 mm. The bound is real,
+      the exact figure is not; the layout decides it.
+
+  - id: board_thickness
+    group: board
+    value: 1.6
+    unit: mm
+    provenance: standard
+    what: PCB thickness.
+    source: >
+      The default thickness for two-layer FR-4 at every prototype fabricator,
+      and what the board will be ordered as. This one is safe to build against.
+
+  - id: mount_hole_dia
+    group: board
+    value: 2.2
+    unit: mm
+    provenance: standard
+    what: Mounting hole diameter, M2 close clearance.
+    source: >
+      ISO 273 close-fit clearance hole for an M2 screw. The sled posts are sized
+      from this rather than the other way round.
+
+  - id: mount_hole_inset
+    group: board
+    value: 3
+    unit: mm
+    provenance: provisional
+    what: Centre of each mounting hole, in from both board edges.
+    closes: >
+      TODO(confirm-on-hardware): set by the PCB layout once the outline and the
+      keepouts around the USB connector and the antenna are fixed.
+
+  - id: comp_height_top
+    group: board
+    value: 4
+    unit: mm
+    provenance: provisional
+    what: Tallest component above the board.
+    closes: >
+      TODO(confirm-on-hardware): measure the assembled board. Likely set by the
+      USB-C receptacle or the buzzer, both of which are among the tallest parts
+      in the bill of materials.
+
+  - id: comp_height_bottom
+    group: board
+    value: 1.5
+    unit: mm
+    provenance: provisional
+    what: Tallest component below the board.
+    closes: >
+      TODO(confirm-on-hardware): measure the assembled board. Sets how far the
+      board stands off the sled floor, so a wrong value here means the board
+      does not sit flat.
+
+  # --- cell -----------------------------------------------------------------
+  - id: cell_length
+    group: cell
+    value: 35
+    unit: mm
+    provenance: provisional
+    what: Cell cavity length.
+    closes: >
+      TODO(verify): the bill of materials does not name a specific cell yet, and
+      cannot until the current draw of each tier has been measured. These
+      dimensions are for a common 1S pouch in the 150 to 250 mAh range and will
+      be replaced with the dimensions of the cell actually chosen.
+
+  - id: cell_width
+    group: cell
+    value: 20
+    unit: mm
+    provenance: provisional
+    what: Cell cavity width.
+    closes: TODO(verify), as cell_length.
+
+  - id: cell_thickness
+    group: cell
+    value: 6
+    unit: mm
+    provenance: provisional
+    what: Cell cavity depth.
+    closes: >
+      TODO(verify), as cell_length. Includes the protection circuit, which sits
+      at one end of the pouch and is often thicker than the pouch itself.
+
+  - id: cell_squeeze
+    group: cell
+    value: 0.6
+    unit: mm
+    provenance: practice
+    what: Slack added around the cell on every face.
+    source: >
+      A pouch cell must not be a press fit. Cells swell slightly with age and
+      charge state, and a cavity that grips one is applying sustained pressure
+      to a lithium pouch. Retention is the strap's job, not the cavity's.
+
+  # --- airframe -------------------------------------------------------------
+  - id: tube_od
+    group: airframe
+    value: 24.8
+    unit: mm
+    provenance: standard
+    what: Body tube outside diameter the pod saddle is cut for.
+    source: >
+      Estes BT-50, 0.976 in from the published catalogue dimension. This is the
+      one parameter most builders will change, which is the whole reason the
+      source is published. Measure your own tube: paper tube stock varies with
+      humidity and between production runs, and the saddle is the surface where
+      that variation shows up as a rock.
+
+  - id: tube_id
+    group: airframe
+    value: 24.1
+    unit: mm
+    provenance: standard
+    what: Body tube inside diameter the sled is sized for.
+    source: >
+      Estes BT-50, 0.950 in from the published catalogue dimension. As tube_od,
+      measure your own.
+
+  # --- pod ------------------------------------------------------------------
+  - id: pod_wall
+    group: pod
+    value: 1.6
+    unit: mm
+    provenance: derived
+    what: Fairing wall thickness.
+    source: >
+      Four perimeters at a 0.4 mm nozzle. Chosen as a multiple of the extrusion
+      width so the slicer produces solid wall rather than a thin gap it has to
+      fill badly.
+
+  - id: pod_nose_len
+    group: pod
+    value: 18
+    unit: mm
+    provenance: practice
+    what: Length of the tapered leading fairing.
+    source: >
+      A taper long enough to keep the flow attached, kept short because every
+      millimetre is mass and drag on the outside of somebody's rocket. The
+      altitude penalty this trades against is unmeasured, and the Mounting page
+      says so.
+
+  - id: pod_tail_len
+    group: pod
+    value: 26
+    unit: mm
+    provenance: practice
+    what: Length of the tapered trailing fairing.
+    source: >
+      Longer than the nose. A blunt tail separates the flow and separation costs
+      far more drag than a blunt leading edge does.
+
+  - id: strap_slot_width
+    group: pod
+    value: 13
+    unit: mm
+    provenance: standard
+    what: Width of each strap slot.
+    source: >
+      Clears 1/2 in hook-and-loop strap, the common size, and comfortably clears
+      a 3.6 mm cable tie. Two slots, so the pod is held at both ends.
+
+  - id: strap_slot_height
+    group: pod
+    value: 2.4
+    unit: mm
+    provenance: practice
+    what: Height of each strap slot.
+    source: Passes doubled hook-and-loop without forcing it.
+
+  - id: pod_saddle_depth
+    group: pod
+    value: 4
+    unit: mm
+    provenance: practice
+    what: How far the body tube sinks into the underside of the pod.
+    source: >
+      Deep enough that the pod cannot rock on the tube, shallow enough that the
+      pod does not stand proud of it any further than it must. The saddle is
+      cut for tube_od, so changing the tube diameter reshapes this surface.
+
+  - id: pod_cavity_gap
+    group: pod
+    value: 1
+    unit: mm
+    provenance: practice
+    what: Slack between the board and the cell inside the cavity.
+    source: Keeps the board off the pouch. Foam or tape fills it on assembly.
+
+  - id: pod_boss_pad
+    group: pod
+    value: 5.5
+    unit: mm
+    provenance: practice
+    what: Cavity length added at each end for the screw bosses.
+    source: >
+      The cap screws into two bosses standing inside the cavity, clear of the
+      board at both ends. This is the room they need.
+
+  - id: pod_lip_height
+    group: pod
+    value: 2.5
+    unit: mm
+    provenance: practice
+    what: How far the base wall continues up inside the cap.
+    source: >
+      A spigot, so the two halves locate on each other rather than on the two
+      screws. Screws through an unaligned joint bend the cap instead of closing
+      it.
+
+  - id: port_count
+    group: pod
+    value: 4
+    unit: count
+    provenance: derived
+    what: Number of static port pilot marks.
+    source: >
+      From the rule on the Mounting page: more than one, evenly spaced, to
+      average out yaw and roll. Four is the count that page recommends. The
+      diameter is deliberately not published here, and the pod prints dimples
+      rather than holes for that reason.
+
+  # --- sled -----------------------------------------------------------------
+  - id: sled_rail_height
+    group: sled
+    value: 3
+    unit: mm
+    provenance: practice
+    what: Height of the side rails that locate the sled in the tube.
+    source: >
+      Enough to keep the sled from rotating in the tube without turning it into
+      a piston that has to be forced in.
+
+  - id: sled_end_stop
+    group: sled
+    value: 4
+    unit: mm
+    provenance: practice
+    what: Height of the end stops that keep the board from sliding out.
+
+  # --- print ----------------------------------------------------------------
+  - id: fit_clearance
+    group: print
+    value: 0.3
+    unit: mm
+    provenance: practice
+    what: Gap added to every sliding or mating surface.
+    source: >
+      A starting point for FDM, not a specification. If your first fit-check is
+      tight, raise it; a well-tuned machine may want less. This is the number to
+      change before blaming the model.
+
+  - id: nozzle
+    group: print
+    value: 0.4
+    unit: mm
+    provenance: practice
+    what: Nozzle diameter the wall thicknesses are multiples of.
+
+  - id: floor_thickness
+    group: print
+    value: 1.2
+    unit: mm
+    provenance: derived
+    what: Solid floor under the board and the cell.
+    source: Three layers at 0.4 mm. Enough to be stiff without adding mass.
+
+# What the parts are for, rendered on the site beside the download links.
+parts:
+  - id: pod_base
+    name: Pod, lower half
+    form: B
+    source: pod-base.scad
+    note: >
+      Carries the cell, takes the two straps, and sits on the body tube. The
+      saddle is cut for tube_od, so a builder with a different airframe changes
+      one number and re-renders rather than asking for a new file.
+    prints_with: >
+      Flat split face down, no supports. That puts the saddle facing upward,
+      where a concave surface costs nothing, and gives the first layer the
+      largest flat face on the part.
+
+  - id: pod_cap
+    name: Pod, upper half
+    form: B
+    source: pod-cap.scad
+    note: >
+      Covers the board and carries the static port marks. Two M2 screws into the
+      bosses in the base; the base wall continues up inside it as a spigot so
+      the halves locate on each other rather than on the screws.
+    prints_with: >
+      Flat split face down, no supports. The aerodynamic surface then faces up
+      and is never a bridge.
+
+  - id: sled
+    name: Internal sled
+    form: A
+    source: sled.scad
+    note: >
+      Slides into a payload bay or coupler. Lighter, no drag penalty, and on the
+      centreline where the payload mass has the least awkward effect on
+      stability. It needs a rocket with somewhere to put it.
+    prints_with: >
+      Floor down, no supports. Print one and check it slides in your own tube
+      before printing anything else: paper tube bore varies enough between
+      production runs to be worth five minutes.

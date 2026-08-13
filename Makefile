@@ -14,7 +14,7 @@ SHELL := /bin/bash
 
 .PHONY: help install dev build start lint type-check format test \
         check check-fast prose data links schematic check-schematic responsive \
-        fw-build fw-test fw-check crossimpl check-suppliers clean
+        fw-build fw-test fw-check crossimpl check-suppliers mech clean
 
 help: ## List available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -31,6 +31,11 @@ prose: ## Style rules hold, and the project name is never shortened to "Apogee"
 
 data: ## Structured data cross-references resolve and the accuracy contract holds
 	@node tools/check-data.mjs
+	@node tools/gen-mechanical.mjs --check
+
+mech: ## Regenerate the printed parts. Needs OpenSCAD; CI does not have it.
+	@node tools/gen-mechanical.mjs
+	@node tools/render-mechanical.mjs
 
 links: ## Every internal link resolves, and every anchor exists on its target
 	@node tools/check-links.mjs
