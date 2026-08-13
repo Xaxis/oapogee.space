@@ -32,9 +32,20 @@ set(OA_TESTS
     test_oa_sched
     test_oa_state)
 
+find_library(M_LIBRARY m)
+
 foreach(_test IN LISTS OA_TESTS)
     add_executable(${_test} ${_test}.c)
     target_link_libraries(${_test} PRIVATE oa_core)
+
+    # The tests compute reference values with pow() and friends to check the
+    # firmware's fixed-point arithmetic against floating point. glibc keeps the
+    # maths functions in a separate library; Apple's libc does not, so this is
+    # linked only where it exists. The core itself uses no floating point and
+    # links nothing.
+    if(M_LIBRARY)
+        target_link_libraries(${_test} PRIVATE ${M_LIBRARY})
+    endif()
     target_compile_options(${_test} PRIVATE ${OA_WARNINGS})
 
     # assert() is a no-op under NDEBUG, and every one of these tests is written as
