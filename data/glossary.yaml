@@ -132,9 +132,11 @@ terms:
       What happens when the real quantity exceeds a sensor's full-scale range.
       The dangerous property is that the sensor does not report an error, it
       reports its maximum, so a saturated boost phase looks like a flat plateau
-      rather than like missing data. A typical 6-axis IMU tops out around 16 g,
-      which anything above a C motor will exceed, and that is why a separate
-      high-g accelerometer exists.
+      rather than like missing data. A general purpose IMU saturates at a lower
+      acceleration than a boost can produce, which is why a separate high-g
+      accelerometer exists. The full-scale range and the motor class that
+      exceeds it are open questions on the high_g part in the bill of
+      materials, and are deliberately not stated until they close.
     see_also: [imu]
 
   - id: coast

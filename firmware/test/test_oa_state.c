@@ -759,6 +759,58 @@ static void test_the_apogee_is_not_revised_by_a_later_reading(void)
     assert(peak_out == true_apogee_cm);
 }
 
+/* CLAIM: oa_state.h on baro_valid, "When this is false the machine must not
+ * confirm apogee from altitude alone."
+ *
+ * The descent test above covers a sensor that fails and stays failed. This
+ * covers the harder one: a sensor that glitches high for a single sample and
+ * then recovers. The peak only ever rises, so an invalid sample that raises it
+ * is not corrected by anything downstream. Every good sample afterwards sits
+ * below a peak that never happened, which reads as a descent that never ends,
+ * and the machine confirms apogee while the rocket is still climbing and
+ * reports the glitch as the altitude. */
+static void test_an_invalid_sample_does_not_set_the_peak(void)
+{
+    oa_state_ctx_t    ctx;
+    oa_config_t       cfg;
+    oa_state_output_t out;
+
+    fixture_config(&cfg, OA_FEATURE_NONE);
+    uint32_t t = run_to_coast(&ctx, &cfg);
+
+    int32_t alt = 20000;
+    for (int i = 0; i < 5; i++) {
+        t += FIX_SAMPLE_INTERVAL_MS;
+        alt += 100;
+        const oa_state_input_t in = sample(t, alt, 100, -50);
+        assert(oa_state_step(&ctx, &cfg, OA_FEATURE_NONE, &in, &out) == OA_OK);
+    }
+
+    /* One rejected sample, a kilometre high. */
+    t += FIX_SAMPLE_INTERVAL_MS;
+    oa_state_input_t glitch = sample(t, alt + 100000, 100, -50);
+    glitch.baro_valid       = false;
+    assert(oa_state_step(&ctx, &cfg, OA_FEATURE_NONE, &glitch, &out) == OA_OK);
+    assert(out.state == OA_STATE_COAST);
+
+    int32_t peak_out = 0;
+    assert(oa_state_peak(&ctx, &peak_out, NULL) == OA_OK);
+    assert(peak_out == alt);
+
+    /* Still climbing, on good samples. Many times the confirmation count. */
+    for (int i = 0; i < 50; i++) {
+        t += FIX_SAMPLE_INTERVAL_MS;
+        alt += 100;
+        const oa_state_input_t in = sample(t, alt, 100, -50);
+        assert(oa_state_step(&ctx, &cfg, OA_FEATURE_NONE, &in, &out) == OA_OK);
+        assert(out.state == OA_STATE_COAST);
+        assert(out.apogee_detected == false);
+    }
+
+    assert(oa_state_peak(&ctx, &peak_out, NULL) == OA_OK);
+    assert(peak_out == alt);
+}
+
 /* CLAIM: oa_state.h, "Returns OA_OK, OA_ERR_NULL, or OA_ERR_STATE if the
  * sample's timestamp went backwards." A machine that accepted one would compute
  * a negative interval for the landing hold. */
@@ -855,6 +907,7 @@ int main(void)
     test_landing_requires_both_bands_held_for_the_hold();
     test_negative_altitude_is_a_measurement_not_a_fault();
     test_the_apogee_is_not_revised_by_a_later_reading();
+    test_an_invalid_sample_does_not_set_the_peak();
     test_a_backwards_timestamp_is_rejected();
     test_null_arguments();
     test_no_transition_invents_a_missing_threshold();

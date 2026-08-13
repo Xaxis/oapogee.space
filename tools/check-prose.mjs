@@ -132,10 +132,13 @@ const SOURCED = [
     why: 'Amateur band names rather than measurements.',
   },
   {
-    values: ['100000 Pa', '95000 Pa', '103000 Pa'],
+    values: ['101325 Pa'],
     why:
-      'Standard sea level pressure and the plausible spread around it across normal weather and ' +
-      'site elevations. A sanity check for a barometer reading, not a claim about this hardware.',
+      'Standard sea level pressure, ISA. A defined constant, not a measurement. It replaced a ' +
+      '"95000 to 103000 Pa" plausibility band that this allowlist had waved through: standard ' +
+      'atmosphere is already below 95000 Pa at 550 m, so the band called a correct sensor faulty ' +
+      'at most of the launch sites in Colorado, New Mexico and Utah. Allowlisting a number is ' +
+      'supposed to mean somebody checked it.',
   },
   {
     values: ['24 mm'],
@@ -146,6 +149,30 @@ const SOURCED = [
     why:
       'Targets from the project brief, quoted on the FAQ explicitly as targets and disclaimed in ' +
       'the same sentence as not measurements. Sourced to the brief, not to a cart.',
+  },
+  {
+    values: ['5 V'],
+    why: 'USB bus voltage. A fixed property of the connector standard.',
+  },
+  {
+    values: ['0.4 mm', '3.6 mm', '2.0 mm', '0.8 mm', '0.1 g'],
+    why:
+      'Sizes of things that are not this payload: a printer nozzle, a cable tie, the JST-PH ' +
+      'pitch, solder wire, and the resolution of a scale a builder needs. Standards and tool ' +
+      'requirements, not measurements of oApogee.',
+  },
+  {
+    values: ['3 mm'],
+    why:
+      'Named in data/mechanical.yaml only as the example of a static port diameter that must ' +
+      'NOT be defaulted to. It appears in the sentence refusing to publish one.',
+  },
+  {
+    values: ['250 mAh'],
+    why:
+      'The capacity range the cell is being sourced against, from the project brief. Not a ' +
+      'measurement: the verify note on that part requires it be re-derived from measured ' +
+      'current draw per tier, and until then this is a shopping constraint rather than a spec.',
   },
   {
     values: ['10 minutes'],
@@ -161,7 +188,11 @@ const QUANTITY = new RegExp(String.raw`(?<![\w.])(\d+(?:[.,]\d+)?)\s*(${UNITS})\
 const MONEY = /\$\d+(?:\.\d+)?/g
 
 for (const file of files) {
-  if (!relative(ROOT, file).startsWith('content/')) continue
+  // content/ and data/ both render on the site. Scoping this to content/ only
+  // is exactly how the glossary kept publishing an IMU full-scale range and a
+  // motor class after the prose page that quoted them had been corrected.
+  const where = relative(ROOT, file)
+  if (!where.startsWith('content/') && !where.startsWith('data/')) continue
   let text
   try {
     text = readFileSync(file, 'utf8')

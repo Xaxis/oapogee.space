@@ -192,6 +192,67 @@ for (const file of files) {
   }
 }
 
+// --- the site's own links ----------------------------------------------------
+//
+// This checker only ever read content/, docs/spec/ and data/, so a broken href
+// inside a React component was invisible to it. One shipped: the rebuilt bill
+// of materials page linked /schematic, the route is /reference/schematic, and
+// it 404'd in production while CI stayed green. Markdown is not the only place
+// a link can be wrong, and the components are where the navigation actually is.
+
+const WEB = join(ROOT, 'apps/web')
+const PUBLIC = join(WEB, 'public')
+
+function walkSource(dir, acc = []) {
+  if (!existsSync(dir)) return acc
+  for (const entry of readdirSync(dir)) {
+    if (entry === 'node_modules' || entry.startsWith('.next')) continue
+    const full = join(dir, entry)
+    if (statSync(full).isDirectory()) walkSource(full, acc)
+    else if (['.tsx', '.ts'].includes(extname(full))) acc.push(full)
+  }
+  return acc
+}
+
+for (const file of [
+  ...walkSource(join(WEB, 'app')),
+  ...walkSource(join(WEB, 'components')),
+]) {
+  const rel = relative(ROOT, file)
+  readFileSync(file, 'utf8')
+    .split('\n')
+    .forEach((line, i) => {
+      // Only literal attribute values. A template expression is a runtime
+      // decision this cannot resolve, and guessing at one would produce noise
+      // that teaches somebody to stop reading the output.
+      for (const m of line.matchAll(/(?:href|src)=["'`](\/[^"'`${}\s]*)["'`]/g)) {
+        const href = m[1]
+        const [route, anchor] = href.split('#')
+        checked++
+
+        // A path ending in an extension is an asset in public/, not a route.
+        if (/\.[a-z0-9]+$/i.test(route)) {
+          if (!existsSync(join(PUBLIC, route))) {
+            errors.push(`${rel}:${i + 1}: "${route}" is not a file in apps/web/public`)
+          }
+          continue
+        }
+
+        if (route === '/') continue
+        if (!knownRoute(route)) {
+          errors.push(`${rel}:${i + 1}: link to "${href}" but ${route} is not a route`)
+          continue
+        }
+        if (!anchor) continue
+        const available = anchorsFor(route)
+        if (available === null) continue
+        if (!available.has(anchor)) {
+          errors.push(`${rel}:${i + 1}: link to "${href}" but ${route} has no anchor "${anchor}"`)
+        }
+      }
+    })
+}
+
 if (errors.length) {
   for (const e of errors) console.error(`error ${e}`)
   console.error(`\n${errors.length} broken link${errors.length === 1 ? '' : 's'}.`)

@@ -67,12 +67,13 @@ comp_height_bottom = 1.5;  // mm
 cell_length = 35;  // mm
 
 // Cell cavity width. [PROVISIONAL]
-//   TODO(verify), as cell_length.
+//   TODO(verify): as cell_length, the cell is not chosen yet and cannot be until
+//   per-tier current draw has been measured.
 cell_width = 20;  // mm
 
 // Cell cavity depth. [PROVISIONAL]
-//   TODO(verify), as cell_length. Includes the protection circuit, which sits at
-//   one end of the pouch and is often thicker than the pouch itself.
+//   TODO(verify): as cell_length. Must include the protection circuit, which
+//   sits at one end of the pouch and is often thicker than the pouch itself.
 cell_thickness = 6;  // mm
 
 // Slack added around the cell on every face. [practice]

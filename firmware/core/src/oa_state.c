@@ -141,7 +141,15 @@ oa_result_t oa_state_step(oa_state_ctx_t *ctx,
      * a second or so of it and puts a pressure transient through the static
      * ports, and a transient that read as a higher altitude would revise the one
      * number the whole payload exists to produce, after the fact, upward. */
-    if ((before != OA_STATE_PAD_IDLE) && (before < OA_STATE_APOGEE)) {
+    if (in->baro_valid && (before != OA_STATE_PAD_IDLE) && (before < OA_STATE_APOGEE)) {
+        /* baro_valid gates the peak for a sharper reason than it gates the
+         * descent below, and leaving it off here made that gate useless. The
+         * peak only ever rises, so a single implausible sample the health
+         * module has already rejected raises it permanently. Every good sample
+         * afterwards is then below a peak that never happened, which reads as a
+         * descent that never ends: apogee confirms while the rocket is still
+         * climbing, and the one number this payload exists to produce is the
+         * bad sample. Rejecting the sample downstream cannot undo it. */
         if (!ctx->peak_valid || (in->alt_cm > ctx->peak_alt_cm)) {
             ctx->peak_alt_cm = in->alt_cm;
             ctx->peak_t_ms   = in->t_ms;

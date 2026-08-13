@@ -270,6 +270,7 @@ parts:
       around burnout and, on faster flights, transonic effects.
     substitutes:
       - mpn: LSM6DSO
+        recommended_for: modules
         manufacturer: STMicroelectronics
         note: >
           Equivalent for this application, and the part to buy on the Modules
@@ -419,6 +420,31 @@ parts:
       regulatory burden from a first-time builder.
     substitutes: []
 
+  - id: gnss_module
+    role: gnss
+    name: GNSS receiver module
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): select a canonical GNSS breakout for the Modules path.
+      Criteria: exposes UART at 3V3 logic, ships with an antenna usable inside a
+      payload bay rather than on a car roof, carries a backup cell or supercap so
+      a warm start on the pad is possible, and publishes cold and warm fix times.
+      Candidates to evaluate, none confirmed: the u-blox MAX-M10S breakouts sold
+      by Adafruit and SparkFun, and the antenna-integrated SAM-M10Q. The chip
+      chosen for the Board path does not settle this. A breakout is a different
+      product with a different antenna, and the antenna is what decides whether
+      a fix survives being inside a cardboard tube.
+    applies:
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      Track is the only tier with a receiver, and on the Modules path it has to
+      be a board somebody can solder wires to rather than a QFN.
+    substitutes: []
+
   - id: antenna_rocket
     role: antenna
     name: 902 to 928 MHz antenna, airborne side
@@ -544,6 +570,33 @@ parts:
           a long configuration session. More expensive and larger.
         confidence: asserted
 
+  - id: charger_module
+    role: power
+    name: LiPo charger breakout
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): decide whether the Modules path needs a separate charger at
+      all. Some microcontroller development boards integrate LiPo charging and a
+      battery connector; most do not. Settle this when `mcu_module` is selected,
+      because the answer changes the parts list: if the chosen module charges,
+      this part and the battery connector both come off the Modules list, and if
+      it does not, select a specific breakout and confirm its charge current is
+      appropriate for a cell this small. Do not resolve it by assuming.
+    applies:
+      - { tier: solo, path: modules, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      Charging over USB with the cell attached is the whole reason there is one
+      connector on this payload instead of three. The Modules path has to get
+      that from somewhere, and a SOT-23-5 charge controller is not something you
+      wire to a breakout board.
+    substitutes: []
+
   - id: regulator
     role: power
     name: 3V3 regulator
@@ -610,6 +663,9 @@ parts:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
       - { tier: track, path: board, qty: 1 }
+      - { tier: solo, path: modules, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
     why: >
       The de facto standard for small LiPo cells, so a replacement is easy to
       buy anywhere.
@@ -939,6 +995,11 @@ tools:
         Required, not optional. The build guide has a continuity checkpoint
         before first power-on, and skipping it is how a reversed battery
         connector becomes a dead board.
+    - name: LiPo-safe charging container or a metal tin
+      note: >
+        Safety and rules requires charging on a hard non-flammable surface with
+        the room occupied. This is what makes that possible, so it is not
+        optional and it is not a 3D printing accessory.
     - name: USB-C cable, data capable
       note: >
         Charge-only USB-C cables are common and will make a working board look
@@ -963,5 +1024,3 @@ tools:
         PETG is sufficient. TODO(verify): confirm PLA survives a black airframe
         sitting on a pad in summer sun, and if it does not, say so and recommend
         PETG.
-    - name: LiPo-safe charging container
-      note: See the Safety and rules page.

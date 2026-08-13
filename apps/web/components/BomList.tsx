@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Bom, Part, Supplier, Tier } from '@/lib/data'
+import { Marked } from '@/components/Marked'
 
 /**
  * The shopping list.
@@ -51,6 +52,13 @@ function Row({
   // verify note and no product yet; rendering that gave a supplier name
   // attached to nothing and a "page read undefined".
   const breakout = path === 'modules' && part.breakout?.url ? part.breakout : undefined
+  // A substitute can be the part to buy rather than a fallback. The IMU is the
+  // case: no mainstream ICM-42688-P breakout exists, the only assembled board
+  // is a Click that plugs into nothing here, and the data says in terms that it
+  // is "not what a first build should be sent after". Linking the breakout
+  // anyway sent a beginner to the wrong board and buried the right one inside a
+  // collapsed disclosure.
+  const pick = part.substitutes?.find((sub) => sub.recommended_for === path && sub.url)
   const primary = suppliers[0]
   const rest = suppliers.slice(1)
   // A passive's value is its specification. Any 100k 0402 is the 100k 0402, so
@@ -97,7 +105,14 @@ function Row({
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-        {breakout ? (
+        {pick ? (
+          <>
+            <a href={pick.url}>Buy {pick.mpn} instead</a>
+            <span className="text-[var(--color-dim)]">
+              the recommended part on this path, not {part.mpn}
+            </span>
+          </>
+        ) : breakout ? (
           <>
             <a href={breakout.url}>
               {breakout.product} &middot; {breakout.supplier}
@@ -114,13 +129,13 @@ function Row({
               Why this part
             </summary>
             <div className="mt-3 flex flex-col gap-3 border-l-2 border-[var(--color-line-bright)] pl-4 text-sm text-[var(--color-muted)]">
-              {part.why && <p>{part.why}</p>}
+              {part.why && <Marked text={part.why} />}
               {part.gotcha && (
                 <p>
                   <span className="font-mono text-xs uppercase tracking-wider text-[var(--color-orange)]">
                     Gotcha:{' '}
                   </span>
-                  {part.gotcha}
+                  <Marked text={part.gotcha} className="inline" />
                 </p>
               )}
               {part.availability && (
@@ -128,7 +143,7 @@ function Row({
                   <span className="font-mono text-xs uppercase tracking-wider text-[var(--color-orange)]">
                     Availability:{' '}
                   </span>
-                  {part.availability}
+                  <Marked text={part.availability} className="inline" />
                 </p>
               )}
               {part.region_note && (
@@ -154,19 +169,14 @@ function Row({
                         ) : (
                           <span className="font-mono text-[var(--color-body)]">{s.mpn}</span>
                         )}{' '}
-                        {s.note}
+                        <Marked text={s.note} className="inline" />
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
               {unconfirmed.map((note, i) => (
-                <p key={i}>
-                  <span className="font-mono text-xs uppercase tracking-wider text-[var(--color-orange)]">
-                    Not yet confirmed:{' '}
-                  </span>
-                  {note}
-                </p>
+                <Marked key={i} text={note} />
               ))}
               {part.mpn && (
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-1">

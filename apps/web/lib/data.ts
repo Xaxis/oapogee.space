@@ -57,6 +57,8 @@ export const getTiers = (): Tiers => load<Tiers>('tiers.yaml')
 export type Applies = { tier: string; path: string; qty: number }
 
 export type Substitute = {
+  /** Build path on which this substitute is the part to buy, not the headline part. */
+  recommended_for?: string
   mpn: string
   manufacturer?: string
   note: string

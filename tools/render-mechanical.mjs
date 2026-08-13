@@ -45,6 +45,45 @@ try {
 
 mkdirSync(OUT, { recursive: true })
 
+/**
+ * How many disconnected solids a binary STL contains.
+ *
+ * This exists because "manifold, genus 2" is not the same as "one object", and
+ * I trusted it as though it were. The pod base exported as a pod and a separate
+ * loose rectangular ring, and every geometric property OpenSCAD prints was
+ * happy about it. Union-find over welded vertices is the cheap way to ask the
+ * question that actually matters for something being printed.
+ */
+function countShells(path) {
+  const buf = readFileSync(path)
+  const count = buf.readUInt32LE(80)
+  const parent = new Map()
+  const find = (x) => {
+    while (parent.get(x) !== x) {
+      parent.set(x, parent.get(parent.get(x)))
+      x = parent.get(x)
+    }
+    return x
+  }
+  const union = (a, b) => {
+    const ra = find(a)
+    const rb = find(b)
+    if (ra !== rb) parent.set(ra, rb)
+  }
+  const key = (o) =>
+    `${buf.readFloatLE(o).toFixed(4)},${buf.readFloatLE(o + 4).toFixed(4)},` +
+    `${buf.readFloatLE(o + 8).toFixed(4)}`
+
+  for (let i = 0; i < count; i++) {
+    const base = 84 + i * 50 + 12
+    const vs = [key(base), key(base + 12), key(base + 24)]
+    for (const v of vs) if (!parent.has(v)) parent.set(v, v)
+    union(vs[0], vs[1])
+    union(vs[1], vs[2])
+  }
+  return new Set([...parent.keys()].map(find)).size
+}
+
 // Rendered from an isometric angle that shows the cavity and one strap slot,
 // because the preview exists to let somebody recognise the part rather than to
 // be pretty.
@@ -61,7 +100,7 @@ for (const part of mech.parts) {
   ]) {
     const args = ['--hardwarnings', '-o', out]
     if (flag) args.push(flag)
-    else args.push('--imgsize=1100,750', '--viewall', '--autocenter', '--colorscheme=Nature',
+    else args.push('--imgsize=1100,750', '--viewall', '--autocenter', '--colorscheme=Tomorrow Night',
                    `--camera=${CAMERA}`)
     args.push(scad)
     try {
@@ -71,7 +110,18 @@ for (const part of mech.parts) {
       process.exit(1)
     }
   }
-  console.log(`${part.id}: ${part.source} -> ${stl.slice(ROOT.length)}`)
+  const shells = countShells(stl)
+  if (shells !== 1) {
+    console.error(
+      `${part.source} exported ${shells} disconnected surfaces. A printed part is one.\n` +
+        `Either something is floating free of the body, or a pocket is fully enclosed by\n` +
+        `material with no opening. Both are defects and both look fine to every other\n` +
+        `check: OpenSCAD calls this manifold and gives it a plausible genus, because\n` +
+        `neither of those says anything about whether the pieces touch or the holes open.`
+    )
+    process.exit(1)
+  }
+  console.log(`${part.id}: ${part.source} -> ${stl.slice(ROOT.length)} (1 solid)`)
 }
 
 // Every .scad in the directory, including the ones that are only included, so

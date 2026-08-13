@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BomList } from '@/components/BomList'
 import { getBom, getSuppliers, getTiers } from '@/lib/data'
+import { Marked } from '@/components/Marked'
 
 export const metadata: Metadata = {
   title: 'Bill of materials',
@@ -46,7 +47,8 @@ export default function Bom() {
           is a claim that a part is in stock today.
         </p>
         <p className="mt-3 max-w-2xl text-[var(--color-muted)]">
-          See <Link href="/schematic">the schematic</Link> for how these parts connect, and{' '}
+          See <Link href="/reference/schematic">the schematic</Link> for how these parts connect,
+          and{' '}
           <Link href="/status">the status page</Link> for every open question behind this one.
         </p>
       </section>
@@ -57,43 +59,52 @@ export default function Bom() {
           What you need that is not a part, ordered by whether you can start without it.
         </p>
 
-        {(
-          [
-            ['required', 'Required', 'You cannot finish the build without these.', bom.tools.required],
+        {/* One row per tool, in the same idiom as the parts list above. These
+            were cards in a three-column grid, and eight of the sixteen tools
+            have no note, so half the grid was empty boxes of varying height
+            with a word in the corner. A tool list answers one question, which
+            is whether you can start tonight, and a dense list answers it in a
+            glance where a ragged wall of cards does not. */}
+        <div className="mt-8 flex flex-col gap-8">
+          {(
             [
-              'recommended',
-              'Recommended',
-              'Not strictly needed, and each one removes a specific frustration.',
-              bom.tools.recommended,
-            ],
-            [
-              'fabrication',
-              'For the printed parts',
-              'The sled and the pod are printed, and there is no non-printed option.',
-              bom.tools.fabrication,
-            ],
-          ] as const
-        ).map(([kind, label, blurb, list]) => (
-          <div key={kind} className="mt-8">
-            <h3 className="text-lg font-semibold text-white">{label}</h3>
-            <p className="mt-1 text-sm text-[var(--color-muted)]">{blurb}</p>
-            <div className="mt-4 grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {list.map((tool) => (
-                <div
-                  key={tool.name}
-                  className={`rounded-lg border bg-[var(--color-surface)] p-4 ${
-                    kind === 'required'
-                      ? 'border-[var(--color-line-bright)] border-l-3 border-l-[var(--color-hivis)]'
-                      : 'border-[var(--color-line)]'
-                  }`}
-                >
-                  <div className="font-medium text-white">{tool.name}</div>
-                  {tool.note && <p className="mt-2 text-sm text-[var(--color-muted)]">{tool.note}</p>}
-                </div>
-              ))}
+              ['Before you can start', 'Without these you cannot finish the build.', bom.tools.required],
+              [
+                'Makes it easier',
+                'Each one removes a specific frustration rather than a step.',
+                bom.tools.recommended,
+              ],
+              [
+                'For the printed parts',
+                'Both form factors are printed, and there is no non-printed option.',
+                bom.tools.fabrication,
+              ],
+            ] as const
+          ).map(([label, blurb, list]) => (
+            <div key={label}>
+              <h3 className="font-mono text-xs uppercase tracking-widest text-[var(--color-hivis)]">
+                {label}
+              </h3>
+              <p className="mt-1 max-w-2xl text-sm text-[var(--color-muted)]">{blurb}</p>
+              <ul className="mt-3">
+                {list.map((tool) => (
+                  <li
+                    key={tool.name}
+                    className="border-t border-[var(--color-line)] py-3 first:border-t-0"
+                  >
+                    <div className="text-white">{tool.name}</div>
+                    {tool.note && (
+                      <Marked
+                        text={tool.note}
+                        className="mt-1 max-w-3xl text-sm text-[var(--color-muted)]"
+                      />
+                    )}
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
     </div>
   )

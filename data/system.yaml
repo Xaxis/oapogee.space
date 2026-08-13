@@ -59,6 +59,7 @@ nodes:
 
   - id: gnss
     part: gnss
+    also: [gnss_module]
     label: GNSS
     sub: MAX-M10S
     col: 0
@@ -131,6 +132,7 @@ nodes:
 
   - id: charger
     part: charger
+    also: [charger_module]
     label: Charger
     sub: MCP73831
     col: 1

@@ -169,7 +169,9 @@ params:
     unit: mm
     provenance: provisional
     what: Cell cavity width.
-    closes: TODO(verify), as cell_length.
+    closes: >
+      TODO(verify): as cell_length, the cell is not chosen yet and cannot be
+      until per-tier current draw has been measured.
 
   - id: cell_thickness
     group: cell
@@ -178,8 +180,8 @@ params:
     provenance: provisional
     what: Cell cavity depth.
     closes: >
-      TODO(verify), as cell_length. Includes the protection circuit, which sits
-      at one end of the pouch and is often thicker than the pouch itself.
+      TODO(verify): as cell_length. Must include the protection circuit, which
+      sits at one end of the pouch and is often thicker than the pouch itself.
 
   - id: cell_squeeze
     group: cell

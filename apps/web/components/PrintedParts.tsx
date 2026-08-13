@@ -1,4 +1,5 @@
 import { getMechanical, type MechProvenance } from '@/lib/data'
+import { Marked } from '@/components/Marked'
 
 /**
  * The printed parts, and every dimension they were built from.
@@ -124,9 +125,10 @@ export function PrintedParts() {
                         <code className="text-xs text-[var(--color-dim)]">{p.id}</code>
                       </div>
                       {(p.source ?? p.closes) && (
-                        <p className="mt-1 max-w-3xl text-sm text-[var(--color-muted)]">
-                          {p.source ?? p.closes}
-                        </p>
+                        <Marked
+                          text={(p.source ?? p.closes) as string}
+                          className="mt-1 max-w-3xl text-sm text-[var(--color-muted)]"
+                        />
                       )}
                     </li>
                   ))}

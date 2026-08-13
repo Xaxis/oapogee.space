@@ -117,10 +117,13 @@ modes by how often they happen, because ranking them needs reports from builds
 that have actually happened.
 
 > **Checkpoint 2M.** The serial console reports the barometer present and prints
-> a pressure. At sea level expect roughly 100000 Pa; the plausible range across
-> normal weather and normal launch site elevations is about 95000 to 103000 Pa.
-> A reading of zero, or a part that never appears at all, means
-> [the barometer never appears on the bus](/troubleshooting#baro-missing).
+> a pressure. Check it against the station pressure your local weather service
+> publishes, not against a fixed band: standard sea level is 101325 Pa and the
+> reading falls as elevation rises, so a correct sensor at a mile-high field
+> reads far below any sea level figure. What tells you the part works is a value
+> that is stable, plausible for where you are, and that rises slightly when you
+> carry the board downstairs. A reading of zero, or a part that never appears at
+> all, means [the barometer never appears on the bus](/troubleshooting#baro-missing).
 
 4. Fit the IMU on the SPI bus: SCK, MOSI, MISO, and a chip select of its own.
    Confirm it before continuing.

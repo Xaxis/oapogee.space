@@ -9,11 +9,23 @@
 include <pod-shape.scad>
 
 difference() {
-    intersection() {
-        pod_outer();
-        above_split();
+    union() {
+        difference() {
+            intersection() {
+                pod_outer();
+                above_split();
+            }
+            // Grown by a print clearance so the base spigot slides in.
+            cavity(fit_clearance / 2);
+        }
+        intersection() {
+            cap_bosses();
+            intersection() {
+                pod_outer();
+                above_split();
+            }
+        }
     }
-    cavity();
     cap_screw_holes();
     port_marks();
 }

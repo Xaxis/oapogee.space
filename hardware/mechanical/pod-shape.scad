@@ -87,9 +87,13 @@ module saddle() {
             cylinder(r = saddle_r, h = pod_l + 2);
 }
 
-// Full height, then clipped by whichever half is being built.
-module cavity() {
-    translate([cav_x0, -cavity_w / 2, cavity_z]) cube([cavity_l, cavity_w, cavity_h + 1]);
+// Full height, then clipped by whichever half is being built. No overlap fudge
+// on the top face: the base's cavity is opened by the split cut below it, and a
+// +1 here came straight out of the cap roof, leaving 0.6 mm where pod_wall
+// promises 1.6 mm.
+module cavity(grow = 0) {
+    translate([cav_x0 - grow, -cavity_w / 2 - grow, cavity_z])
+        cube([cavity_l + 2 * grow, cavity_w + 2 * grow, cavity_h]);
 }
 
 // Two slots, fore and aft, so the pod is held at both ends and cannot pivot
@@ -107,8 +111,20 @@ module bosses() {
 
 module boss_pilots() {
     // Undersized so an M2 cuts its own thread in the plastic. No insert needed.
+    // Blind: the bottom stops at the cavity floor, leaving floor_thickness
+    // between the screw tip and the saddle. Starting 1 mm lower broke through
+    // into the surface that sits on the body tube, with 0.2 mm of skin left.
     for (x = boss_x)
-        translate([x, 0, cavity_z - 1]) cylinder(d = mount_hole_dia - 0.5, h = pod_h);
+        translate([x, 0, cavity_z]) cylinder(d = mount_hole_dia - 0.5, h = pod_lip_height + split_z - cavity_z);
+}
+
+// The other half of each screw joint. Without these the screws pass through the
+// cap roof and then 8.1 mm of open air before reaching the base bosses, so the
+// two halves cannot be clamped together at all.
+module cap_bosses() {
+    for (x = boss_x)
+        translate([x, 0, split_z])
+            cylinder(d = boss_d, h = cavity_z + cavity_h - split_z);
 }
 
 module cap_screw_holes() {
@@ -120,13 +136,16 @@ module cap_screw_holes() {
 // the cap instead of closing it.
 module lip() {
     t = pod_wall * 0.6;
-    // Centred on the cavity, not on the origin. The cavity starts at cav_x0.
+    // Flush with the cavity wall, so the spigot fuses to the top of the base
+    // wall it continues. Insetting it by a print clearance instead left its
+    // whole underside hanging over cavity void, and the base exported as two
+    // disconnected solids: a pod, and a loose rectangular ring. The cap gets
+    // its clearance by growing its own cavity, not by shrinking this.
     translate([cav_x0 + cavity_l / 2, 0, split_z])
         linear_extrude(pod_lip_height)
             difference() {
-                square([cavity_l - fit_clearance, cavity_w - fit_clearance], center = true);
-                square([cavity_l - fit_clearance - 2 * t, cavity_w - fit_clearance - 2 * t],
-                       center = true);
+                square([cavity_l, cavity_w], center = true);
+                square([cavity_l - 2 * t, cavity_w - 2 * t], center = true);
             }
 }
 
