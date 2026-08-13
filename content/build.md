@@ -101,9 +101,8 @@ the bill of materials for the selection criteria.
 
 The sensors do not share one bus. The barometer sits on I2C, the IMU and the
 high-g accelerometer share an SPI bus with a chip select each, and the GNSS
-receiver sits on a UART. Fit the barometer first, on its own, and confirm it
-before adding anything else, so that one part is proven before a second bus
-exists to complicate the picture.
+receiver sits on a UART. Fit the barometer alone first and confirm it, so one
+part is proven before a second bus exists to complicate the picture.
 
 1. Fit the barometer breakout.
 2. Wire power, ground, SDA and SCL.
@@ -244,10 +243,8 @@ are the most commonly botched part of the whole build.
 
 Do all four tests on the [safety page](/safety#ground-testing), in order, before
 this goes anywhere near a rocket: the bench dry run, the shake test, the drop
-test, and the full arm-to-landing rehearsal.
-
-The point of ground testing is that a payload which is going to fail should fail
-on your bench, where it costs an evening.
+test, and the full arm-to-landing rehearsal. A payload that is going to fail
+should fail on your bench, where it costs an evening.
 
 > **Checkpoint 7.** A complete log file, on the flash, that exports to CSV and
 > opens. If you can read a bench run end to end, you can read a flight.

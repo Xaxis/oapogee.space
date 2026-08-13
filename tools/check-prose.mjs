@@ -103,6 +103,102 @@ for (const file of files) {
   }
 }
 
+// --- never publish a number that has not been measured or sourced ------------
+
+/**
+ * The rule the whole project rests on, which until now was enforced by
+ * remembering it. It was not remembered. "Around 16 g" and "anything above a C
+ * motor will saturate an IMU" sat on the Reading your data page naming exactly
+ * the two figures the bill of materials refuses to state until they are
+ * derived, which is the specific failure the rule exists to prevent.
+ *
+ * A regex cannot tell a sourced number from a guess, so this does what
+ * check-firmware does with tuning constants: it flags every physical quantity
+ * in published prose and requires each one to be listed below with the reason
+ * it is allowed. The list is meant to be argued with, and adding to it should
+ * feel like a small act of accountability, because that is the point.
+ *
+ * Exempt: any TODO(...) paragraph. Those exist to name the figure that is
+ * missing and the evidence that would close it, so a target quoted there as a
+ * target is the mechanism working rather than a breach of it.
+ */
+const SOURCED = [
+  {
+    values: ['902 MHz', '928 MHz', '863 MHz', '870 MHz', '868 MHz'],
+    why: 'Radio band edges. Regulatory definitions, with the primary source linked where stated.',
+  },
+  {
+    values: ['70 cm', '2 m'],
+    why: 'Amateur band names rather than measurements.',
+  },
+  {
+    values: ['100000 Pa', '95000 Pa', '103000 Pa'],
+    why:
+      'Standard sea level pressure and the plausible spread around it across normal weather and ' +
+      'site elevations. A sanity check for a barometer reading, not a claim about this hardware.',
+  },
+  {
+    values: ['24 mm'],
+    why: 'Nominal model rocket body tube and coupler size.',
+  },
+  {
+    values: ['$60', '$30'],
+    why:
+      'Targets from the project brief, quoted on the FAQ explicitly as targets and disclaimed in ' +
+      'the same sentence as not measurements. Sourced to the brief, not to a cart.',
+  },
+  {
+    values: ['10 minutes'],
+    why: 'Reading time in frontmatter: an editorial estimate, not a measurement of hardware.',
+  },
+]
+const allowed = new Map()
+for (const entry of SOURCED) for (const v of entry.values) allowed.set(v, entry.why)
+
+const UNITS =
+  'kg|mAh|mA|MHz|kHz|GHz|Hz|dBm|mm|cm|km|Pa|g|m|V|minutes|hours|seconds|metres|feet|ft'
+const QUANTITY = new RegExp(String.raw`(?<![\w.])(\d+(?:[.,]\d+)?)\s*(${UNITS})\b`, 'g')
+const MONEY = /\$\d+(?:\.\d+)?/g
+
+for (const file of files) {
+  if (!relative(ROOT, file).startsWith('content/')) continue
+  let text
+  try {
+    text = readFileSync(file, 'utf8')
+  } catch {
+    continue
+  }
+
+  // TODO paragraphs run from the marker to the next blank line.
+  const raw = text.split('\n')
+  const inTodo = new Array(raw.length).fill(false)
+  let open = false
+  raw.forEach((line, i) => {
+    if (/TODO\((verify|confirm|confirm-on-hardware|photo)\)/.test(line)) open = true
+    else if (!line.trim()) open = false
+    inTodo[i] = open
+  })
+
+  for (const [lineNo, line] of proseLines(text)) {
+    if (inTodo[lineNo - 1]) continue
+    const hits = [
+      ...[...line.matchAll(QUANTITY)].map((m) => `${m[1]} ${m[2]}`),
+      ...(line.match(MONEY) ?? []),
+    ]
+    for (const hit of hits) {
+      if (allowed.has(hit)) continue
+      console.error(
+        `${relative(ROOT, file)}:${lineNo}  [measured-number] "${hit}" is a physical quantity in ` +
+          `published prose. If it was measured or sourced, add it to SOURCED in ` +
+          `tools/check-prose.mjs with where it came from. If it was not, it belongs in a ` +
+          `TODO(verify) saying what evidence would close it.`
+      )
+      failures++
+    }
+  }
+}
+
+
 if (failures) {
   console.error(`\n${failures} prose issue${failures === 1 ? '' : 's'}.`)
   process.exit(1)

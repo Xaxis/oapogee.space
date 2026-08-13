@@ -75,10 +75,16 @@ Altitude rises steeply and the acceleration trace is at its highest of the whole
 flight.
 
 **If the acceleration is a flat plateau here, look at what value it is flat at.**
-Around 16 g means the IMU saturated: it hit its full-scale range and reported
-its maximum rather than an error, so real acceleration above that limit looks
-like a constant. The `HIGH_G` flag says whether the value came from the dedicated
-high-g part or from the IMU. Anything above a C motor will saturate an IMU.
+A plateau sitting at a constant value means the sensor saturated: it reached its
+full-scale range and reported its maximum rather than an error, so real
+acceleration above that limit looks like a constant. The `HIGH_G` flag says
+whether the value came from the dedicated high-g part or from the IMU.
+
+TODO(verify): state the full-scale range oApogee configures on the IMU, quoted
+from its datasheet, and the motor class at which a representative loaded
+airframe exceeds it, from simulation. Both are open questions on the `high_g`
+part in the bill of materials, and naming a threshold here before they close
+would be exactly the guess that note exists to prevent.
 
 Barometric altitude is least trustworthy during boost, because airflow over the
 static ports disturbs the pressure the sensor sees. This is why the fusion leans
@@ -105,12 +111,11 @@ again.
 
 The rounded top. Vertical velocity passes through zero.
 
-This is the number the whole payload exists to produce, and it is marked in the
-log with its own state and timestamped. Note that the recorded apogee time is
-slightly earlier than the moment it was detected: detection requires
-confirmation across several descending samples, because barometric noise alone
-produces a descending pair near the top of any flight and a single-sample rule
-would fire early.
+This is the number the whole payload exists to produce, marked in the log with
+its own state and timestamped. The recorded apogee time is slightly earlier than
+the moment it was detected, because detection waits for confirmation across
+several descending samples. [Apogee detection](/firmware#apogee-detection)
+explains why.
 
 ### Deployment
 

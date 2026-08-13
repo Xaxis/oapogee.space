@@ -18,7 +18,7 @@ its position so you can find it.
 
 You build it yourself. Everything you need is on this site.
 
-## What it will not do, stated first
+## What it will not do
 
 **oApogee is a passive instrumentation payload. It does not fire ejection
 charges, control deployment, ignite motors, or command any pyrotechnic device.**

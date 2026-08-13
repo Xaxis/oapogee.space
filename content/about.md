@@ -33,8 +33,8 @@ datasheets. What would make this project worth existing is that a motivated
 beginner can follow this site from start to finish and end up with a working
 payload and a real flight graph.
 
-That is the whole thesis, and it is why the writing is treated as the work
-rather than as documentation of the work.
+That is the thesis, and why the writing is treated as the work rather than a
+record of it.
 
 ## The name
 
@@ -88,9 +88,8 @@ thing and treating them the same would be wrong in both directions.
 | Firmware and software | Apache 2.0 |
 | Documentation and content | CC BY-SA 4.0 |
 
-Full texts are in `LICENSES/`, and `LICENSE` at the repository root says which
-applies to which files. The reasoning below is kept because the tradeoffs are
-more useful to a reader than the conclusion, and because each choice cost
+Full texts are in `LICENSES/`; `LICENSE` at the repository root says which
+applies to which files. The reasoning is kept below because each choice cost
 something worth knowing about.
 
 ### Hardware: CERN-OHL-S
@@ -134,14 +133,11 @@ everywhere.
 
 Straightforward, and it matches the reciprocal posture on the hardware.
 
-The consequence, worth stating before agreeing to it: CC BY-SA means anyone can
-reproduce this build guide commercially, as long as they attribute and share
-alike. Given that the documentation is the product, that is a real thing to
-accept rather than a formality.
-
-`CC BY-NC-SA` would prevent that, and it is not an open licence by the usual
-definition. It would sit badly under a name whose first letter means open, so the
-consequence is accepted rather than avoided.
+The consequence, worth stating before agreeing to it: anyone can reproduce this
+build guide commercially, as long as they attribute and share alike. Given that
+the documentation is the product, that is a real thing to accept. `CC BY-NC-SA`
+would prevent it and is not an open licence by the usual definition, which sits
+badly under a name whose first letter means open.
 
 ### Trademark, which is the part licences do not cover
 

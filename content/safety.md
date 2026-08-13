@@ -12,14 +12,12 @@ status: draft
 
 Read this before you buy parts, not after you have built something.
 
-This page covers four separate things that all get called safety: what oApogee
-deliberately cannot do, how to handle the hardware without hurting yourself, how
-to test before you fly, and which laws and codes apply to a rocket with a
-transmitter in it. They are separate and the page keeps them separate.
+Four separate things get called safety here: what oApogee deliberately cannot
+do, how to handle the hardware, how to test before you fly, and which rules
+apply to a rocket with a transmitter in it.
 
 Nothing here replaces your club's safety officer or your Range Safety Officer.
-If a person standing at the range tells you something that contradicts this
-page, they win.
+If someone standing at the range contradicts this page, they win.
 
 ## What oApogee does not do
 
@@ -28,28 +26,23 @@ charges, control deployment, ignite motors, or command any pyrotechnic device.**
 
 This is a design boundary, not a missing feature. It will not be added later.
 
-The reason is that the two things have completely different failure
-consequences. If an instrumentation payload fails, you lose data. If a
-deployment controller fails, the rocket comes in ballistic, or the charge fires
-on the pad while somebody is standing at it. Building a payload that can only
-observe means the worst outcome of any bug in this project is a disappointing
-graph.
+The two have completely different failure consequences. If an instrumentation
+payload fails, you lose data. If a deployment controller fails, the rocket comes
+in ballistic, or the charge fires on the pad while somebody is standing at it. A
+payload that can only observe means the worst outcome of any bug in this project
+is a disappointing graph.
 
-Electronic deployment control belongs to high power rocketry, where the flying
-is done under a certification programme that exists precisely because those
-consequences are real. If deployment control is what you need, oApogee is not
-that, and the NAR and Tripoli certification paths are where to look instead.
+Electronic deployment control belongs to high power rocketry, flown under a
+certification programme that exists because those consequences are real. If that
+is what you need, the NAR and Tripoli certification paths are where to look.
 
-On a model rocket, your recovery system is the motor's ejection charge and delay
-grain, exactly as it was before you added a payload. oApogee does not change
-that, does not interact with it, and does not know it happened except as a jolt
-in the accelerometer trace.
+Your recovery system is the motor's ejection charge and delay grain, exactly as
+it was before you added a payload. oApogee does not change it, interact with it,
+or know it happened except as a jolt in the accelerometer trace.
 
-### One consequence of the boundary, stated plainly
-
-oApogee will never be a reason a rocket recovers safely. Choose your motor delay
-the same way you would with no payload, and check it in simulation with the
-payload mass included. See stability below.
+So oApogee will never be a reason a rocket recovers safely. Choose your motor
+delay as you would with no payload, and simulate with the payload mass
+included.
 
 ## Lithium polymer batteries
 
@@ -138,10 +131,9 @@ Open it up and check the cell is still where you put it.
 Drop the closed pod onto a hard floor from waist height, a few times, on
 different faces.
 
-Expected result: it still boots, still logs, and the case has not opened. This
-is a deliberately crude approximation of landing, and it is crude on purpose:
-if the payload cannot survive a clumsy drop it will not survive a windy landing
-on hard ground.
+Expected result: it still boots, still logs, and the case has not opened. A
+crude approximation of landing, on purpose: a payload that cannot survive a
+clumsy drop will not survive a windy landing on hard ground.
 
 TODO(verify): once hardware exists, establish whether the drop test is
 representative by instrumenting an actual landing and comparing peak
@@ -165,21 +157,15 @@ of gravity has moved too far back is unstable. An unstable rocket does not fly
 badly, it flies sideways, into the ground, or into the flight line.
 
 **Re-simulate in OpenRocket with the payload mass and position included, before
-you fly it.** Not after. Not on the second flight. This is the single most
-important sentence on this page for anyone attaching a payload to a rocket they
-already own and have flown many times, because the rocket flying well ten times
-before tells you nothing about how it flies with a payload in a new place.
+you fly it.** Not after. Not on the second flight. A rocket that has flown well
+ten times tells you nothing about how it flies with a payload in a new place.
 Weigh your assembled payload and simulate with that figure.
 
-Which direction the centre of gravity moves depends entirely on where the
-payload goes. Forward of the current balance point it moves the centre of
-gravity forward, which increases stability margin and increases weathercocking.
-Aft of it, it moves backwards, which reduces margin, and past a point makes the
-rocket unstable.
-
-The external pod makes this easier to get wrong than the internal sled, because
-it can be strapped anywhere on the tube and the obvious place is not always the
-right one.
+Which way the centre of gravity moves depends on where the payload goes: forward
+of the balance point increases the margin and increases weathercocking, aft of
+it reduces the margin and past a point makes the rocket unstable. The external
+pod makes this easier to get wrong than the sled, because it can be strapped
+anywhere and the obvious place is not always the right one.
 
 TODO(verify): a full worked example, with a named common kit, its published
 stability margin unloaded, the same rocket with an oApogee pod at two different
@@ -204,17 +190,15 @@ oApogee Link and Track default to the 902 to 928 MHz band, operating under FCC
 Part 15. **No licence is required and no callsign is needed.**
 
 Two obligations come with that. A Part 15 device must not cause harmful
-interference to licensed services, and it must accept any interference it
-receives, including interference that stops it working. In practice this band is
-busy, and that is a real consideration for a telemetry link rather than a
-formality.
+interference to licensed services, and must accept any interference it receives,
+including interference that stops it working. This band is busy, so that is a
+real consideration for a telemetry link rather than a formality.
 
-The less obvious obligation is equipment authorisation. Using a radio module
-that already holds FCC modular approval means the certification work has been
-done by the module vendor. Designing your own RF section, or modifying an
-approved module's antenna arrangement, can move that responsibility to you.
-oApogee recommends a pre-certified module in the Modules path specifically to
-keep this simple.
+The less obvious one is equipment authorisation. A radio module holding FCC
+modular approval has had the certification work done by its vendor. Designing
+your own RF section, or modifying an approved module's antenna arrangement, can
+move that responsibility to you. The Modules path recommends a pre-certified
+module specifically to keep this simple.
 
 - Primary source: [47 CFR Part 15](https://www.ecfr.gov/current/title-47/chapter-I/subchapter-A/part-15)
 
@@ -248,10 +232,9 @@ authority and with your local rocketry club, and please tell us what you find.
 
 ### For licensed amateur radio operators
 
-This subsection is for people who already hold an amateur radio licence. If you
-do not, skip it. Nothing in it is available to you, and operating under Part 97
-without a licence is a different category of problem from operating a Part 15
-device incorrectly.
+For people who already hold an amateur radio licence. If you do not, skip it:
+none of it is available to you, and operating under Part 97 unlicensed is a
+different category of problem from getting Part 15 wrong.
 
 A licence buys considerably more transmit power and access to other bands,
 including the 70 cm and 2 m allocations, which opens up APRS as a tracking path
@@ -292,20 +275,18 @@ rather than a summary of it, including this one.
 - [National Association of Rocketry](https://www.nar.org/)
 - [Tripoli Rocketry Association](https://www.tripoli.org/)
 
-The parts of a safety code that a payload most often interacts with are the
-limits on total liftoff weight, the requirement that the rocket be stable, and
-the rules about launch site dimensions and recovery. Adding a payload touches
-all three.
+A payload most often interacts with the limits on total liftoff weight, the
+requirement that the rocket be stable, and the rules on launch site dimensions
+and recovery. Adding one touches all three.
 
 ### The federal rules
 
-In the US, amateur rockets are covered by FAA regulations that divide them into
-classes. Class 1 is the model rocket class and carries the fewest requirements.
-Which class a rocket falls into is determined by things like propellant mass and
-total vehicle weight, which means **adding a payload is an action that can move
-a rocket toward a class boundary.** On a low power rocket with a payload in this
+In the US, FAA regulations divide amateur rockets into classes. Class 1 is the
+model rocket class and carries the fewest requirements. Class is determined by
+propellant mass and total vehicle weight, which means **adding a payload moves a
+rocket toward a class boundary.** On a low power rocket with a payload in this
 mass range that is very unlikely to be the operative constraint, but it is worth
-understanding which direction you are moving in.
+knowing which direction you are moving in.
 
 - Primary source: [14 CFR Part 101](https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-101)
 
@@ -353,13 +334,11 @@ anything from a tree using a method you would not describe to somebody.
 
 ## Before you use this page as authority
 
-This page is `status: draft`. It has been written carefully and it has not been
+This page is `status: draft`. It has been written carefully and has not been
 reviewed by anyone with formal expertise in the regulations it describes. Every
-`TODO(verify)` above is a place where a specific number or rule section has been
-deliberately left out rather than guessed at.
+`TODO(verify)` above is a number or rule section deliberately left out rather
+than guessed at.
 
-Where a claim matters legally or physically, the primary source is linked and
-the primary source is what governs. Read it.
-
-If you find something on this page that is wrong, that is the most useful bug
-report this project can receive.
+Where a claim matters legally or physically, the primary source is linked and it
+is what governs. Read it. If you find something here that is wrong, that is the
+most useful bug report this project can receive.

@@ -21,7 +21,7 @@ connected to a laptop or phone by USB. The display runs in a browser over
 WebSerial, so there is nothing to install on the flight line and anybody who
 wants to watch can open a page.
 
-### The browser requirement, stated plainly
+### The browser requirement
 
 **WebSerial is not supported in Safari, and is not available in any browser on
 iOS.** A Chromium-based browser on a desktop or Android device works. An iPhone
