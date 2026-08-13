@@ -36,7 +36,6 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parse } from 'yaml'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const CIRCUIT = join(ROOT, 'apps/web/public/hardware/oapogee-circuit.json')
@@ -206,26 +205,14 @@ const SOFT_MM = 0.15 // what a person laying this out by hand would aim for
 
 {
   const board = of('pcb_board')[0]
-  const mech = parse(readFileSync(join(ROOT, 'data/mechanical.yaml'), 'utf8'))
-  const dim = (id) => mech.params.find((p) => p.id === id)?.value
+  // The outline is checked against data/mechanical.yaml by tools/check-data.mjs,
+  // which owns that comparison because the enclosure is built from the same
+  // numbers. Repeating it here would mean this file needs a YAML parser that
+  // the hardware CI job does not install, to re-assert something already
+  // asserted. What this file owns is the geometry inside the outline.
   if (!board) {
     blockers.push({ id: 'no-board', n: 1, what: 'the export contains no pcb_board element' })
   } else {
-    if (Math.abs(board.width - dim('board_width')) > 0.001) {
-      blockers.push({
-        id: 'outline-width',
-        n: 1,
-        what: `the board is ${board.width} mm wide and data/mechanical.yaml says ${dim('board_width')} mm. The printed enclosure is built from that number.`,
-      })
-    }
-    if (Math.abs(board.height - dim('board_length')) > 0.001) {
-      blockers.push({
-        id: 'outline-length',
-        n: 1,
-        what: `the board is ${board.height} mm long and data/mechanical.yaml says ${dim('board_length')} mm.`,
-      })
-    }
-
     // Every pad has to be on the board. A footprint hanging over the edge is
     // milled away, and the render makes it look deliberate.
     const hx = board.width / 2
