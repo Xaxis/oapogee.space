@@ -14,7 +14,7 @@ SHELL := /bin/bash
 
 .PHONY: help install dev build start lint type-check format test \
         check check-fast prose data links schematic check-schematic responsive \
-        fw-build fw-test fw-check crossimpl check-suppliers mech clean
+        fw-build fw-test fw-check crossimpl check-suppliers mech fab clean
 
 help: ## List available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -70,6 +70,11 @@ hw: ## Render the circuit source to schematic, netlist, circuit JSON and KiCad
 
 check-hw: ## The committed hardware artifacts match hardware/oapogee.tsx
 	@node tools/build-hardware.mjs --check
+	@node tools/check-pcb.mjs
+
+fab: ## Export fabrication files. Refuses unless the board passes every blocker.
+	@node tools/check-pcb.mjs --fab
+	@node tools/build-hardware.mjs --fab
 
 schematic: ## Regenerate the system block diagram from data/system.yaml
 	@node tools/gen-schematic.mjs

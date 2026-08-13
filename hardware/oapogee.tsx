@@ -34,7 +34,7 @@
  */
 
 export default () => (
-  <board width="22mm" height="60mm" routingDisabled>
+  <board width="22mm" height="60mm">
     {/* ---------------------------------------------------------------------
         Power. USB-C in, charger, cell, 3V3 rail.
 
@@ -46,6 +46,9 @@ export default () => (
 
     <chip
       name="J1"
+      footprint="usbcmidmount"
+      pcbX={0}
+      pcbY={26}
       manufacturerPartNumber="USB-C-16P"
       pinLabels={{ pin1: 'VBUS', pin2: 'GND', pin3: 'DP', pin4: 'DM', pin5: 'CC1', pin6: 'CC2' }}
       schX={-20}
@@ -56,11 +59,14 @@ export default () => (
         per CC line. Without them a compliant source supplies nothing and the
         board looks dead on a good cable, which is indistinguishable from the
         much more common charge-only-cable fault. */}
-    <resistor name="R1" resistance="5.1k" schX={-20} schY={-12} />
-    <resistor name="R2" resistance="5.1k" schX={-20} schY={-13.5} />
+    <resistor name="R1" resistance="5.1k" schX={-20} schY={-12} footprint="0402" pcbX={3} pcbY={20} />
+    <resistor name="R2" resistance="5.1k" schX={-20} schY={-13.5} footprint="0402" pcbX={6} pcbY={20} />
 
     <chip
       name="U1"
+      footprint="sot23_5"
+      pcbX={-7}
+      pcbY={19}
       manufacturerPartNumber="MCP73831"
       pinLabels={{ pin1: 'STAT', pin2: 'VSS', pin3: 'VBAT', pin4: 'VDD', pin5: 'PROG' }}
       schX={-15}
@@ -70,10 +76,13 @@ export default () => (
     {/* Sets the charge current. The value is not chosen yet: it follows from
         the cell capacity, which follows from the endurance requirement, which
         follows from measured current draw. All three are open. */}
-    <resistor name="R3" resistance="10k" schX={-15} schY={-11} />
+    <resistor name="R3" resistance="10k" schX={-15} schY={-11} footprint="0402" pcbX={-2.5} pcbY={19.5} />
 
     <chip
       name="J2"
+      footprint="jst_ph_2"
+      pcbX={-6}
+      pcbY={13}
       manufacturerPartNumber="S2B-PH-K-S"
       pinLabels={{ pin1: 'VBAT', pin2: 'GND' }}
       schX={-15}
@@ -82,14 +91,17 @@ export default () => (
 
     <chip
       name="U2"
+      footprint="sot23_5"
+      pcbX={4}
+      pcbY={15}
       manufacturerPartNumber="TODO-BUCK-BOOST"
       pinLabels={{ pin1: 'VIN', pin2: 'GND', pin3: 'EN', pin4: 'VOUT' }}
       schX={-10}
       schY={-8}
     />
 
-    <capacitor name="C1" capacitance="10uF" schX={-12} schY={-11} />
-    <capacitor name="C2" capacitance="10uF" schX={-8} schY={-11} />
+    <capacitor name="C1" capacitance="10uF" schX={-12} schY={-11} footprint="0805" pcbX={-7} pcbY={9} />
+    <capacitor name="C2" capacitance="10uF" schX={-8} schY={-11} footprint="0805" pcbX={-3.5} pcbY={9} />
 
     {/* ---------------------------------------------------------------------
         Compute. RP2350 and its QSPI flash.
@@ -101,6 +113,9 @@ export default () => (
 
     <chip
       name="U3"
+      footprint="qfn60_w7_h7_p0.4"
+      pcbX={0}
+      pcbY={3}
       manufacturerPartNumber="RP2350A"
       pinLabels={{
         pin1: 'VDD',
@@ -181,7 +196,7 @@ export default () => (
       }}
     />
 
-    <capacitor name="C3" capacitance="100nF" schX={-6} schY={-3} />
+    <capacitor name="C3" capacitance="100nF" schX={-6} schY={-3} footprint="0402" pcbX={5} pcbY={10.5} />
 
     {/* Soldered down, deliberately. A microSD card is held in by a friction
         detent and boost acceleration is enough to unseat one, with the worst
@@ -189,6 +204,9 @@ export default () => (
         gone. Tiers: all. */}
     <chip
       name="U4"
+      footprint="soic8"
+      pcbX={-5.5}
+      pcbY={-4}
       manufacturerPartNumber="W25Q128JVSIQ"
       pinLabels={{
         pin1: 'CS',
@@ -214,6 +232,9 @@ export default () => (
 
     <chip
       name="U5"
+      footprint="lga10"
+      pcbX={-6.5}
+      pcbY={-9.5}
       manufacturerPartNumber="BMP390"
       pinLabels={{ pin1: 'VDD', pin2: 'GND', pin3: 'SDA', pin4: 'SCL', pin5: 'SDO' }}
       schX={8}
@@ -223,11 +244,14 @@ export default () => (
     {/* One set of pull-ups on the bus, on the board. On the Modules path each
         breakout brings its own and several in parallel load the bus enough to
         stop it working, which presents as intermittent dropouts. */}
-    <resistor name="R4" resistance="4.7k" schX={12} schY={9} />
-    <resistor name="R5" resistance="4.7k" schX={12} schY={10.5} />
+    <resistor name="R4" resistance="4.7k" schX={12} schY={9} footprint="0402" pcbX={-1.5} pcbY={-9.5} />
+    <resistor name="R5" resistance="4.7k" schX={12} schY={10.5} footprint="0402" pcbX={1} pcbY={-9.5} />
 
     <chip
       name="U6"
+      footprint="lga14"
+      pcbX={5.5}
+      pcbY={-9.5}
       manufacturerPartNumber="ICM-42688-P"
       pinLabels={{
         pin1: 'VDD',
@@ -248,6 +272,9 @@ export default () => (
         anything. Tiers: Link, Track. */}
     <chip
       name="U7"
+      footprint="lga14"
+      pcbX={-6.5}
+      pcbY={-14}
       manufacturerPartNumber="ADXL375"
       pinLabels={{
         pin1: 'VDD',
@@ -267,6 +294,9 @@ export default () => (
 
     <chip
       name="U8"
+      footprint="qfn24_w4_h4_p0.5"
+      pcbX={-3.5}
+      pcbY={-19}
       manufacturerPartNumber="SX1262"
       pinLabels={{
         pin1: 'VDD',
@@ -285,6 +315,9 @@ export default () => (
 
     <chip
       name="J3"
+      footprint="sma"
+      pcbX={-1}
+      pcbY={-28.2}
       manufacturerPartNumber="ANT-902-928"
       pinLabels={{ pin1: 'ANT', pin2: 'GND' }}
       schX={13}
@@ -302,6 +335,9 @@ export default () => (
 
     <chip
       name="U9"
+      footprint="lga18"
+      pcbX={-5}
+      pcbY={-23.5}
       manufacturerPartNumber="MAX-M10S"
       pinLabels={{ pin1: 'VCC', pin2: 'GND', pin3: 'TXD', pin4: 'RXD', pin5: 'RF_IN' }}
       schX={8}
@@ -317,6 +353,9 @@ export default () => (
 
     <chip
       name="LS1"
+      footprint="pinrow2"
+      pcbX={6.5}
+      pcbY={-15.5}
       manufacturerPartNumber="PIEZO-BUZZER"
       pinLabels={{ pin1: 'IN', pin2: 'GND' }}
       schX={8}
@@ -325,6 +364,9 @@ export default () => (
 
     <chip
       name="D1"
+      footprint="led5050"
+      pcbX={6}
+      pcbY={-22.5}
       manufacturerPartNumber="RGB-LED"
       pinLabels={{ pin1: 'DIN', pin2: 'VDD', pin3: 'GND', pin4: 'DOUT' }}
       schX={8}
@@ -349,6 +391,9 @@ export default () => (
 
     <chip
       name="SW1"
+      footprint="smdslideswitch"
+      pcbX={6.8}
+      pcbY={-4}
       manufacturerPartNumber="ARM-SWITCH"
       pinLabels={{ pin1: 'A', pin2: 'B' }}
       schX={13}
@@ -357,7 +402,7 @@ export default () => (
 
     {/* Pulled up, switch pulls down. A floating input reads as noise, and an
         input that reads as noise arms a rocket at random. */}
-    <resistor name="R6" resistance="100k" schX={11} schY={-18} />
+    <resistor name="R6" resistance="100k" schX={11} schY={-18} footprint="0402" pcbX={1.0} pcbY={-4} />
 
     {/* ---------------------------------------------------------------------
         Battery sense.
@@ -370,8 +415,8 @@ export default () => (
         Tiers: all.
         --------------------------------------------------------------------- */}
 
-    <resistor name="R7" resistance="100k" schX={-14} schY={-17} />
-    <resistor name="R8" resistance="100k" schX={-14} schY={-19} />
+    <resistor name="R7" resistance="100k" schX={-14} schY={-17} footprint="0402" pcbX={-1} pcbY={-14} />
+    <resistor name="R8" resistance="100k" schX={-14} schY={-19} footprint="0402" pcbX={1.5} pcbY={-14} />
 
     {/* ---------------------------------------------------------------------
         Nets.

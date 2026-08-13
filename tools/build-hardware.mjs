@@ -38,6 +38,7 @@ const SOURCE = 'oapogee.tsx'
 const OUT = join(ROOT, 'apps/web/public/hardware')
 
 const cli = join(HW, 'node_modules/tscircuit/cli.mjs')
+const POLYFILL = join(HW, 'iterator-helpers-polyfill.js')
 if (!existsSync(cli)) {
   console.error('The tscircuit CLI is not installed. Run `make hw-deps`.')
   process.exit(1)
@@ -58,10 +59,22 @@ if (!haveBun()) {
   process.exit(1)
 }
 
+// Gerbers and drill files are deliberately NOT in this list. They are the
+// artifact somebody spends money on, and this board does not pass
+// tools/check-pcb.mjs. `make fab` gates them behind that check; publishing them
+// beside a board with open blockers would be the most expensive kind of
+// confident wrong thing this project can produce.
+const FAB_ARTIFACTS = [
+  { format: 'gerbers', file: 'oapogee-gerbers.zip' },
+  { format: 'kicad_pcb', file: 'oapogee.kicad_pcb' },
+]
+
 const ARTIFACTS = [
   { format: 'schematic-svg', file: 'oapogee-schematic.svg' },
   { format: 'readable-netlist', file: 'oapogee-netlist.txt' },
   { format: 'circuit-json', file: 'oapogee-circuit.json' },
+  { format: 'pcb-svg', file: 'oapogee-pcb.svg' },
+  { format: 'assembly-svg', file: 'oapogee-assembly.svg' },
   { format: 'kicad_sch', file: 'oapogee.kicad_sch' },
 ]
 
@@ -72,13 +85,21 @@ mkdirSync(OUT, { recursive: true })
 
 let stale = []
 
-for (const { format, file } of ARTIFACTS) {
+const fab = process.argv.includes('--fab')
+for (const { format, file } of fab ? FAB_ARTIFACTS : ARTIFACTS) {
   // The CLI resolves -o itself and fails on an absolute path, so it is given a
   // path relative to hardware/ and the result is read back from there.
   const relative = join('.build', file)
   const scratch = join(HW, relative)
   try {
-    execFileSync('bun', [cli, 'export', SOURCE, '-f', format, '-o', relative], {
+    // --preload is not optional. tscircuit's default capacity-mesh autorouter
+    // calls .map() on the Iterator returned by Map.prototype.entries(), which is
+    // ES2025 Iterator Helpers and absent from the Bun this runs on. Without the
+    // polyfill the router throws, the export still prints success and exits
+    // zero, and the artifact is written with no copper in it at all. That
+    // failure is silent in every way a build normally notices, which is why
+    // tools/check-pcb.mjs counts the traces rather than trusting this call.
+    execFileSync('bun', ['--preload', POLYFILL, cli, 'export', SOURCE, '-f', format, '-o', relative], {
       cwd: HW,
       stdio: 'pipe',
     })
