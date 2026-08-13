@@ -2,7 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SchematicViewer } from '@/components/SchematicViewer'
 import { readSvg } from '@/lib/svg'
-import { getBom, getTiers, type Part } from '@/lib/data'
+import {
+  getBom,
+  getSuppliers,
+  getTiers,
+  supplierSearch,
+  type Part,
+  type Supplier,
+} from '@/lib/data'
 import { DocTabs } from '@/components/DocTabs'
 
 export const metadata: Metadata = {
@@ -27,6 +34,11 @@ function PartRow({ part, tierIds, pathId }: { part: Part; tierIds: string[]; pat
             </span>
           )}
         </div>
+        {part.designators && (
+          <div className="mt-1 font-mono text-xs text-[var(--color-hivis)]">
+            {part.designators.join(', ')}
+          </div>
+        )}
         {part.mpn ? (
           <div className="mt-1 font-mono text-xs text-[var(--color-muted)]">
             {part.manufacturer} {part.mpn}
@@ -60,6 +72,7 @@ export default function Bom() {
   const { tiers } = getTiers()
   const tierIds = tiers.map((t) => t.id)
   const system = readSvg('schematic/system.svg')
+  const suppliers = getSuppliers()
 
   return (
     <div className="space-y-16">
@@ -85,6 +98,12 @@ export default function Bom() {
           Manufacturer part numbers shown plainly are asserted with confidence; anything marked{' '}
           <span className="text-[var(--color-orange)]">unconfirmed</span> is a candidate that still
           needs checking against current availability.
+        </p>
+        <p className="mt-3 max-w-2xl text-[var(--color-muted)]">
+          The supplier links below are searches by part number rather than product pages, because a
+          search does not go out of stock or move. Where a specific product is linked, somebody
+          opened the page and the date they did is next to it. Neither is a claim that a part is
+          available today.
         </p>
       </section>
 
@@ -184,6 +203,40 @@ export default function Bom() {
                     {part.region_note}
                   </p>
                 )}
+                {(part.mpn || part.breakout) && (
+                  <div className="mt-4 border-t border-[var(--color-line)] pt-3">
+                    <div className="font-mono text-xs uppercase tracking-widest text-[var(--color-dim)]">
+                      Where to buy
+                    </div>
+                    {part.breakout && (
+                      <p className="mt-2 text-sm text-[var(--color-muted)]">
+                        <a href={part.breakout.url}>{part.breakout.product}</a> from{' '}
+                        {part.breakout.supplier}, page checked {part.breakout.checked}.
+                        {part.breakout.note ? ` ${part.breakout.note}` : ''}
+                      </p>
+                    )}
+                    {part.mpn && (
+                      <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--color-muted)]">
+                        <span className="text-[var(--color-dim)]">Search {part.mpn}:</span>
+                        {[...suppliers.distributors, ...suppliers.makers].map((sup: Supplier) => (
+                          <a key={sup.id} href={supplierSearch(sup, part.mpn as string)}>
+                            {sup.name}
+                          </a>
+                        ))}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {part.availability && (
+                  <p className="mt-3 max-w-3xl border-l-2 border-[var(--color-orange)] pl-3 text-sm text-[var(--color-muted)]">
+                    <span className="font-mono text-xs uppercase tracking-wider text-[var(--color-orange)]">
+                      Availability:{' '}
+                    </span>
+                    {part.availability}
+                  </p>
+                )}
+
                 {part.substitutes?.length > 0 && (
                   <div className="mt-4 border-t border-[var(--color-line)] pt-3">
                     <div className="font-mono text-xs uppercase tracking-widest text-[var(--color-dim)]">
@@ -192,7 +245,13 @@ export default function Bom() {
                     <ul className="mt-2 flex flex-col gap-2 text-sm text-[var(--color-muted)]">
                       {part.substitutes.map((s) => (
                         <li key={s.mpn}>
-                          <span className="font-mono text-[var(--color-body)]">{s.mpn}</span>{' '}
+                          {s.url ? (
+                            <a href={s.url} className="font-mono">
+                              {s.mpn}
+                            </a>
+                          ) : (
+                            <span className="font-mono text-[var(--color-body)]">{s.mpn}</span>
+                          )}{' '}
                           {s.note}
                         </li>
                       ))}

@@ -165,13 +165,92 @@ if (system && bom) {
     }
   }
 
-  // A part that is in the bill of materials but on no node is not necessarily
-  // wrong, some parts are mechanical, but it is worth knowing about.
+  // A part in the bill of materials but on no node is worth knowing about, with
+  // one exception. Passives are deliberately absent: a block diagram that showed
+  // every pull-up and decoupling capacitor would stop being a block diagram, and
+  // the schematic is where they belong. They are checked against the schematic
+  // instead, below, which is the drawing that should have them.
   const drawn = new Set(
     (system.nodes ?? []).flatMap((n) => [n.part, ...(n.also ?? [])]).filter(Boolean)
   )
-  for (const id of partIds) {
-    if (!drawn.has(id)) warn(`data/system.yaml: part "${id}" appears in the BOM but not on the diagram`)
+  for (const part of bom.parts ?? []) {
+    if (part.role === 'passive') continue
+    if (!drawn.has(part.id)) {
+      warn(`data/system.yaml: part "${part.id}" appears in the BOM but not on the diagram`)
+    }
+  }
+}
+
+// --- the bill of materials against the schematic ----------------------------
+
+/**
+ * Every component on the schematic is a part somebody has to buy.
+ *
+ * These two drifted apart immediately and silently: the circuit gained an
+ * arming switch, a battery sense divider, bus pull-ups and decoupling, and the
+ * bill of materials listed none of them. A builder following the parts list
+ * could not have populated the board, and nothing said so, because the two
+ * files had no relationship a machine could check.
+ *
+ * They do now. Every reference designator in the generated netlist must be
+ * claimed by exactly one part, and every designator a part claims must exist on
+ * the schematic. Where a part asserts a manufacturer part number, the schematic
+ * must agree with it.
+ */
+const NETLIST = join(ROOT, 'apps/web/public/hardware/oapogee-netlist.txt')
+
+if (bom && existsSync(NETLIST)) {
+  const text = readFileSync(NETLIST, 'utf8')
+  const section = /^COMPONENTS:\n([\s\S]*?)\n\n/m.exec(text)
+
+  if (!section) {
+    fail('could not find the COMPONENTS section in the generated netlist')
+  } else {
+    const onSchematic = new Map()
+    for (const line of section[1].split('\n')) {
+      const m = /^\s*-\s*([A-Z]+\d+):\s*(.+?)\s*$/.exec(line)
+      if (m) onSchematic.set(m[1], m[2])
+    }
+
+    const claimedBy = new Map()
+    for (const part of bom.parts ?? []) {
+      for (const des of part.designators ?? []) {
+        if (claimedBy.has(des)) {
+          fail(
+            `designator ${des} is claimed by both "${claimedBy.get(des)}" and "${part.id}" in data/bom.yaml`
+          )
+        }
+        claimedBy.set(des, part.id)
+
+        if (!onSchematic.has(des)) {
+          fail(
+            `data/bom.yaml part "${part.id}" claims designator ${des}, which is not on the schematic. ` +
+              `Either the part is obsolete or hardware/oapogee.tsx is missing it.`
+          )
+        }
+      }
+    }
+
+    for (const [des, value] of onSchematic) {
+      const partId = claimedBy.get(des)
+      if (!partId) {
+        fail(
+          `${des} (${value}) is on the schematic and no part in data/bom.yaml claims it. ` +
+            `Every component somebody has to solder is a component somebody has to buy.`
+        )
+        continue
+      }
+
+      // Where the bill of materials asserts a part number, the drawing has to
+      // agree. A silent divergence here means the page and the board describe
+      // different components.
+      const part = bom.parts.find((x) => x.id === partId)
+      if (part?.mpn && part.confidence === 'asserted' && !value.includes(part.mpn)) {
+        fail(
+          `${des} is "${value}" on the schematic but data/bom.yaml asserts ${part.mpn} for "${partId}"`
+        )
+      }
+    }
   }
 }
 

@@ -1,0 +1,68 @@
+# Where to buy the parts.
+#
+# TWO KINDS OF LINK, AND THE DIFFERENCE MATTERS
+#
+# A distributor search for a manufacturer part number is stable. It does not go
+# out of stock, it does not get revised, and it does not 404 when a supplier
+# reorganises their catalogue. Every part on this site with an asserted part
+# number gets one, and they are the links that will still work in three years.
+#
+# A direct product link is more useful and more fragile. Those appear only where
+# somebody has opened the page and confirmed what is on it, and each carries the
+# date it was checked. An unchecked product link is exactly the kind of confident
+# wrong detail this project does not publish.
+#
+# WHAT IS NOT HERE
+#
+# Prices. Nothing has been bought and no cart has been priced, so there is no
+# honest number to put next to any of these. Stock, too: a link that resolves is
+# not a promise the part is available today, and this file does not pretend to
+# know.
+#
+# Availability of a breakout board is a different question from availability of
+# the chip, and the two diverge. The IMU is the case that matters: the chip is
+# ordinary to buy and there is no mainstream breakout for it, which changes what
+# a Modules-path builder should order. That is recorded on the part, not here.
+
+schema_version: 1
+updated: 2026-08-13
+status: draft
+
+# {mpn} is replaced with the manufacturer part number.
+distributors:
+  - id: mouser
+    name: Mouser
+    search: 'https://www.mouser.com/c/?q={mpn}'
+    region: international
+    note: Full-line distributor. Authorised stock, datasheets, and quantity pricing.
+
+  - id: lcsc
+    name: LCSC
+    search: 'https://www.lcsc.com/search?q={mpn}'
+    region: international
+    note: >
+      Usually the cheapest source for passives and common silicon, and the one an
+      assembly service is most likely to source from. Longer shipping.
+
+# Retailers who sell assembled breakout boards, which is what the Modules path
+# needs. Chip distributors do not sell these.
+makers:
+  - id: adafruit
+    name: Adafruit
+    search: 'https://www.adafruit.com/?q={mpn}'
+    note: >
+      Breakouts with regulators and level shifting already fitted, and unusually
+      good documentation. The reason a beginner can build the Modules path at all.
+
+  - id: sparkfun
+    name: SparkFun
+    search: 'https://www.sparkfun.com/catalogsearch/result/?q={mpn}'
+    note: Similar range to Adafruit, with different parts covered.
+
+# Every link asserted anywhere in data/bom.yaml is checked by
+# `make check-suppliers`, which is deliberately not part of `make check`: CI
+# should not fail because somebody else's website is having a bad morning.
+policy:
+  product_links_require: A date the page was opened and what was on it.
+  prices: Never published until a real cart has been priced.
+  stock: Never claimed. A link resolving says nothing about availability.

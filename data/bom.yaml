@@ -109,6 +109,7 @@ parts:
     manufacturer: Raspberry Pi
     mpn: RP2350A
     confidence: asserted
+    designators: [U3]
     price_usd: null
     mass_g: null
     verify: >
@@ -165,6 +166,7 @@ parts:
     manufacturer: Winbond
     mpn: W25Q128JVSIQ
     confidence: asserted
+    designators: [U4]
     price_usd: null
     mass_g: null
     verify: >
@@ -197,6 +199,7 @@ parts:
     manufacturer: Bosch Sensortec
     mpn: BMP390
     confidence: asserted
+    designators: [U5]
     price_usd: null
     mass_g: null
     verify: >
@@ -227,14 +230,20 @@ parts:
           TODO(verify): produce that comparison from both datasheets.
         confidence: asserted
     breakout:
-      confidence: unverified
+      supplier: Adafruit
+      product: Adafruit BMP390, product 4816
+      url: https://www.adafruit.com/product/4816
+      confidence: asserted
+      checked: 2026-08-13
+      note: >
+        Carries a regulator and level shifting, so it runs from 3V or 5V logic
+        without thought, and brings STEMMA QT connectors. It also brings its own
+        I2C pull-ups, which is the pair the build guide has you count.
       verify: >
-        TODO(verify): identify a currently-stocked BMP390 breakout and record
-        its supplier part number, price, mass, and whether its I2C pull-ups
-        duplicate a pair already fitted on the carrier. The barometer is the
-        only part on the I2C bus, so the failure to look for is a second pair,
-        not several. Adafruit and SparkFun both list BMP390 boards; neither
-        product number is confirmed here.
+        TODO(verify): price, mass, and whether those pull-ups duplicate a pair
+        already fitted on the carrier. The barometer is the only part on the I2C
+        bus, so the failure to look for is a second pair, not several. The
+        product exists and is stocked; none of those numbers is measured.
 
   - id: imu
     role: imu
@@ -242,6 +251,7 @@ parts:
     manufacturer: TDK InvenSense
     mpn: ICM-42688-P
     confidence: asserted
+    designators: [U6]
     price_usd: null
     mass_g: null
     verify: >
@@ -262,19 +272,36 @@ parts:
       - mpn: LSM6DSO
         manufacturer: STMicroelectronics
         note: >
-          Equivalent for this application and often easier to source. Register
-          maps differ, so the firmware carries a driver for each.
+          Equivalent for this application, and the part to buy on the Modules
+          path. Adafruit sells an LSM6DSOX breakout with STEMMA QT connectors,
+          product 4517, checked 2026-08-13, which is assembled, documented, and
+          easy to connect. Register maps differ from the ICM-42688-P, so the
+          firmware carries a driver for each and choosing this costs a line of
+          configuration rather than a redesign.
+        url: https://www.adafruit.com/product/4517
         confidence: asserted
+    availability: >
+      Buyable as a chip and awkward as a breakout. Searched 2026-08-13: neither
+      Adafruit nor SparkFun sells an ICM-42688-P breakout, and the only
+      assembled board either carries is a MikroElektronika Click. That does not
+      affect the Board path, where the chip is soldered directly. It decides the
+      Modules path, where you need something already assembled, and it is why
+      the substitute below is the recommendation there rather than a fallback.
     breakout:
-      confidence: unverified
+      supplier: SparkFun
+      product: MIKROE 6DOF IMU 14 Click, SEN-18783
+      url: https://www.sparkfun.com/mikroe-6dof-imu-14-click-sen-18783.html
+      confidence: asserted
+      checked: 2026-08-13
+      note: >
+        Click format rather than Qwiic or STEMMA, so it plugs into nothing on
+        this build and every connection is wired by hand. Buildable, and not what
+        a first build should be sent after.
       verify: >
-        TODO(verify): identify a currently-stocked ICM-42688-P breakout and
-        record whether it exposes the SPI interface and a usable chip select
-        pin. The Board path puts this part on SPI. If no SPI-capable breakout
-        can be sourced, the Modules path does not share the Board path's bus
-        assignment, and the "Same electrical design, two ways to fabricate it"
-        note at the head of this file must be amended rather than quietly left
-        standing.
+        TODO(verify): confirm the Click board exposes SPI and a usable chip
+        select, because the Board path puts this part on SPI and a Modules build
+        that could only reach it over I2C would mean the two paths no longer
+        share one electrical design.
 
   - id: high_g
     role: high_g_accelerometer
@@ -282,6 +309,7 @@ parts:
     manufacturer: Analog Devices
     mpn: ADXL375
     confidence: asserted
+    designators: [U7]
     price_usd: null
     mass_g: null
     verify: >
@@ -340,6 +368,7 @@ parts:
     manufacturer: Semtech
     mpn: SX1262
     confidence: asserted
+    designators: [U8]
     price_usd: null
     mass_g: null
     verify: >
@@ -396,6 +425,7 @@ parts:
     manufacturer: null
     mpn: null
     confidence: unverified
+    designators: [J3]
     price_usd: null
     mass_g: null
     verify: >
@@ -423,6 +453,7 @@ parts:
     manufacturer: u-blox
     mpn: MAX-M10S
     confidence: asserted
+    designators: [U9]
     price_usd: null
     mass_g: null
     verify: >
@@ -490,6 +521,7 @@ parts:
     manufacturer: Microchip
     mpn: MCP73831
     confidence: asserted
+    designators: [U1]
     price_usd: null
     mass_g: null
     verify: >
@@ -518,6 +550,7 @@ parts:
     manufacturer: null
     mpn: null
     confidence: unverified
+    designators: [U2]
     price_usd: null
     mass_g: null
     verify: >
@@ -544,6 +577,7 @@ parts:
     manufacturer: null
     mpn: null
     confidence: unverified
+    designators: [J1]
     price_usd: null
     mass_g: null
     verify: >
@@ -565,6 +599,7 @@ parts:
     manufacturer: JST
     mpn: S2B-PH-K-S
     confidence: asserted
+    designators: [J2]
     price_usd: null
     mass_g: null
     verify: >
@@ -580,6 +615,203 @@ parts:
       buy anywhere.
     substitutes: []
 
+  # --- Arming -------------------------------------------------------------
+
+  - id: arm_switch
+    role: arming
+    name: Arming switch
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [SW1]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(confirm): mechanical or magnetic. A slide or screw switch is the
+      rocketry convention and needs a hole in the pod. A reed or Hall sensor arms
+      through the wall with a magnet, which keeps the enclosure sealed apart from
+      its static ports, at the cost of a part that can be armed by anything
+      magnetic nearby. Decide before the enclosure is designed, because it
+      changes the pod. Then TODO(verify): select the specific part and confirm it
+      survives the shake and drop tests without changing state.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+      - { tier: solo, path: modules, qty: 1 }
+      - { tier: link, path: modules, qty: 1 }
+      - { tier: track, path: modules, qty: 1 }
+    why: >
+      The flight state machine's first transition is operator-driven, and without
+      an input there is no flight: arming is what starts the pressure reference
+      settling and the pre-arm ring buffer. It sits on a GPIO rather than in the
+      power path, because oApogee is passive so cutting power arms nothing and
+      protects nobody. What the operator needs is to power the payload up, let
+      the GNSS get a fix and the barometer settle, and then arm it once the
+      rocket is on the rail, which a power switch cannot express.
+    substitutes: []
+
+  # --- Passives -------------------------------------------------------------
+  #
+  # One entry per distinct value, because that is how they are ordered, with the
+  # designators each covers. The Board path needs all of them. The Modules path
+  # needs only the ones the breakouts do not already carry, which is why the
+  # applies lists differ.
+  #
+  # 0402 is the smallest package a beginner can hand-solder with the tools on
+  # this page. Nothing here is smaller.
+
+  - id: res_5k1
+    role: passive
+    name: Resistor, 5.1k, 0402
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [R1, R2]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): price a 0402 resistor assortment against individual reels.
+      For a build needing five values, an assortment is almost certainly cheaper
+      and is the recommendation this page should make once it is priced.
+    applies:
+      - { tier: solo, path: board, qty: 2 }
+      - { tier: link, path: board, qty: 2 }
+      - { tier: track, path: board, qty: 2 }
+    why: >
+      The two USB-C CC pulldowns. A USB-C sink advertises how much current it
+      wants with one 5.1k resistor per CC line, and without them a compliant
+      source supplies nothing at all. The board then looks dead on a perfectly
+      good cable, which is indistinguishable from the far more common
+      charge-only-cable fault and sends a builder chasing the wrong thing.
+    substitutes: []
+
+  - id: res_10k
+    role: passive
+    name: Resistor, 0402, charge current programming
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [R3]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): the value is not chosen. It sets the charge current, which
+      follows from the cell capacity, which follows from an endurance requirement
+      nobody has measured. The schematic carries 10k as a placeholder and this
+      row must not be ordered against until the cell is chosen.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Sets the charge controller's current. This is the one passive whose value
+      is a real decision rather than a standard one, and it is the reason the
+      charger row and the cell row cannot be settled independently.
+    substitutes: []
+
+  - id: res_4k7
+    role: passive
+    name: Resistor, 4.7k, 0402
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [R4, R5]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): confirm the value against the bus capacitance of the actual
+      layout and the barometer's drive strength, rather than taking a common
+      value as correct.
+    applies:
+      - { tier: solo, path: board, qty: 2 }
+      - { tier: link, path: board, qty: 2 }
+      - { tier: track, path: board, qty: 2 }
+    why: >
+      The I2C pull-ups, and there is exactly one pair on the bus. Only the
+      barometer sits on I2C; the high rate parts are on SPI so the sample rate is
+      not limited by the bus. On the Modules path the breakout brings its own
+      pair, which is why this row is Board only and why the build guide has you
+      count them.
+    substitutes: []
+
+  - id: res_100k
+    role: passive
+    name: Resistor, 100k, 0402
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [R6, R7, R8]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): size the battery sense divider against the microcontroller's
+      ADC input impedance and its acceptable source impedance, and decide whether
+      it needs switching off between readings so it does not drain the cell
+      through a long pad wait. 100k is a starting point, not a result.
+    applies:
+      - { tier: solo, path: board, qty: 3 }
+      - { tier: link, path: board, qty: 3 }
+      - { tier: track, path: board, qty: 3 }
+      - { tier: solo, path: modules, qty: 3 }
+      - { tier: link, path: modules, qty: 3 }
+      - { tier: track, path: modules, qty: 3 }
+    why: >
+      One pulls the arming input up so it reads as a level rather than as noise,
+      because an input that reads as noise arms a rocket at random. The other two
+      divide the cell voltage into the ADC's range: a single cell reaches 4.2 V,
+      which is above the 3V3 rail, and the packet format transmits a battery
+      voltage that nothing on the board could otherwise measure.
+    substitutes: []
+
+  - id: cap_10u
+    role: passive
+    name: Capacitor, 10uF, 0402, X5R or X7R
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [C1, C2]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): confirm the voltage rating and, more importantly, the DC bias
+      derating. A small ceramic 10uF part can lose most of its capacitance at its
+      working voltage, and the datasheet curve rather than the headline value is
+      what decides whether the rail is actually decoupled.
+    applies:
+      - { tier: solo, path: board, qty: 2 }
+      - { tier: link, path: board, qty: 2 }
+      - { tier: track, path: board, qty: 2 }
+    why: >
+      Bulk capacitance either side of the regulator. The transmit burst on Link
+      and Track is the largest current step the board makes, and it is what these
+      are sized against rather than the average draw.
+    substitutes: []
+
+  - id: cap_100n
+    role: passive
+    name: Capacitor, 100nF, 0402, X7R
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [C3]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): the decoupling network is currently one capacitor per rail,
+      which is a placeholder rather than a design. Every supply pin on every part
+      needs its own, placed close, and that count comes out of the layout.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Local decoupling for the microcontroller. Stated honestly: one capacitor is
+      what the schematic currently shows, and a real board needs one per supply
+      pin placed next to that pin, which is a layout decision rather than a
+      schematic one.
+    substitutes: []
+
   # --- Recovery aids ------------------------------------------------------
 
   - id: buzzer
@@ -588,6 +820,7 @@ parts:
     manufacturer: null
     mpn: null
     confidence: unverified
+    designators: [LS1]
     price_usd: null
     mass_g: null
     verify: >
@@ -613,6 +846,7 @@ parts:
     manufacturer: null
     mpn: null
     confidence: unverified
+    designators: [D1]
     price_usd: null
     mass_g: null
     verify: >

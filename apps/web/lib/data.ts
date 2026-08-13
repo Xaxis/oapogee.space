@@ -60,12 +60,25 @@ export type Substitute = {
   mpn: string
   manufacturer?: string
   note: string
+  url?: string
   confidence?: string
+}
+
+export type Breakout = {
+  supplier: string
+  product: string
+  url: string
+  confidence: string
+  checked: string
+  note?: string
 }
 
 export type Part = {
   id: string
   role: string
+  designators?: string[]
+  availability?: string
+  breakout?: Breakout
   name: string
   manufacturer: string | null
   mpn: string | null
@@ -105,6 +118,22 @@ export type Bom = {
 }
 
 export const getBom = (): Bom => load<Bom>('bom.yaml')
+
+// --- suppliers -------------------------------------------------------------
+
+export type Supplier = { id: string; name: string; search: string; note?: string }
+
+export type Suppliers = {
+  updated: string
+  distributors: Supplier[]
+  makers: Supplier[]
+}
+
+export const getSuppliers = (): Suppliers => load<Suppliers>('suppliers.yaml')
+
+/** Fill a supplier's search template with a manufacturer part number. */
+export const supplierSearch = (s: Supplier, mpn: string) =>
+  s.search.replace('{mpn}', encodeURIComponent(mpn))
 
 // --- glossary --------------------------------------------------------------
 

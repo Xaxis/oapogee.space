@@ -14,7 +14,7 @@ SHELL := /bin/bash
 
 .PHONY: help install dev build start lint type-check format test \
         check check-fast prose data links schematic check-schematic responsive \
-        fw-build fw-test fw-check crossimpl clean
+        fw-build fw-test fw-check crossimpl check-suppliers clean
 
 help: ## List available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -41,6 +41,9 @@ fw-build: ## Build the firmware core and its tests for the host
 
 fw-test: fw-build ## Run the firmware test suite
 	@ctest --test-dir firmware/build --output-on-failure
+
+check-suppliers: ## Every supplier link still resolves. Not in `make check`: it hits the internet.
+	@node tools/check-suppliers.mjs
 
 fw-check: ## The passive boundary holds and no tuning constant is hardcoded
 	@node tools/check-firmware.mjs
