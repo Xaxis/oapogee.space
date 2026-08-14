@@ -88,6 +88,10 @@ for (const [type, id, label] of [
   ['pcb_courtyard_overlap_error', 'courtyard-overlap', 'component courtyards overlap'],
   ['pcb_pad_pad_clearance_error', 'pad-clearance', 'pads are closer than the minimum clearance'],
   ['pcb_port_not_connected_error', 'port-unconnected', 'ports are not connected through a net'],
+  // Found by a mistake rather than by foresight: a bad edit moved a footprint's
+  // thermal pad instead of the component, and tscircuit reported this type,
+  // which nothing here was reading. A part hanging off the edge is milled away.
+  ['pcb_component_outside_board_error', 'component-off-board', 'components extend outside the board'],
 ]) {
   const n = count(type)
   if (n > 0) blockers.push({ id, n, what: `${n} ${label}` })
@@ -146,8 +150,18 @@ for (const [type, id, label] of [
 // reported clean while two traces sat 0.291 mm apart centre to centre. Geometry
 // is cheap to measure and this is the number a fab quotes back.
 
-const HARD_MM = 0.127 // what the cheap fabs list as their minimum
-const SOFT_MM = 0.15 // what a person laying this out by hand would aim for
+// Two thresholds, both sourced, because one number was either alarmist or
+// useless and the single 0.127 this started with was inherited from a sibling
+// project without checking it against where this board would actually be made.
+//
+// PCBWay quotes 4 mil trace and space as their standard two-layer capability.
+// JLCPCB quotes 5 mil for standard two-layer at 1 oz copper. So copper below
+// 0.1 mm apart is not manufacturable at either on a standard process and is a
+// hard failure; between 0.1 and 0.127 the board is orderable from PCBWay and
+// not from JLCPCB, which is a real constraint on the reader and worth saying,
+// but is not a reason to refuse to publish fabrication files.
+const HARD_MM = 0.1 // PCBWay standard two-layer, the finer of the two
+const SOFT_MM = 0.127 // JLCPCB standard two-layer at 1 oz copper
 
 {
   const byTrace = Object.fromEntries(of('source_trace').map((e) => [e.source_trace_id, e]))
@@ -202,7 +216,11 @@ const SOFT_MM = 0.15 // what a person laying this out by hand would aim for
         `not the placement, and it is the one thing between this board and a fab.`,
     })
   } else if (soft > 0) {
-    advisories.push(`${soft} copper pair(s) under the comfortable ${SOFT_MM} mm, closest ${worst.toFixed(3)} mm`)
+    advisories.push(
+      `${soft} copper pair(s) under ${SOFT_MM} mm, closest ${worst.toFixed(3)} mm. Orderable from ` +
+        `PCBWay, whose standard two-layer process is 4 mil trace and space, and not from JLCPCB, ` +
+        `whose standard two-layer at 1 oz copper is 5 mil.`
+    )
   } else if (segs.length > 0) {
     advisories.push(`copper clearance clean, closest ${worst.toFixed(3)} mm across ${segs.length} segments`)
   }

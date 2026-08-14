@@ -123,7 +123,7 @@ function dualPads(opts: { pins: number; body: number; pitch: number; padLen: num
 }
 
 export default () => (
-  <board width="22mm" height="60mm">
+  <board width="22mm" height="60mm" minTraceWidth="0.127mm">
     {/* ---------------------------------------------------------------------
         Power. USB-C in, charger, cell, 3V3 rail.
 
@@ -440,8 +440,8 @@ export default () => (
           <smtpad portHints={['25']} pcbX={0} pcbY={0} width="2.2mm" height="2.2mm" shape="rect" />
         </footprint>
       }
-      pcbX={-3.5}
-      pcbY={-19}
+      pcbX={-3.6}
+      pcbY={-18.4}
       manufacturerPartNumber="SX1262"
       pinLabels={{
         pin1: 'VDD',
@@ -486,7 +486,7 @@ export default () => (
         </footprint>
       }
       pcbX={-5}
-      pcbY={-23.5}
+      pcbY={-24.0}
       manufacturerPartNumber="MAX-M10S"
       pinLabels={{ pin1: 'VCC', pin2: 'GND', pin3: 'TXD', pin4: 'RXD', pin5: 'RF_IN' }}
       schX={8}
@@ -504,7 +504,7 @@ export default () => (
       name="LS1"
       footprint="pinrow2"
       pcbX={6.5}
-      pcbY={-15.5}
+      pcbY={-15.0}
       manufacturerPartNumber="PIEZO-BUZZER"
       pinLabels={{ pin1: 'IN', pin2: 'GND' }}
       schX={8}

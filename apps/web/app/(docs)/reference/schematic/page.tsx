@@ -42,6 +42,16 @@ const DOWNLOADS = [
     what: 'Where each part goes, for hand assembly.',
   },
   {
+    file: 'oapogee-gerbers.zip',
+    label: 'Gerbers and drill',
+    what: 'What a fab needs: both copper layers, mask, paste, silkscreen, edge cuts, drill files, bill of materials and pick and place.',
+  },
+  {
+    file: 'oapogee.kicad_pcb',
+    label: 'KiCad PCB',
+    what: 'The layout, for anyone who wants to take it further in KiCad.',
+  },
+  {
     file: 'oapogee-circuit.json',
     label: 'Circuit JSON',
     what: 'Machine readable, for anyone writing their own tooling against the design.',

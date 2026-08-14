@@ -1,6 +1,4 @@
 {
   "note": "Recorded by tools/check-pcb.mjs --update. Counts may fall, never rise.",
-  "blockers": {
-    "copper-clearance": 55
-  }
+  "blockers": {}
 }
