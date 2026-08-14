@@ -40,15 +40,28 @@ paths:
   - id: board
     name: Board
     summary: >
-      The custom oApogee PCB. One part number to order assembled, or a
-      hand-solderable layout with no parts smaller than 0402.
+      The custom oApogee PCB. One part number to order assembled, or a build
+      that needs hot air. The passives are 0402 and up and can be done with an
+      iron, but the microcontroller is a 60 pin QFN on a 0.4 mm pitch with a
+      thermal pad underneath it, the radio is a QFN, and four of the sensors are
+      LGA. None of those are hand-solderable in any sense a beginner means, and
+      the thermal pads cannot be reached with an iron at all.
     tradeoff: >
-      Nothing to build until boards are fabricated. Minimum order quantities
-      make a single unit expensive.
+      Nothing to build until boards are fabricated, and minimum order quantities
+      make a single unit expensive. The layout exists and the fabrication files
+      are published, so ordering is a thing somebody could do today. Whether
+      they should is the availability note below.
     available: false
     availability_note: >
-      TODO(confirm-on-hardware): the PCB is a paper design. No Gerbers have been
-      produced, nothing has been fabricated, and nothing has flown.
+      TODO(confirm-on-hardware): the layout is complete, routed, and passes
+      every geometric check, and the Gerbers, drill files, bill of materials and
+      pick and place are published. What is not confirmed is the part that costs
+      money to get wrong: 152 signal names are mapped onto footprint pads by
+      pin number, and only the microcontroller's 60 pins have been checked
+      against a datasheet. The other fourteen packages have not. A wrong pin
+      number is invisible in a schematic, invisible in a render, and shows up as
+      a board that does not work. Confirm every package by hand before ordering,
+      then fly one, then mark this path available.
 
 # ---------------------------------------------------------------------------
 # Tier budgets. Tier names, capabilities, and the comparison matrix live in
@@ -1054,6 +1067,23 @@ tools:
       note: >
         Strongly recommended. You cannot do a stability check without knowing the
         payload mass, and guessing it defeats the purpose.
+  board_path:
+    - name: Hot air station, hotplate, or reflow oven
+      note: >
+        Only for the Board path, and not optional there. The microcontroller and
+        the radio are QFNs with thermal pads on their undersides, and a pad
+        under a chip cannot be reached with an iron. The Modules path needs none
+        of this, which is most of why it exists.
+    - name: Solder paste and a stencil
+      note: >
+        Ordered with the board from the same fab. Paste has a shelf life and
+        wants refrigeration, so buy it when you are ready to build rather than
+        with the parts.
+    - name: Flux-removing solvent and a brush
+      note: >
+        Paste leaves more residue than wire solder, and residue under a QFN is
+        where a leakage path lives.
+
   fabrication:
     - name: 3D printer, or access to a print service
       note: >

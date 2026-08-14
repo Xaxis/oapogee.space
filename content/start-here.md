@@ -33,8 +33,12 @@ become that.
 
 ## Before you read further
 
-**This is a design on paper.** Nothing has been fabricated, assembled, weighed,
-priced, or flown. There are no cost figures, no mass figures, no range figures
+**Nothing physical exists yet.** No board has been fabricated, assembled,
+weighed, priced, or flown. The design is further along than that sentence
+suggests, though: the PCB is laid out, routed, and its fabrication files are
+published, so ordering one is something a person could do today. What has not
+been done is checking every package's pin numbering against its datasheet,
+which is the part that costs money to get wrong. There are no cost figures, no mass figures, no range figures
 and no battery life figures anywhere on this site, because none of them have
 been measured. Every missing figure is marked where it would otherwise appear,
 saying what evidence would close it.

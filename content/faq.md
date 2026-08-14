@@ -20,7 +20,9 @@ and more useful as people build things.
 ## Can I buy one?
 
 Not yet. Kits are intended eventually, and nothing has been fabricated, so there
-is nothing to sell.
+is nothing to sell. You can order the bare PCB yourself from the published
+fabrication files, with the caveat on the schematic page: the pin numbering of
+most packages has not been checked against a datasheet.
 
 ## Can it deploy my parachute?
 

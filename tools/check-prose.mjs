@@ -188,11 +188,13 @@ const SOURCED = [
       'dimensions, cited in data/mechanical.yaml beside the millimetre values derived from them.',
   },
   {
-    values: ['24.13 mm', '32.59 mm', '22 mm', '0.6 mm', '4.8 mm'],
+    values: ['24.13 mm', '32.59 mm', '22 mm', '60 mm', '0.6 mm', '4.8 mm'],
     why:
       'Arithmetic on dimensions already declared in data/mechanical.yaml with their provenance: ' +
       'the two tube bores in millimetres, the board width, and the rail left on each side, which ' +
-      'is (bore - board - clearance) / 2. Every input is on the mounting page with its source, ' +
+      'is (bore - board - clearance) / 2, and the board outline itself. Every input is on the ' +
+      'mounting page with its source, and the outline is declared in data/mechanical.yaml and ' +
+      'cross-checked against the circuit source by check-data, so it cannot drift. ' +
       'so these restate a derivation rather than introducing a figure. They are listed because ' +
       'the alternative is a rule that exempts anything it can call a calculation.',
   },

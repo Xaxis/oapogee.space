@@ -161,6 +161,10 @@ performed.
 
 1. Solder the regulator, its passives, and the USB connector.
 2. Solder the charge controller and its programming resistor.
+3. Solder the core regulator inductor, L1. The microcontroller runs its core
+   from an internal switching regulator and this is the one part of that
+   regulator that lives outside the chip. Without it the core rail never comes
+   up, which looks exactly like a dead microcontroller.
 
 > **Checkpoint 1B.** With no power applied, no continuity between 3V3 and
 > ground. With USB applied and nothing else populated, 3V3 measures within
@@ -170,6 +174,13 @@ TODO(verify): state the acceptable voltage range at this checkpoint, from the
 chosen regulator's datasheet.
 
 ### Stage 2B: Microcontroller and flash
+
+The microcontroller is a 60 pin QFN on a 0.4 mm pitch with a thermal pad on its
+underside, and the pad has to be soldered: it is the part's only ground
+connection. That means hot air, a hotplate or a reflow oven, and a stencil for
+the paste. An iron cannot reach under the part. If that is not equipment you
+have, the Modules path exists for exactly this reason, and having the board
+assembled by the fab is the other answer.
 
 1. Solder the microcontroller.
 2. Solder the QSPI flash.

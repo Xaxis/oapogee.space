@@ -122,6 +122,7 @@ export type Bom = {
   tools: {
     required: { name: string; note?: string }[]
     recommended: { name: string; note?: string }[]
+    board_path: { name: string; note?: string }[]
     fabrication: { name: string; note?: string }[]
   }
 }

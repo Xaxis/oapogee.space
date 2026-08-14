@@ -165,8 +165,10 @@ itself. Both are events rather than dates.
 
 ## Status
 
-**oApogee is a design on paper.** Nothing has been fabricated, assembled,
-weighed, priced, or flown.
+**Nothing physical exists yet.** No board has been fabricated, assembled,
+weighed, priced, or flown. The PCB is laid out and routed and its fabrication
+files are published, which is a real step past a paper design, and it is not the
+same thing as a board that works.
 
 Every unverified figure on this site is marked in place, in the page that would
 otherwise state it, saying what evidence would close it. That is deliberately

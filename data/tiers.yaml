@@ -34,7 +34,7 @@ paths:
     name: Board
     order: 2
     available: false
-    one_liner: The custom oApogee PCB. Not yet fabricated.
+    one_liner: The custom oApogee PCB. Routed and published, not yet ordered.
 
 tiers:
   - id: solo

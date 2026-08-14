@@ -86,10 +86,17 @@ guarantee that somebody builds against it.
 
 ## Mechanical
 
-TODO(confirm-on-hardware): board outline, mounting hole positions and diameters,
-connector positions, and the maximum component height on each side. Also the
-sled and pod models, published as parametric source rather than only as exported
-STLs.
+The board is 22 by 60 mm. That outline is set in the circuit source and in
+`data/mechanical.yaml`, and the build fails if the two disagree, because the
+printed enclosure is generated from it.
+
+The sled and pod are published as OpenSCAD source alongside their STLs, with
+every dimension and where it came from, on the [Mounting](/mounting) page.
+
+TODO(confirm-on-hardware): mounting hole positions and diameters, connector
+positions, and the maximum component height on each side. All four need a
+fabricated board and a pair of calipers, and the enclosure's board pocket is
+sized from provisional figures until they exist.
 
 ## Firmware
 

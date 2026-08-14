@@ -73,6 +73,11 @@ export default function Bom() {
                 bom.tools.recommended,
               ],
               [
+                'For the Board path only',
+                'The custom PCB has parts an iron cannot solder. The Modules path needs none of these.',
+                bom.tools.board_path,
+              ],
+              [
                 'For the printed parts',
                 'Both form factors are printed, and there is no non-printed option.',
                 bom.tools.fabrication,

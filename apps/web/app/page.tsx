@@ -80,8 +80,10 @@ export default function Home() {
         </div>
 
         <p className="mt-6 max-w-2xl text-sm text-[var(--color-dim)]">
-          Nothing has been fabricated or flown yet, so the site carries no prices, masses or ranges:
-          those are measurements and they have not been taken.{' '}
+          Nothing has been fabricated or flown yet, so the site carries no prices, masses or
+          ranges: those are measurements and they have not been taken. The PCB is laid out, routed
+          and published as fabrication files, which is a design somebody could order rather than a
+          board that is known to work.{' '}
         </p>
       </section>
 
