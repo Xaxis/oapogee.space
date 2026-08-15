@@ -127,3 +127,12 @@ jobs:
         run: make responsive
         env:
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+
+      # The viewer has broken three times in ways every other check passed
+      # through: a detached SVG node, a drawing framed outside its own viewBox,
+      # and a NaN viewBox from fitting to a hidden tab. Only driving it finds
+      # those.
+      - name: Every drawing pans and zooms
+        run: make viewers
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}

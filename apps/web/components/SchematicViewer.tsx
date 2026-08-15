@@ -62,6 +62,8 @@ type Box = { x: number; y: number; w: number; h: number }
 
 export function SchematicViewer({
   svg,
+  minX = 0,
+  minY = 0,
   label,
   description,
   naturalWidth,
@@ -69,6 +71,8 @@ export function SchematicViewer({
   className = '',
 }: {
   svg: string
+  minX?: number
+  minY?: number
   label: string
   description: string
   naturalWidth: number
@@ -79,6 +83,8 @@ export function SchematicViewer({
   const svgRef = useRef<SVGSVGElement | null>(null)
   const [box, setBox] = useState<Box>({ x: 0, y: 0, w: naturalWidth, h: naturalHeight })
   const [dragging, setDragging] = useState(false)
+  // Whether this viewer has ever been fitted to a host that actually had size.
+  const fitted = useRef(false)
   const [ready, setReady] = useState(false)
   // The width the fitted view spans, so the readout can report magnification
   // relative to "the whole sheet", which is what 100% means to a reader.
@@ -96,7 +102,7 @@ export function SchematicViewer({
     if (!el) return
     svgRef.current = el
     if (!el.getAttribute('viewBox')) {
-      el.setAttribute('viewBox', `0 0 ${naturalWidth} ${naturalHeight}`)
+      el.setAttribute('viewBox', `${minX} ${minY} ${naturalWidth} ${naturalHeight}`)
     }
     el.setAttribute('width', '100%')
     el.setAttribute('height', '100%')
@@ -115,15 +121,27 @@ export function SchematicViewer({
   const fit = useCallback(() => {
     const host = hostRef.current
     if (!host) return
-    const aspect = host.clientWidth / Math.max(host.clientHeight, 1)
+    // A viewer inside a tab that is not showing has no size, and fitting to a
+    // zero-width box divides by it. That produced an infinite viewBox, and the
+    // first resize after the tab was opened computed -Infinity + Infinity,
+    // which is NaN, and an SVG with NaN in its viewBox draws nothing at all.
+    // It is why the PCB and assembly tabs came up blank and felt unpannable:
+    // there was nothing in the frame to move.
+    if (host.clientWidth < 1 || host.clientHeight < 1) return
+    fitted.current = true
+    const aspect = host.clientWidth / host.clientHeight
     const drawingAspect = naturalWidth / naturalHeight
     // preserveAspectRatio letterboxes for us, so the viewBox only has to contain
     // the drawing. Matching the host aspect keeps the reported zoom honest.
     const w = aspect > drawingAspect ? naturalHeight * aspect : naturalWidth
     const h = aspect > drawingAspect ? naturalHeight : naturalWidth / aspect
     setFitW(w)
-    setBox({ x: (naturalWidth - w) / 2, y: (naturalHeight - h) / 2, w, h })
-  }, [naturalWidth, naturalHeight])
+    // Centred on the drawing, which does not necessarily start at the origin.
+    // The PCB export puts the board at x 258 inside an 800 unit canvas, so
+    // assuming (0, 0) fitted the view onto empty space beside it and every pan
+    // and zoom then moved around a region with nothing in it.
+    setBox({ x: minX + (naturalWidth - w) / 2, y: minY + (naturalHeight - h) / 2, w, h })
+  }, [naturalWidth, naturalHeight, minX, minY])
 
   // Fit once, when the drawing first appears.
   useEffect(() => {
@@ -138,15 +156,26 @@ export function SchematicViewer({
     const host = hostRef.current
     if (!host || !ready) return
     const ro = new ResizeObserver(() => {
-      const aspect = host.clientWidth / Math.max(host.clientHeight, 1)
+      if (host.clientWidth < 1 || host.clientHeight < 1) return
+      // First time this viewer has ever had a size, which for a tab is the
+      // moment it is opened. Fit rather than adjust: there is nothing sane to
+      // adjust from.
+      if (!fitted.current) {
+        fit()
+        return
+      }
+      const aspect = host.clientWidth / host.clientHeight
       setBox((prev) => {
+        if (!Number.isFinite(prev.x) || !Number.isFinite(prev.y) || !Number.isFinite(prev.w)) {
+          return prev
+        }
         const h = prev.w / aspect
         return { ...prev, y: prev.y + (prev.h - h) / 2, h }
       })
     })
     ro.observe(host)
     return () => ro.disconnect()
-  }, [ready])
+  }, [ready, fit])
 
   /** Zoom keeping the drawing point under (px, py), in host pixels, fixed. */
   const zoomAbout = useCallback(
@@ -195,7 +224,15 @@ export function SchematicViewer({
   }, [zoomAbout])
 
   const onPointerDown = (e: React.PointerEvent) => {
-    ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
+    // Capture so a drag that leaves the box keeps panning. Guarded because it
+    // throws for a pointer id the browser does not consider active, and this is
+    // the first statement in the handler: an exception here loses the whole
+    // gesture rather than just the capture.
+    try {
+      ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
+    } catch {
+      /* not capturable, drag still works while the pointer stays inside */
+    }
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
     if (pointers.current.size === 1) {
       setDragging(true)

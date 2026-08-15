@@ -14,7 +14,7 @@ SHELL := /bin/bash
 
 .PHONY: help install dev build start lint type-check format test \
         check check-fast prose data links schematic check-schematic responsive \
-        fw-build fw-test fw-check crossimpl check-suppliers mech fab clean
+        fw-build fw-test fw-check crossimpl check-suppliers mech fab viewers clean
 
 help: ## List available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -84,10 +84,13 @@ check-schematic: ## The committed schematic matches the data it was drawn from
 
 check-fast: prose data links check-schematic fw-check lint type-check test ## Everything except the site build
 
-check: check-fast build responsive fw-test crossimpl check-hw ## Everything CI runs
+check: check-fast build responsive viewers fw-test crossimpl check-hw ## Everything CI runs
 
 responsive: ## No page scrolls sideways at 320px or 390px. Needs a build and Chrome.
 	@node tools/check-responsive.mjs
+
+viewers: ## Every drawing pans and zooms and has the drawing in frame. Needs a build and Chrome.
+	@node tools/check-viewers.mjs
 
 # --- the site ----------------------------------------------------------------
 

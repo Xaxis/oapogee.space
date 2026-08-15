@@ -118,6 +118,8 @@ export default function Schematic() {
             content: drawing ? (
                 <SchematicViewer
                   svg={drawing.svg}
+                  minX={drawing.minX}
+                  minY={drawing.minY}
                   naturalWidth={drawing.width}
                   naturalHeight={drawing.height}
                   label="oApogee schematic"
@@ -136,10 +138,12 @@ export default function Schematic() {
             content: pcb ? (
               <SchematicViewer
                 svg={pcb.svg}
+                minX={pcb.minX}
+                minY={pcb.minY}
                 naturalWidth={pcb.width}
                 naturalHeight={pcb.height}
                 label="oApogee PCB layout"
-                description="Component placement and footprints on the 22 by 60 mm board. No copper is routed yet: the fabrication blockers below say why."
+                description="The routed board: component placement, footprints, and copper on both layers. Red is the top layer, blue the bottom, and the small circles are vias carrying a net between them."
               />
             ) : (
               <p className="text-[var(--color-muted)]">
@@ -154,6 +158,8 @@ export default function Schematic() {
             content: assembly ? (
               <SchematicViewer
                 svg={assembly.svg}
+                minX={assembly.minX}
+                minY={assembly.minY}
                 naturalWidth={assembly.width}
                 naturalHeight={assembly.height}
                 label="oApogee assembly drawing"
