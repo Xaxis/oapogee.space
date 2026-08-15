@@ -109,7 +109,7 @@ export function SchematicViewer({
     el.setAttribute('preserveAspectRatio', 'xMidYMid meet')
     el.style.display = 'block'
     setReady(true)
-  }, [svg, naturalWidth, naturalHeight])
+  }, [svg, naturalWidth, naturalHeight, minX, minY])
 
   useEffect(() => {
     const el = svgRef.current
