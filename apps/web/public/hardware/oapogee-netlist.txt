@@ -21,11 +21,14 @@ COMPONENTS:
  - J3: ANT-902-928, sma
  - U9: MAX-M10S
  - LS1: PIEZO-BUZZER, pinrow2
- - D1: RGB-LED, led5050
+ - D1: RGB-LED-CC, led5050
  - SW1: ARM-SWITCH, smdslideswitch
  - R6: 100kΩ res0402 resistor
  - SW2: BOOT-BUTTON, smdpushbutton
  - SW3: RESET-BUTTON, smdpushbutton
+ - R10: 330Ω res0402 resistor
+ - R11: 220Ω res0402 resistor
+ - R12: 220Ω res0402 resistor
  - R9: 10kΩ res0402 resistor
  - J4: SWD-PADS
  - R7: 100kΩ res0402 resistor
@@ -160,9 +163,29 @@ NET: U3_BUZZER
   - U3 BUZZER
   - LS1 IN
 
-NET: U3_LED
-  - U3 LED
-  - D1 DIN
+NET: U3_LED_R
+  - U3 LED_R
+  - R10 pin1
+
+NET: D1_A_R
+  - R10 pin2
+  - D1 A_R
+
+NET: U3_LED_G
+  - U3 LED_G
+  - R11 pin1
+
+NET: D1_A_G
+  - R11 pin2
+  - D1 A_G
+
+NET: U3_LED_B
+  - U3 LED_B
+  - R12 pin1
+
+NET: D1_A_B
+  - R12 pin2
+  - D1 A_B
 
 NET: L2_pos
   - U2 L1
@@ -215,7 +238,6 @@ NET: V3V3
   - U3 IOVDD2
   - U2 FB
   - R6 pin2
-  - D1 VDD
   - U9 VCC
   - U8 VDD
   - U7 VDD
@@ -238,7 +260,7 @@ NET: GND
   - U5 SDO
   - R8 pin2
   - SW1 B
-  - D1 GND
+  - D1 K
   - LS1 GND
   - U9 GND
   - J3 GND
@@ -345,13 +367,13 @@ U3 (RP2350A)
 - pin10(GPIO7): NOT_CONNECTED
 - pin11(IOVDD2): NETS(V3V3)
 - pin12(GPIO8): NOT_CONNECTED
-- pin13(GPIO9): NOT_CONNECTED
+- pin13(LED_B): NETS(U3_LED_B)
 - pin14(GPIO10): NOT_CONNECTED
 - pin15(GPIO11): NOT_CONNECTED
-- pin16(GPIO12): NOT_CONNECTED
+- pin16(LED_G): NETS(U3_LED_G)
 - pin17(ARM): NETS(U3_ARM)
 - pin18(BUZZER): NETS(U3_BUZZER)
-- pin19(LED): NETS(U3_LED)
+- pin19(LED_R): NETS(U3_LED_R)
 - pin20(IOVDD3): NETS(V3V3)
 - pin21(XIN): NOT_CONNECTED
 - pin22(XOUT): NOT_CONNECTED
@@ -516,11 +538,11 @@ LS1 (PIEZO-BUZZER)
 - pin1(IN): NETS(U3_BUZZER)
 - pin2(GND): NETS(GND)
 
-D1 (RGB-LED)
-- pin1(DIN): NETS(U3_LED)
-- pin2(VDD): NETS(V3V3)
-- pin3(GND): NETS(GND)
-- pin4(DOUT): NOT_CONNECTED
+D1 (RGB-LED-CC)
+- pin1(A_R): NETS(D1_A_R)
+- pin2(A_G): NETS(D1_A_G)
+- pin3(A_B): NETS(D1_A_B)
+- pin4(K): NETS(GND)
 - pin5: NOT_CONNECTED
 - pin6: NOT_CONNECTED
 
@@ -548,6 +570,18 @@ SW3 (RESET-BUTTON)
 - pin2(A2): NETS(U3_RUN)
 - pin3(B1): NETS(GND)
 - pin4(B2): NETS(GND)
+
+R10 (330Ω res0402)
+- pin1(anode, pos, left): NETS(U3_LED_R)
+- pin2(cathode, neg, right): NETS(D1_A_R)
+
+R11 (220Ω res0402)
+- pin1(anode, pos, left): NETS(U3_LED_G)
+- pin2(cathode, neg, right): NETS(D1_A_G)
+
+R12 (220Ω res0402)
+- pin1(anode, pos, left): NETS(U3_LED_B)
+- pin2(cathode, neg, right): NETS(D1_A_B)
 
 R9 (10kΩ res0402)
 - pin1(anode, pos, left): NETS(V3V3)

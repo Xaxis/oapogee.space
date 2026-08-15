@@ -53,6 +53,50 @@ const count = (t) => of(t).length
 const blockers = []
 const advisories = []
 
+// --- did every part survive being built --------------------------------------
+//
+// The most fundamental thing that can go wrong, and it went wrong silently.
+// Renaming three pins on the microcontroller left a stale entry in its
+// schematic pin arrangement, tscircuit could not resolve the old label, and the
+// whole chip failed to create. The export still printed success and exited
+// zero. The board came out with 34 of its 35 parts and without any of the nets
+// that touch the microcontroller, and every other check here was happy:
+// nothing was unrouted, because the traces that would have been unrouted no
+// longer existed.
+//
+// Source errors are read first for that reason. A netlist missing half its
+// connections is not a board with a routing problem, it is not the board.
+{
+  for (const [type, id, label] of [
+    ['source_failed_to_create_component_error', 'component-failed', 'component(s) failed to be created'],
+    ['source_trace_not_connected_error', 'selector-unresolved', 'trace selector(s) name a port that does not exist'],
+  ]) {
+    const n = count(type)
+    if (n > 0) {
+      blockers.push({
+        id,
+        n,
+        what: `${n} ${label}. First: ${String(of(type)[0]?.message ?? '').slice(0, 170)}`,
+      })
+    }
+  }
+
+  // Every trace written in the source has to reach the netlist. A selector that
+  // resolves to nothing removes a connection without removing a line of source,
+  // so counting one against the other is the only way to see it.
+  const declared = (readFileSync(join(ROOT, 'hardware/oapogee.tsx'), 'utf8').match(/<trace\s/g) ?? []).length
+  const reached = count('source_trace')
+  if (declared > 0 && reached < declared) {
+    blockers.push({
+      id: 'traces-lost',
+      n: declared - reached,
+      what:
+        `hardware/oapogee.tsx declares ${declared} traces and only ${reached} reached the netlist. ` +
+        `The missing ones did not fail to route, they were never created.`,
+    })
+  }
+}
+
 // --- routing -----------------------------------------------------------------
 
 const routed = count('pcb_trace')

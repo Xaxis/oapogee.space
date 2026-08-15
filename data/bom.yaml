@@ -815,6 +815,39 @@ parts:
       power-cycled and guessed at.
     substitutes: []
 
+  - id: res_led_series
+    role: passive
+    name: Resistor, LED series, 0402
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    designators: [R10, R11, R12]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): three separate values, set from the chosen LED's per-colour
+      forward voltages, which differ between the red die and the green and blue
+      ones. The placeholders on the schematic are 330 ohm for red and 220 ohm
+      for the other two, and they are placeholders: the real numbers come from
+      the part's datasheet and from looking at the thing in daylight, because
+      the requirement is that arm state is readable from several metres and no
+      calculation settles that on its own.
+
+      Note the headroom this has to work within. The rail is 3V3 and a green or
+      blue die can drop most of that on its own, which leaves little across the
+      resistor and makes brightness sensitive to the exact part. If the chosen
+      LED turns out too dim on this rail, the answer is a different LED rather
+      than a smaller resistor.
+    applies:
+      - { tier: solo, path: board, qty: 3 }
+      - { tier: link, path: board, qty: 3 }
+      - { tier: track, path: board, qty: 3 }
+    why: >
+      One per colour rather than one shared. The three dice do not share a
+      forward voltage, so a single resistor gives three different brightnesses
+      and no way to correct one without changing the others.
+    substitutes: []
+
   - id: res_10k_run
     role: passive
     name: Resistor, 10k, 0402

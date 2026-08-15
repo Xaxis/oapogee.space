@@ -250,13 +250,13 @@ export default () => (
         pin10: 'GPIO7',
         pin11: 'IOVDD2',
         pin12: 'GPIO8',
-        pin13: 'GPIO9',
+        pin13: 'LED_B',
         pin14: 'GPIO10',
         pin15: 'GPIO11',
-        pin16: 'GPIO12',
+        pin16: 'LED_G',
         pin17: 'ARM',
         pin18: 'BUZZER',
-        pin19: 'LED',
+        pin19: 'LED_R',
         pin20: 'IOVDD3',
         pin21: 'XIN',
         pin22: 'XOUT',
@@ -343,7 +343,9 @@ export default () => (
             'GNSS_TX',
             'GNSS_RX',
             'BUZZER',
-            'LED',
+            'LED_R',
+            'LED_G',
+            'LED_B',
             'ARM',
           ],
         },
@@ -537,13 +539,16 @@ export default () => (
       schY={-13}
     />
 
+    {/* Common cathode: three ordinary dice in one package, each with its own
+        anode, sharing a cathode to ground. The microcontroller sources through
+        a resistor per colour, so a pin high is that colour lit. */}
     <chip
       name="D1"
       footprint="led5050"
       pcbX={7.5}
       pcbY={-28.12}
-      manufacturerPartNumber="RGB-LED"
-      pinLabels={{ pin1: 'DIN', pin2: 'VDD', pin3: 'GND', pin4: 'DOUT' }}
+      manufacturerPartNumber="RGB-LED-CC"
+      pinLabels={{ pin1: 'A_R', pin2: 'A_G', pin3: 'A_B', pin4: 'K' }}
       schX={8}
       schY={-16}
     />
@@ -620,6 +625,14 @@ export default () => (
     {/* RUN has an internal pull-up on this part, and an external one is the
         convention because it makes the reset behaviour independent of a
         datasheet detail somebody would otherwise have to look up. */}
+    {/* One resistor per colour, because the three dice do not share a forward
+        voltage. Red drops around two volts and the green and blue dice drop
+        appreciably more, so a single shared resistor would give three different
+        brightnesses with no way to correct one without changing the others. */}
+    <resistor name="R10" resistance="330" schX={10} schY={-14} footprint="0402" pcbX={12.6} pcbY={-24.0} />
+    <resistor name="R11" resistance="220" schX={10} schY={-15.5} footprint="0402" pcbX={12.6} pcbY={-26.5} />
+    <resistor name="R12" resistance="220" schX={10} schY={-17} footprint="0402" pcbX={12.6} pcbY={-29.0} />
+
     <resistor name="R9" resistance="10k" schX={-15} schY={-17} footprint="0402" pcbX={11.88} pcbY={-12.0} />
 
     {/* Debug pads. Two pads and a ground are the difference between a board
@@ -732,7 +745,12 @@ export default () => (
 
     {/* Recovery aids. */}
     <trace from=".U3 .BUZZER" to=".LS1 .IN" />
-    <trace from=".U3 .LED" to=".D1 .DIN" />
+    <trace from=".U3 .LED_R" to=".R10 .pin1" />
+    <trace from=".R10 .pin2" to=".D1 .A_R" />
+    <trace from=".U3 .LED_G" to=".R11 .pin1" />
+    <trace from=".R11 .pin2" to=".D1 .A_G" />
+    <trace from=".U3 .LED_B" to=".R12 .pin1" />
+    <trace from=".R12 .pin2" to=".D1 .A_B" />
 
     {/* --- power and ground -------------------------------------------------
         Every part's supply and return. These were missing entirely, which meant
@@ -760,7 +778,7 @@ export default () => (
     <trace from=".J3 .GND" to="net.GND" />
     <trace from=".U9 .GND" to="net.GND" />
     <trace from=".LS1 .GND" to="net.GND" />
-    <trace from=".D1 .GND" to="net.GND" />
+    <trace from=".D1 .K" to="net.GND" />
     <trace from=".SW1 .B" to="net.GND" />
     <trace from=".R8 .pin2" to="net.GND" />
 
@@ -780,7 +798,6 @@ export default () => (
     <trace from=".U7 .VDD" to="net.V3V3" />
     <trace from=".U8 .VDD" to="net.V3V3" />
     <trace from=".U9 .VCC" to="net.V3V3" />
-    <trace from=".D1 .VDD" to="net.V3V3" />
     <trace from=".R6 .pin2" to="net.V3V3" />
 
     {/* The regulator runs whenever the cell is connected. There is no soft power
