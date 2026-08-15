@@ -121,7 +121,7 @@ function dualPads(opts: { pins: number; body: number; pitch: number; padLen: num
 }
 
 export default () => (
-  <board width="22mm" height="60mm" minTraceWidth="0.127mm">
+  <board width="28mm" height="78mm" minTraceWidth="0.127mm">
     {/* ---------------------------------------------------------------------
         Power. USB-C in, charger, cell, 3V3 rail.
 
@@ -134,8 +134,8 @@ export default () => (
     <chip
       name="J1"
       footprint="usbcmidmount"
-      pcbX={0}
-      pcbY={26}
+      pcbX={-0.4}
+      pcbY={32.5}
       manufacturerPartNumber="USB-C-16P"
       pinLabels={{ pin1: 'VBUS', pin2: 'GND', pin3: 'DP', pin4: 'DM', pin5: 'CC1', pin6: 'CC2' }}
       schX={-20}
@@ -146,14 +146,14 @@ export default () => (
         per CC line. Without them a compliant source supplies nothing and the
         board looks dead on a good cable, which is indistinguishable from the
         much more common charge-only-cable fault. */}
-    <resistor name="R1" resistance="5.1k" schX={-20} schY={-12} footprint="0402" pcbX={3} pcbY={20} />
-    <resistor name="R2" resistance="5.1k" schX={-20} schY={-13.5} footprint="0402" pcbX={6} pcbY={20} />
+    <resistor name="R1" resistance="5.1k" schX={-20} schY={-12} footprint="0402" pcbX={3.75} pcbY={25.0} />
+    <resistor name="R2" resistance="5.1k" schX={-20} schY={-13.5} footprint="0402" pcbX={7.5} pcbY={25.0} />
 
     <chip
       name="U1"
       footprint="sot23_5"
-      pcbX={-7}
-      pcbY={19}
+      pcbX={-8.75}
+      pcbY={23.75}
       manufacturerPartNumber="MCP73831"
       pinLabels={{ pin1: 'STAT', pin2: 'VSS', pin3: 'VBAT', pin4: 'VDD', pin5: 'PROG' }}
       schX={-15}
@@ -163,13 +163,13 @@ export default () => (
     {/* Sets the charge current. The value is not chosen yet: it follows from
         the cell capacity, which follows from the endurance requirement, which
         follows from measured current draw. All three are open. */}
-    <resistor name="R3" resistance="10k" schX={-15} schY={-11} footprint="0402" pcbX={-2.5} pcbY={19.5} />
+    <resistor name="R3" resistance="10k" schX={-15} schY={-11} footprint="0402" pcbX={-3.12} pcbY={24.38} />
 
     <chip
       name="J2"
       footprint="jst_ph_2"
-      pcbX={-6}
-      pcbY={13}
+      pcbX={-7.5}
+      pcbY={16.25}
       manufacturerPartNumber="S2B-PH-K-S"
       pinLabels={{ pin1: 'VBAT', pin2: 'GND' }}
       schX={-15}
@@ -178,17 +178,45 @@ export default () => (
 
     <chip
       name="U2"
-      footprint="sot23_5"
-      pcbX={4}
-      pcbY={15}
-      manufacturerPartNumber="TODO-BUCK-BOOST"
-      pinLabels={{ pin1: 'VIN', pin2: 'GND', pin3: 'EN', pin4: 'VOUT' }}
+      /* VSON-10, 3 by 3 mm, with the exposed pad tied to PGND as the datasheet
+         requires. Pin numbering is the datasheet's own (SLVS520C, Pin
+         Functions): 1 VOUT, 2 L2, 3 PGND, 4 L1, 5 VIN, 6 EN, 7 PS/SYNC,
+         8 VINA, 9 GND, 10 FB. */
+      footprint={
+        <footprint>
+          {dualPads({ pins: 10, body: 3, pitch: 0.5, padLen: 0.7, padWid: 0.28 })}
+          <smtpad portHints={['11']} pcbX={0} pcbY={0} width="1.6mm" height="2.4mm" shape="rect" />
+        </footprint>
+      }
+      pcbX={5.0}
+      pcbY={18.75}
+      manufacturerPartNumber="TPS63001"
+      pinLabels={{
+        pin1: 'VOUT',
+        pin2: 'L2',
+        pin3: 'PGND',
+        pin4: 'L1',
+        pin5: 'VIN',
+        pin6: 'EN',
+        pin7: 'PSSYNC',
+        pin8: 'VINA',
+        pin9: 'GND',
+        pin10: 'FB',
+        pin11: 'EPAD',
+      }}
       schX={-10}
       schY={-8}
+      schWidth={4}
+      schHeight={6}
     />
 
-    <capacitor name="C1" capacitance="10uF" schX={-12} schY={-11} footprint="0805" pcbX={-7} pcbY={9} />
-    <capacitor name="C2" capacitance="10uF" schX={-8} schY={-11} footprint="0805" pcbX={-3.5} pcbY={9} />
+    {/* The buck-boost's switching inductor. A buck-boost stores energy in this
+        on every cycle, so without it the rail simply does not come up. The
+        datasheet's typical application uses 2.2 uH. */}
+    <inductor name="L2" inductance="2.2uH" footprint="0805" pcbX={10.5} pcbY={15.5} schX={-7} schY={-6} />
+
+    <capacitor name="C1" capacitance="10uF" schX={-12} schY={-11} footprint="0805" pcbX={-8.75} pcbY={11.25} />
+    <capacitor name="C2" capacitance="10uF" schX={-8} schY={-11} footprint="0805" pcbX={-4.38} pcbY={11.25} />
 
     {/* ---------------------------------------------------------------------
         Compute. RP2350 and its QSPI flash.
@@ -206,8 +234,8 @@ export default () => (
           <smtpad portHints={['61']} pcbX={0} pcbY={0} width="3.2mm" height="3.2mm" shape="rect" />
         </footprint>
       }
-      pcbX={0}
-      pcbY={3}
+      pcbX={0.0}
+      pcbY={3.75}
       manufacturerPartNumber="RP2350A"
       pinLabels={{
         pin1: 'VDD',
@@ -322,7 +350,7 @@ export default () => (
       }}
     />
 
-    <capacitor name="C3" capacitance="100nF" schX={-6} schY={-3} footprint="0402" pcbX={4.5} pcbY={11.5} />
+    <capacitor name="C3" capacitance="100nF" schX={-6} schY={-3} footprint="0402" pcbX={5.62} pcbY={14.38} />
 
     {/* Soldered down, deliberately. A microSD card is held in by a friction
         detent and boost acceleration is enough to unseat one, with the worst
@@ -331,8 +359,8 @@ export default () => (
     <chip
       name="U4"
       footprint="soic8"
-      pcbX={-5.5}
-      pcbY={-5}
+      pcbX={-6.88}
+      pcbY={-6.25}
       manufacturerPartNumber="W25Q128JVSIQ"
       pinLabels={{
         pin1: 'CS',
@@ -363,8 +391,8 @@ export default () => (
           {dualPads({ pins: 10, body: 2, pitch: 0.5, padLen: 0.45, padWid: 0.3 })}
         </footprint>
       }
-      pcbX={-6.5}
-      pcbY={-9.5}
+      pcbX={-8.12}
+      pcbY={-11.88}
       manufacturerPartNumber="BMP390"
       pinLabels={{ pin1: 'VDD', pin2: 'GND', pin3: 'SDA', pin4: 'SCL', pin5: 'SDO' }}
       schX={8}
@@ -374,8 +402,8 @@ export default () => (
     {/* One set of pull-ups on the bus, on the board. On the Modules path each
         breakout brings its own and several in parallel load the bus enough to
         stop it working, which presents as intermittent dropouts. */}
-    <resistor name="R4" resistance="4.7k" schX={12} schY={9} footprint="0402" pcbX={-1.5} pcbY={-9.5} />
-    <resistor name="R5" resistance="4.7k" schX={12} schY={10.5} footprint="0402" pcbX={1} pcbY={-9.5} />
+    <resistor name="R4" resistance="4.7k" schX={12} schY={9} footprint="0402" pcbX={-1.88} pcbY={-11.88} />
+    <resistor name="R5" resistance="4.7k" schX={12} schY={10.5} footprint="0402" pcbX={1.25} pcbY={-11.88} />
 
     <chip
       name="U6"
@@ -384,8 +412,8 @@ export default () => (
           {dualPads({ pins: 14, body: 2.5, pitch: 0.4, padLen: 0.5, padWid: 0.25 })}
         </footprint>
       }
-      pcbX={5.5}
-      pcbY={-9.5}
+      pcbX={6.88}
+      pcbY={-11.88}
       manufacturerPartNumber="ICM-42688-P"
       pinLabels={{
         pin1: 'VDD',
@@ -411,8 +439,8 @@ export default () => (
           {dualPads({ pins: 14, body: 3, pitch: 0.5, padLen: 0.6, padWid: 0.3 })}
         </footprint>
       }
-      pcbX={-6.5}
-      pcbY={-14}
+      pcbX={-8.12}
+      pcbY={-17.5}
       manufacturerPartNumber="ADXL375"
       pinLabels={{
         pin1: 'VDD',
@@ -438,8 +466,8 @@ export default () => (
           <smtpad portHints={['25']} pcbX={0} pcbY={0} width="2.2mm" height="2.2mm" shape="rect" />
         </footprint>
       }
-      pcbX={-3.6}
-      pcbY={-18.4}
+      pcbX={-4.5}
+      pcbY={-23.0}
       manufacturerPartNumber="SX1262"
       pinLabels={{
         pin1: 'VDD',
@@ -459,8 +487,8 @@ export default () => (
     <chip
       name="J3"
       footprint="sma"
-      pcbX={-1}
-      pcbY={-28.2}
+      pcbX={-1.25}
+      pcbY={-35.25}
       manufacturerPartNumber="ANT-902-928"
       pinLabels={{ pin1: 'ANT', pin2: 'GND' }}
       schX={13}
@@ -483,8 +511,8 @@ export default () => (
           {dualPads({ pins: 18, body: 4.5, pitch: 0.5, padLen: 0.8, padWid: 0.3 })}
         </footprint>
       }
-      pcbX={-5}
-      pcbY={-24.0}
+      pcbX={-6.25}
+      pcbY={-30.0}
       manufacturerPartNumber="MAX-M10S"
       pinLabels={{ pin1: 'VCC', pin2: 'GND', pin3: 'TXD', pin4: 'RXD', pin5: 'RF_IN' }}
       schX={8}
@@ -501,8 +529,8 @@ export default () => (
     <chip
       name="LS1"
       footprint="pinrow2"
-      pcbX={6.5}
-      pcbY={-15.0}
+      pcbX={8.12}
+      pcbY={-18.75}
       manufacturerPartNumber="PIEZO-BUZZER"
       pinLabels={{ pin1: 'IN', pin2: 'GND' }}
       schX={8}
@@ -512,8 +540,8 @@ export default () => (
     <chip
       name="D1"
       footprint="led5050"
-      pcbX={6}
-      pcbY={-22.5}
+      pcbX={7.5}
+      pcbY={-28.12}
       manufacturerPartNumber="RGB-LED"
       pinLabels={{ pin1: 'DIN', pin2: 'VDD', pin3: 'GND', pin4: 'DOUT' }}
       schX={8}
@@ -539,8 +567,8 @@ export default () => (
     <chip
       name="SW1"
       footprint="smdslideswitch"
-      pcbX={6.8}
-      pcbY={-4}
+      pcbX={8.5}
+      pcbY={-5.0}
       manufacturerPartNumber="ARM-SWITCH"
       pinLabels={{ pin1: 'A', pin2: 'B' }}
       schX={13}
@@ -549,7 +577,7 @@ export default () => (
 
     {/* Pulled up, switch pulls down. A floating input reads as noise, and an
         input that reads as noise arms a rocket at random. */}
-    <resistor name="R6" resistance="100k" schX={11} schY={-18} footprint="0402" pcbX={1.0} pcbY={-4} />
+    <resistor name="R6" resistance="100k" schX={11} schY={-18} footprint="0402" pcbX={1.25} pcbY={-5.0} />
 
     {/* ---------------------------------------------------------------------
         Getting code onto the part, and getting it back out.
@@ -571,8 +599,8 @@ export default () => (
     <chip
       name="SW2"
       footprint="smdpushbutton"
-      pcbX={-7.5}
-      pcbY={0.5}
+      pcbX={-9.38}
+      pcbY={0.62}
       manufacturerPartNumber="BOOT-BUTTON"
       pinLabels={{ pin1: 'A1', pin2: 'A2', pin3: 'B1', pin4: 'B2' }}
       schX={-13}
@@ -581,8 +609,8 @@ export default () => (
     <chip
       name="SW3"
       footprint="smdpushbutton"
-      pcbX={7.5}
-      pcbY={0.2}
+      pcbX={9.38}
+      pcbY={0.25}
       manufacturerPartNumber="RESET-BUTTON"
       pinLabels={{ pin1: 'A1', pin2: 'A2', pin3: 'B1', pin4: 'B2' }}
       schX={-13}
@@ -592,7 +620,7 @@ export default () => (
     {/* RUN has an internal pull-up on this part, and an external one is the
         convention because it makes the reset behaviour independent of a
         datasheet detail somebody would otherwise have to look up. */}
-    <resistor name="R9" resistance="10k" schX={-15} schY={-17} footprint="0402" pcbX={9.5} pcbY={-9.6} />
+    <resistor name="R9" resistance="10k" schX={-15} schY={-17} footprint="0402" pcbX={11.88} pcbY={-12.0} />
 
     {/* Debug pads. Two pads and a ground are the difference between a board
         that can be single-stepped and one that can only be power-cycled. */}
@@ -608,8 +636,8 @@ export default () => (
           <smtpad portHints={['3']} pcbX={0} pcbY={-1.27} width="0.7mm" height="0.7mm" shape="rect" />
         </footprint>
       }
-      pcbX={9.6}
-      pcbY={-12.3}
+      pcbX={12.0}
+      pcbY={-15.38}
       manufacturerPartNumber="SWD-PADS"
       pinLabels={{ pin1: 'SWCLK', pin2: 'SWDIO', pin3: 'GND' }}
       schX={13}
@@ -644,8 +672,8 @@ export default () => (
         Tiers: all.
         --------------------------------------------------------------------- */}
 
-    <resistor name="R7" resistance="100k" schX={-14} schY={-17} footprint="0402" pcbX={-1} pcbY={-14} />
-    <resistor name="R8" resistance="100k" schX={-14} schY={-19} footprint="0402" pcbX={1.5} pcbY={-14} />
+    <resistor name="R7" resistance="100k" schX={-14} schY={-17} footprint="0402" pcbX={-1.25} pcbY={-17.5} />
+    <resistor name="R8" resistance="100k" schX={-14} schY={-19} footprint="0402" pcbX={1.88} pcbY={-17.5} />
 
     {/* ---------------------------------------------------------------------
         Nets.
@@ -759,6 +787,18 @@ export default () => (
         control, because a payload that can switch itself off is a payload that
         can stop beaconing while you are still looking for it. */}
     <trace from=".U2 .EN" to="net.VBAT" />
+    <trace from=".U2 .VINA" to="net.VBAT" />
+    <trace from=".U2 .L1" to=".L2 .pin1" />
+    <trace from=".U2 .L2" to=".L2 .pin2" />
+    {/* Fixed-output parts tie FB to VOUT: the datasheet says "must be connected
+        to VOUT on fixed output voltage versions". */}
+    <trace from=".U2 .FB" to="net.V3V3" />
+    {/* Power-save mode enabled, which is the 0 case. A payload that sits armed
+        on a pad spends most of its life at almost no load, and that is exactly
+        where a converter held in fixed-frequency PWM wastes the cell. */}
+    <trace from=".U2 .PSSYNC" to="net.GND" />
+    <trace from=".U2 .PGND" to="net.GND" />
+    <trace from=".U2 .EPAD" to="net.GND" />
     <trace from=".U1 .VBAT" to="net.VBAT" />
     <trace from=".J2 .VBAT" to="net.VBAT" />
     <trace from=".U2 .VIN" to="net.VBAT" />
@@ -776,7 +816,7 @@ export default () => (
         This part did not exist while U3's pinout was a placeholder, which is
         exactly the kind of gap a placeholder hides: the schematic looked
         complete because the pins it needed were not on it. */}
-    <inductor name="L1" inductance="3.3uH" footprint="0805" pcbX={6} pcbY={7.5} schX={4} schY={-6} />
+    <inductor name="L1" inductance="3.3uH" footprint="0805" pcbX={7.5} pcbY={9.38} schX={4} schY={-6} />
 
     {/* Core rail. */}
     <trace from=".U3 .VREG_LX" to=".L1 .pin1" />

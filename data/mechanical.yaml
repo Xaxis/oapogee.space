@@ -77,7 +77,7 @@ params:
   # --- board ----------------------------------------------------------------
   - id: board_length
     group: board
-    value: 60
+    value: 78
     unit: mm
     provenance: provisional
     what: Long dimension of the PCB outline.
@@ -91,16 +91,19 @@ params:
 
   - id: board_width
     group: board
-    value: 22
+    value: 28
     unit: mm
     provenance: provisional
     what: Short dimension of the PCB outline.
     closes: >
       TODO(confirm-on-hardware): as board_length, mirrors hardware/oapogee.tsx.
-      This is the dimension the sled is tightest on: a BT-50 bore is 24.1 mm, so
-      22 mm of board leaves roughly 0.6 mm of rail on each side. That is above a
-      nozzle width and the sled asserts it, but there is no margin left, and if
-      the layout cannot come in under this the sled needs a larger tube.
+      The board grew from 22 by 60 because the autorouter could not finish on
+      the smaller one: routing time went from seconds to over ten minutes and
+      then to not completing at all once the real regulator and the programming
+      buttons were on it. At 28 by 78 it routes in under a minute and the
+      closest copper improved as well. This is the dimension the sled is
+      tightest on: a BT-55 bore is 32.59 mm, so 28 mm of board leaves about
+      1.85 mm of rail each side.
 
   - id: board_thickness
     group: board

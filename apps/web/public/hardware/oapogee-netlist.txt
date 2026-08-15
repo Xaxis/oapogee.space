@@ -5,7 +5,8 @@ COMPONENTS:
  - U1: MCP73831, sot23_5
  - R3: 10kΩ res0402 resistor
  - J2: S2B-PH-K-S, jst_ph_2
- - U2: TODO-BUCK-BOOST, sot23_5
+ - U2: TPS63001
+ - L2: L2, source_component
  - C1: 10uF cap0805 capacitor
  - C2: 10uF cap0805 capacitor
  - U3: RP2350A
@@ -163,12 +164,21 @@ NET: U3_LED
   - U3 LED
   - D1 DIN
 
+NET: L2_pos
+  - U2 L1
+  - L2 pin1 (+)
+
+NET: L2_neg
+  - U2 L2
+  - L2 pin2 (-)
+
 NET: VBAT
   - R7 pin1
   - C1 pin1 (+)
   - U2 VIN
   - J2 VBAT
   - U1 VBAT
+  - U2 VINA
   - U2 EN
 
 NET: U3_ARM
@@ -203,6 +213,7 @@ NET: V3V3
   - U3 IOVDD4
   - U3 IOVDD3
   - U3 IOVDD2
+  - U2 FB
   - R6 pin2
   - D1 VDD
   - U9 VCC
@@ -221,6 +232,9 @@ NET: V3V3
 
 NET: GND
   - U3 VREG_PGND
+  - U2 EPAD
+  - U2 PGND
+  - U2 PSSYNC
   - U5 SDO
   - R8 pin2
   - SW1 B
@@ -293,12 +307,22 @@ J2 (S2B-PH-K-S)
 - pin1(VBAT): NETS(VBAT)
 - pin2(GND): NETS(GND)
 
-U2 (TODO-BUCK-BOOST)
-- pin1(VIN): NETS(VBAT)
-- pin2(GND): NETS(GND)
-- pin3(EN): NETS(VBAT)
-- pin4(VOUT): NETS(V3V3)
-- pin5: NOT_CONNECTED
+U2 (TPS63001)
+- pin1(VOUT): NETS(V3V3)
+- pin2(L2): NETS(L2_neg)
+- pin3(PGND): NETS(GND)
+- pin4(L1): NETS(L2_pos)
+- pin5(VIN): NETS(VBAT)
+- pin6(EN): NETS(VBAT)
+- pin7(PSSYNC): NETS(GND)
+- pin8(VINA): NETS(VBAT)
+- pin9(GND): NETS(GND)
+- pin10(FB): NETS(V3V3)
+- pin11(EPAD): NETS(GND)
+
+L2
+- pin1(anode, pos, left): NETS(L2_pos)
+- pin2(cathode, neg, right): NETS(L2_neg)
 
 C1 (10uF cap0805)
 - pin1(pos, anode, left): NETS(VBAT)

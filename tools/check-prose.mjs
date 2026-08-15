@@ -175,6 +175,19 @@ const SOURCED = [
       'current draw per tier, and until then this is a shopping constraint rather than a spec.',
   },
   {
+    values: ['3.3 V'],
+    why:
+      'The rail voltage, fixed by the chosen regulator rather than picked: the TPS63001 is the ' +
+      'fixed 3.3 V member of its family, per SLVS520C. Also the logic level every part on the ' +
+      'board is specified at.',
+  },
+  {
+    values: ['3.0 V'],
+    why:
+      'Where a single lithium cell is considered empty and its protection circuit disconnects. ' +
+      'A property of the chemistry, and the bottom of the range the buck-boost has to span.',
+  },
+  {
     values: ['4.2 V'],
     why:
       'Full-charge terminal voltage of a single lithium polymer cell. A property of the ' +

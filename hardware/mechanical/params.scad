@@ -21,15 +21,17 @@
 //   20 while the circuit source said 60 by 22, and the enclosure was being built
 //   for a board nothing else described. Neither is measured until a board is
 //   fabricated and put on calipers.
-board_length = 60;  // mm
+board_length = 78;  // mm
 
 // Short dimension of the PCB outline. [PROVISIONAL]
 //   TODO(confirm-on-hardware): as board_length, mirrors hardware/oapogee.tsx.
-//   This is the dimension the sled is tightest on: a BT-50 bore is 24.1 mm, so
-//   22 mm of board leaves roughly 0.6 mm of rail on each side. That is above a
-//   nozzle width and the sled asserts it, but there is no margin left, and if
-//   the layout cannot come in under this the sled needs a larger tube.
-board_width = 22;  // mm
+//   The board grew from 22 by 60 because the autorouter could not finish on the
+//   smaller one: routing time went from seconds to over ten minutes and then to
+//   not completing at all once the real regulator and the programming buttons
+//   were on it. At 28 by 78 it routes in under a minute and the closest copper
+//   improved as well. This is the dimension the sled is tightest on: a BT-55
+//   bore is 32.59 mm, so 28 mm of board leaves about 1.85 mm of rail each side.
+board_width = 28;  // mm
 
 // PCB thickness. [standard]
 //   The default thickness for two-layer FR-4 at every prototype fabricator, and

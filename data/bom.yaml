@@ -619,29 +619,77 @@ parts:
 
   - id: regulator
     role: power
-    name: 3V3 regulator
-    manufacturer: null
-    mpn: null
-    confidence: unverified
+    name: Buck-boost regulator, fixed 3V3
+    manufacturer: Texas Instruments
+    mpn: TPS63001
+    confidence: asserted
     designators: [U2]
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): a single LiPo cell runs from about 4.2 V down to about 3.0 V,
-      which crosses 3.3 V partway through. A plain buck regulator browns out at
-      the bottom of the discharge and a plain LDO wastes headroom at the top, so
-      the part is a buck-boost. Select one, then measure quiescent current,
-      because on a payload that sits armed on a pad and then beacons after
-      landing, idle draw sets endurance more than active draw does.
+      TODO(verify): price and weigh with the rest of the board. The electrical
+      selection is settled and sourced; what is not settled is whether 800 mA is
+      generous or merely adequate, because the payload's current draw in each
+      flight state has never been measured. That measurement is on the battery
+      entry and it decides nothing here unless it comes out surprisingly high.
+    datasheet:
+      document: SLVS520C, March 2006, revised October 2015
+      url: https://www.ti.com/lit/ds/symlink/tps63001.pdf
+      checked: 2026-08-15
+      facts: >
+        Input 1.8 V to 5.5 V, which spans a single lithium cell from full charge
+        to cutoff. Fixed 3.3 V output, so no feedback divider and no resistor
+        pair to get wrong. Up to 800 mA. Quiescent current 40 uA typical and
+        50 uA maximum at no load with VIN 3.6 V and VOUT 3.3 V. VSON-10,
+        3.00 by 3.00 mm, exposed pad connected to PGND. Needs one external
+        2.2 uH inductor.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
       - { tier: track, path: board, qty: 1 }
     why: >
-      The rail everything else runs from. It is called out separately rather
-      than hidden inside the microcontroller row because the choice between
-      buck, boost, and buck-boost is decided by the cell chemistry, and getting
-      it wrong shows up as a payload that dies at 60 percent battery.
+      A single lithium cell runs from about 4.2 V down to about 3.0 V, and 3.3 V
+      sits inside that range rather than below it. A plain buck browns out at the
+      bottom of the discharge and a plain boost cannot help at the top, so the
+      rail has to be buck-boost or the payload stops early with charge left in
+      the cell. The fixed-output part was chosen over the adjustable one because
+      a feedback divider is two more parts and one more way to be quietly wrong
+      about a rail voltage.
+
+      Quiescent current matters more here than efficiency at load. A payload
+      spends its life on a pad and then in a field beeping, both at almost no
+      draw, so 40 uA of standing loss is the number that decides how long it
+      keeps beeping.
+    substitutes:
+      - mpn: TPS63000
+        manufacturer: Texas Instruments
+        note: >
+          The adjustable version of the same silicon, in the same package and
+          from the same datasheet. Use it only if the rail has to be something
+          other than 3.3 V, and accept the feedback divider that comes with it.
+        confidence: asserted
+
+  - id: inductor_2u2
+    role: passive
+    name: Inductor, 2.2 uH, 0805
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    designators: [L2]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): confirm the saturation current exceeds the converter's peak
+      switch current at full load, which the TPS63001 datasheet gives as a
+      1.8 A switch limit. An inductor that saturates does not fail visibly, it
+      simply stops being an inductor at the current where it matters.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      The buck-boost stores energy in this on every switching cycle. Without it
+      the 3V3 rail never comes up at all.
     substitutes: []
 
   - id: usb_connector
@@ -1046,19 +1094,19 @@ parts:
 
   - id: status_led
     role: indicator
-    name: Addressable RGB LED
-    manufacturer: null
+    name: RGB LED, common anode, 3 colour
+    manufacturer: multiple
     mpn: null
     confidence: unverified
     designators: [D1]
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): choose between an addressable part, which costs one GPIO
-      total, and discrete LEDs, which cost one GPIO each but are visible in
-      direct sunlight at the pad if driven hard. Sunlight visibility is the
-      requirement that decides this, and it needs testing outdoors, not at a
-      desk.
+      TODO(verify): select a specific part and confirm it is readable in
+      daylight from several metres, which is the only test that matters for an
+      arm indicator. Then set the three series resistors from its per-colour
+      forward voltages, which differ, and are the reason the three values may
+      not come out the same.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
@@ -1067,9 +1115,27 @@ parts:
       - { tier: link, path: modules, qty: 1 }
       - { tier: track, path: modules, qty: 1 }
     why: >
-      Arm state has to be readable from a few metres away while the rocket is on
-      the pad and you are walking back to the flight line. That is the whole
-      requirement.
+      Three ordinary LEDs in one package, driven by three pins through three
+      resistors, rather than an addressable part driven by one.
+
+      This was specified as an addressable RGB LED, and that is wrong for this
+      board. The WS2812 family and its clones want a supply above what this
+      payload has: the only rail here is 3V3 and those parts specify a minimum
+      higher than that. Running one under its minimum gives an LED that works on
+      the bench for the person who tested it and does something else cold, or at
+      the bottom of a discharge.
+
+      The related trap is worth writing down because it is the one people meet
+      coming the other way: an addressable LED on 5 V needs its data line above
+      0.7 of its supply, which a 3V3 pin does not reach. Neither problem exists
+      once the part is three plain LEDs.
+
+      The cost is two more pins and two more resistors. The microcontroller has
+      pins to spare, and the firmware loses a timing-critical bit-banged
+      protocol, which on a payload that is busy during boost is a gain.
+
+      Arm state has to be readable from a few metres while the rocket is on the
+      pad and you are walking back. That is the whole requirement.
     substitutes: []
 
 # ---------------------------------------------------------------------------
