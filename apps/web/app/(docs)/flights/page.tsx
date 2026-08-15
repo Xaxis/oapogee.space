@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { getFlights } from '@/lib/data'
 
 export const metadata: Metadata = {
