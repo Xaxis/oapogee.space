@@ -244,6 +244,14 @@ const char *oa_packet_type_name(oa_packet_type_t type)
 
 #define OA_PKT_BODY_FIELD(name, wire, offset) oa_put_##wire(out, (size_t)(offset), body->name);
 
+/* The flag decides, not the caller. See the note in oa_packet_fields.def. */
+#define OA_PKT_BODY_FIELD_GNSS(name, wire, offset, absent)                        \
+    oa_put_##wire(out,                                                            \
+                  (size_t)(offset),                                               \
+                  ((hdr->flags & (uint8_t)OA_FLAG_GNSS_FIX) != 0u)                \
+                      ? body->name                                                \
+                      : (oa_##wire##_t)(absent));
+
 #define OA_PKT_TYPE_END(SYM, sym)                                                 \
         oa_append_crc(out, (size_t)OA_PKT_##SYM##_TOTAL_BYTES);                   \
                                                                                   \

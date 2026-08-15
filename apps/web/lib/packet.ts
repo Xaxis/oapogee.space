@@ -313,9 +313,23 @@ export function encode(input: EncodeInput): { packet: Uint8Array; flags: number 
       view.setUint32(12, (b.tApogeeMs ?? 0) >>> 0, true)
       break
     }
+    /* The flag governs, not the supplied value, in both branches.
+     *
+     * The spec makes this a property of the wire: with no fix there is no last
+     * value worth carrying, so lat_e7 and lon_e7 carry INT32_MIN in both BEACON
+     * and POSITION and GNSS_FIX says which it is. An encoder that lets a caller
+     * put a real coordinate behind a clear flag emits a packet the format does
+     * not allow.
+     *
+     * BEACON did exactly that while POSITION did not, so the two branches of a
+     * single encoder disagreed about one rule. They agree now. The firmware
+     * builds bodies through an X-macro that copies fields verbatim and gates
+     * neither type, which is a real divergence rather than a stylistic one, and
+     * the beacon_coords_without_fix vector exists to keep it visible. */
     case PacketType.BEACON: {
-      view.setInt32(8, b.latE7 ?? NO_FIX, true)
-      view.setInt32(12, b.lonE7 ?? NO_FIX, true)
+      const beaconFix = (flags & FLAG.GNSS_FIX) !== 0
+      view.setInt32(8, beaconFix ? (b.latE7 ?? 0) : NO_FIX, true)
+      view.setInt32(12, beaconFix ? (b.lonE7 ?? 0) : NO_FIX, true)
       view.setInt32(16, b.apogeeCm ?? 0, true)
       break
     }

@@ -41,18 +41,26 @@ flashing removes the most common place a first-time builder gives up.
 
 ### Releases
 
-TODO(confirm-on-hardware): no firmware has been written and no release exists.
-When one does, publish per-tier builds, a changelog entry for every release, and
-the git commit each build came from, so a flight log can record exactly what was
-flying.
+The firmware exists, in `firmware/` in this repository: sixteen modules of
+freestanding C11, host-testable with nothing but cmake and a compiler, with a
+test suite that runs in CI. What does not exist is a release.
+
+TODO(confirm-on-hardware): publish per-tier builds once there is hardware to run
+them on, with a changelog entry for every release and the git commit each build
+came from, so a flight log can record exactly what was flying.
 
 ## Building from source
 
 For anyone who wants to change something. Nothing about the standard build
 requires this.
 
-TODO(confirm-on-hardware): document the toolchain, the checkout, the build
-command, and the output path, once the firmware repository exists. Include the
+The source is in `firmware/`. Building the core and running its tests on your
+own machine needs cmake and a C compiler and nothing else:
+`cmake -S firmware -B firmware/build && cmake --build firmware/build && ctest
+--test-dir firmware/build`.
+
+TODO(confirm-on-hardware): document the cross-compilation toolchain, the flashing
+step and the output path for a real target. Include the
 exact toolchain versions the published releases are built with, because "it
 builds on my machine" is not a build instruction.
 

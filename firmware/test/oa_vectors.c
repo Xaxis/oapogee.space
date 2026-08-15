@@ -147,6 +147,15 @@ int main(void)
         body.lat_e7 = 512345678;
         body.lon_e7 = -1234567;
         BUILD(oa_packet_build_beacon, "beacon_fix", hdr, body);
+
+        /* Coordinates supplied with the flag clear. The format says lat and lon
+         * carry INT32_MIN when there is no fix, so a conforming builder ignores
+         * what the caller put in the body. Nothing exercised this, and the two
+         * implementations disagreed about it for a while as a result. */
+        hdr.flags   = 0u;
+        body.lat_e7 = 515000000;
+        body.lon_e7 = -1270000000;
+        BUILD(oa_packet_build_beacon, "beacon_coords_without_fix", hdr, body);
     }
 
     /* --- POSITION, with and without a fix --------------------------------- */

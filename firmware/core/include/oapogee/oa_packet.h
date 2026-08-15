@@ -132,6 +132,7 @@ typedef struct {
 
 #define OA_PKT_TYPE_BEGIN(SYM, sym, code, body_len, total_len) typedef struct {
 #define OA_PKT_BODY_FIELD(name, wire, offset) oa_##wire##_t name;
+#define OA_PKT_BODY_FIELD_GNSS(name, wire, offset, absent) oa_##wire##_t name;
 #define OA_PKT_TYPE_END(SYM, sym) \
     }                             \
     oa_##sym##_body_t;

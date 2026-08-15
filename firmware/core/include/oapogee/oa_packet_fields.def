@@ -60,6 +60,21 @@
 #define OA_PKT_BODY_FIELD(name, wire, offset)
 #endif
 
+/* A body field whose meaning depends on GNSS_FIX.
+ *
+ * The format says it plainly: with no fix there is no last value worth
+ * carrying, so lat_e7 and lon_e7 carry INT32_MIN and the flag says which it is.
+ * That is a property of the wire, not advice to the caller, so the builder
+ * enforces it rather than trusting whoever filled in the body. `absent` is what
+ * goes out when the flag is clear.
+ *
+ * It is still a pure function of the header and the body, which is the property
+ * oa_packet.h promises and test_oa_packet.c checks: the same inputs give the
+ * same bytes. It just reads one more field of the header than the plain form. */
+#ifndef OA_PKT_BODY_FIELD_GNSS
+#define OA_PKT_BODY_FIELD_GNSS(name, wire, offset, absent)
+#endif
+
 #ifndef OA_PKT_TYPE_END
 #define OA_PKT_TYPE_END(SYM, sym)
 #endif
@@ -106,19 +121,20 @@ OA_PKT_TYPE_END(APOGEE, apogee)
 
 /* 0x4 BEACON, body 12, total 22. After landing, long interval. */
 OA_PKT_TYPE_BEGIN(BEACON, beacon, 0x4, 12, 22)
-    OA_PKT_BODY_FIELD(lat_e7,    i32,  8)
-    OA_PKT_BODY_FIELD(lon_e7,    i32, 12)
+    OA_PKT_BODY_FIELD_GNSS(lat_e7, i32,  8, INT32_MIN)
+    OA_PKT_BODY_FIELD_GNSS(lon_e7, i32, 12, INT32_MIN)
     OA_PKT_BODY_FIELD(apogee_cm, i32, 16)
 OA_PKT_TYPE_END(BEACON, beacon)
 
 /* 0x5 POSITION, body 9, total 19. Track only, interleaved with FLIGHT. */
 OA_PKT_TYPE_BEGIN(POSITION, position, 0x5, 9, 19)
-    OA_PKT_BODY_FIELD(lat_e7, i32,  8)
-    OA_PKT_BODY_FIELD(lon_e7, i32, 12)
-    OA_PKT_BODY_FIELD(sats,   u8,  16)
+    OA_PKT_BODY_FIELD_GNSS(lat_e7, i32,  8, INT32_MIN)
+    OA_PKT_BODY_FIELD_GNSS(lon_e7, i32, 12, INT32_MIN)
+    OA_PKT_BODY_FIELD_GNSS(sats,   u8,  16, 0)
 OA_PKT_TYPE_END(POSITION, position)
 
 #undef OA_PKT_HDR_FIELD
 #undef OA_PKT_TYPE_BEGIN
 #undef OA_PKT_BODY_FIELD
+#undef OA_PKT_BODY_FIELD_GNSS
 #undef OA_PKT_TYPE_END

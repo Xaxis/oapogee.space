@@ -149,6 +149,16 @@ const VECTORS = {
     tMs: 240000,
     body: { latE7: 512345678, lonE7: -1234567, apogeeCm: 40500 },
   },
+  // Coordinates handed in with GNSS_FIX clear. The flag governs, so both
+  // encoders must emit the sentinel and ignore the body.
+  beacon_coords_without_fix: {
+    type: PacketType.BEACON,
+    flags: 0,
+    seq: 3,
+    state: 6,
+    tMs: 240000,
+    body: { latE7: 515000000, lonE7: -1270000000, apogeeCm: 40500 },
+  },
   position_fix: {
     type: PacketType.POSITION,
     flags: FLAG.GNSS_FIX,
