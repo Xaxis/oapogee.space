@@ -36,6 +36,8 @@ export type Tiers = {
   updated: string
   status: string
   upgrade_promise: string
+  /** Why the promise is an intention rather than a fact. Rendered beside it. */
+  upgrade_promise_verify?: string
   paths: BuildPath[]
   tiers: Tier[]
   scope: {

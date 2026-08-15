@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { SchematicViewer } from '@/components/SchematicViewer'
 import { readSvg } from '@/lib/svg'
+import { Marked } from '@/components/Marked'
 import { getTiers, getFlightPhases } from '@/lib/data'
 import { Hero } from '@/components/hero/Hero'
 
@@ -49,7 +50,7 @@ const WHATS_HERE = [
 ]
 
 export default function Home() {
-  const { tiers, paths, scope, upgrade_promise } = getTiers()
+  const { tiers, paths, scope, upgrade_promise, upgrade_promise_verify } = getTiers()
   const { phases } = getFlightPhases()
   const system = readSvg('schematic/system.svg')
 
@@ -110,6 +111,16 @@ export default function Home() {
       <section>
         <h2 className="text-2xl font-semibold text-white">Three tiers, one board</h2>
         <p className="mt-2 max-w-2xl text-[var(--color-muted)]">{upgrade_promise}</p>
+        {/* The promise is stated as an intention because data/tiers.yaml says
+            it must be until one physical unit has been flown as Solo, upgraded
+            and flown again. The homepage asserted it flatly, which is the one
+            page most likely to be read by somebody choosing a tier on it. */}
+        {upgrade_promise_verify && (
+          <Marked
+            text={upgrade_promise_verify}
+            className="mt-3 max-w-2xl border-l-2 border-[var(--color-orange)] pl-4 text-sm text-[var(--color-muted)]"
+          />
+        )}
 
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           {tiers.map((tier) => (
