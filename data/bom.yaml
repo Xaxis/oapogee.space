@@ -691,6 +691,104 @@ parts:
       buy anywhere.
     substitutes: []
 
+  # --- Getting code on and off ---------------------------------------------
+
+  - id: boot_button
+    role: connector
+    name: Tactile push button, boot
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [SW2]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): select a specific button and confirm it survives the shake
+      and drop tests without latching or changing state. A momentary switch that
+      welds shut under boost holds the flash chip select low, which is a payload
+      that reboots into its bootloader instead of recording a flight.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      There is no dedicated bootloader pin on this microcontroller. Holding the
+      flash chip select low as the chip leaves reset is what selects USB boot,
+      so this button pulls that line down. Without it a fabricated board can be
+      programmed exactly once, while its flash is still blank and the bootrom
+      falls through to USB, and never again.
+    substitutes: []
+
+  - id: reset_button
+    role: connector
+    name: Tactile push button, reset
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [SW3]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): as the boot button. A reset that fires under boost ends the
+      flight's recording, so this one is worth testing harder than most.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Pulls RUN down. Needed to re-enter the bootloader with the boot button
+      held, and needed on its own to restart a payload without unplugging a
+      lithium cell.
+    substitutes: []
+
+  - id: swd_pads
+    role: connector
+    name: SWD test pads, 3 way
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [J4]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): both are effectively zero, and this project does not publish
+      "effectively zero" as a measurement. Three pads of copper on a board that
+      is being made anyway cost nothing extra and weigh what their solder does.
+      Close it with the rest of the board when a real cart is priced and a real
+      assembly is weighed.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Not a part to buy: three pads in the copper, costing nothing and taking no
+      height under the pod. They are the difference between firmware that can be
+      single-stepped when it misbehaves and firmware that can only be
+      power-cycled and guessed at.
+    substitutes: []
+
+  - id: res_10k_run
+    role: passive
+    name: Resistor, 10k, 0402
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    designators: [R9]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): price and weigh with the rest of the passives, from a real
+      cart and a real scale.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Pulls RUN up. The microcontroller has an internal pull-up on that pin and
+      this makes the reset behaviour a property of the board rather than of a
+      datasheet detail somebody has to go and look up.
+    substitutes: []
+
   # --- Arming -------------------------------------------------------------
 
   - id: arm_switch

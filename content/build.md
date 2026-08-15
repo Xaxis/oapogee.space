@@ -186,9 +186,16 @@ assembled by the fab is the other answer.
 2. Solder the QSPI flash.
 3. Solder the crystal and its load capacitors if the design uses one.
 
-> **Checkpoint 2B.** Holding the boot button and connecting USB presents the
-> board as a USB drive. Copying a known-good test firmware onto it causes the
-> status LED to light.
+> **Checkpoint 2B.** Hold SW2, tap SW3, release SW2, and the board appears to
+> your computer as a USB drive. Copying a known-good test firmware onto it
+> causes the status LED to light.
+>
+> There is no dedicated bootloader pin on this microcontroller. Holding the
+> flash chip select low as the chip leaves reset is what selects USB boot, which
+> is what those two buttons do. A board with blank flash will also appear as a
+> drive on its own, because the bootrom falls through to USB when it finds
+> nothing to run, so the first flash works even if a button is unsoldered. The
+> buttons are what let you do it a second time.
 
 ### Stage 3B: Sensors, radio, and connectors
 

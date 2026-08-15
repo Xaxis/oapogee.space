@@ -87,14 +87,17 @@ entries:
     symptom: It powers on but does not appear as a USB drive
     tiers: [solo, link, track]
     checks:
-      - do: Hold the boot button while plugging it in
+      - do: Hold the boot button while plugging it in, or on the custom board hold SW2 and tap SW3
         detail: >
-          The board only presents itself as a drive in bootloader mode. In normal
-          operation it is a serial device, not a drive, and that is correct
-          behaviour rather than a fault.
+          There is no dedicated bootloader pin on this microcontroller. Holding
+          the flash chip select low as the chip leaves reset is what selects USB
+          boot, which is what SW2 and SW3 do together. A development module has
+          its own button doing the same job. The board only presents itself as
+          a drive in bootloader mode: in normal operation it is a serial device
+          rather than a drive, and that is correct behaviour, not a fault.
       - do: Try a different cable
         detail: See above. It is still the most likely answer.
-      - do: Check the boot button actually makes contact
+      - do: Check SW2 and SW3 actually make contact
         detail: Continuity across it while pressed.
 
   - id: short-battery

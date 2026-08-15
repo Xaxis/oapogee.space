@@ -16,7 +16,10 @@ get a working payload.
 ## Flashing a release
 
 1. Download the current release `.uf2` file for your tier.
-2. Hold the boot button on the board.
+2. Put the board into its bootloader. On a development module that is its boot
+   button. On the custom board it is SW2 held while SW3 is tapped, because this
+   microcontroller has no dedicated bootloader pin and holding the flash chip
+   select low as it leaves reset is what selects USB boot.
 3. While holding it, connect USB.
 4. Release the button. The board appears as a USB drive.
 5. Copy the `.uf2` file onto that drive.

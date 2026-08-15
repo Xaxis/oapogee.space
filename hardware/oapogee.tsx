@@ -3,22 +3,20 @@
  *
  * READ THIS BEFORE USING ANY PART OF IT
  *
- * This is a netlist, not a pinout. It says what connects to what, which is the
- * design decision worth capturing and reviewing. It does NOT say which physical
- * pin of any package a signal lands on, and the pin numbers below are
- * structural placeholders assigned in the order the labels are written, not
- * read from a datasheet.
+ * This file is now a layout as well as a netlist. It routes, and `make fab`
+ * exports a fabrication package from it, so the old instruction here not to
+ * send it to a fabricator is gone along with the placeholder pin numbers that
+ * justified it.
  *
- * That distinction is the whole reason this file exists in this form. This
- * project's rule is that it never publishes a number it has not measured or
- * sourced, and a datasheet pin number recalled from memory is exactly the kind
- * of confident, plausible, wrong figure the rule exists to prevent. Mapping
- * these functional pins onto real packages is a separate step, done against
- * datasheets, and it is tracked as such.
+ * What is verified: the microcontroller's sixty pins are the RP2350 datasheet's
+ * own numbering, and each signal sits on a GPIO its peripheral can actually
+ * reach.
  *
- * So: the connectivity here is reviewable and is meant to be reviewed. The pin
- * numbers are not. Do not lay a board out from this file and do not send it to
- * a fabricator.
+ * What is NOT verified, and is the reason to read a datasheet before spending
+ * money: every other package uses the pin numbering its footprint library
+ * assigns, and nothing in this repository compares that against the
+ * manufacturer's land pattern. A wrong pin number is invisible in a schematic,
+ * invisible in a render, and shows up as a board that does not work.
  *
  * One board, three tiers. Everything is on the same schematic because that is
  * the claim the project makes: Solo, Link and Track are the same PCB with
@@ -552,6 +550,88 @@ export default () => (
     {/* Pulled up, switch pulls down. A floating input reads as noise, and an
         input that reads as noise arms a rocket at random. */}
     <resistor name="R6" resistance="100k" schX={11} schY={-18} footprint="0402" pcbX={1.0} pcbY={-4} />
+
+    {/* ---------------------------------------------------------------------
+        Getting code onto the part, and getting it back out.
+
+        This board had none of this. RUN, SWCLK and SWDIO were all unconnected
+        and QSPI_CS went only to the flash, which means a fabricated board could
+        be flashed exactly once, while its flash was still blank and the bootrom
+        fell through to USB boot, and then never again: no way into the
+        bootloader, no way to reset it, and no way to attach a debugger. For a
+        payload that is meant to be reflashed between flights that is fatal, and
+        it was invisible in the schematic because the pins were simply absent.
+
+        BOOTSEL is not a dedicated pin on this part. Holding the flash chip
+        select low while the chip comes out of reset is what selects USB boot,
+        so the boot button pulls QSPI_CS down and the reset button pulls RUN
+        down. Press and hold boot, tap reset, release boot.
+        --------------------------------------------------------------------- */}
+
+    <chip
+      name="SW2"
+      footprint="smdpushbutton"
+      pcbX={-7.5}
+      pcbY={0.5}
+      manufacturerPartNumber="BOOT-BUTTON"
+      pinLabels={{ pin1: 'A1', pin2: 'A2', pin3: 'B1', pin4: 'B2' }}
+      schX={-13}
+      schY={-16}
+    />
+    <chip
+      name="SW3"
+      footprint="smdpushbutton"
+      pcbX={7.5}
+      pcbY={0.2}
+      manufacturerPartNumber="RESET-BUTTON"
+      pinLabels={{ pin1: 'A1', pin2: 'A2', pin3: 'B1', pin4: 'B2' }}
+      schX={-13}
+      schY={-19}
+    />
+
+    {/* RUN has an internal pull-up on this part, and an external one is the
+        convention because it makes the reset behaviour independent of a
+        datasheet detail somebody would otherwise have to look up. */}
+    <resistor name="R9" resistance="10k" schX={-15} schY={-17} footprint="0402" pcbX={9.5} pcbY={-9.6} />
+
+    {/* Debug pads. Two pads and a ground are the difference between a board
+        that can be single-stepped and one that can only be power-cycled. */}
+    <chip
+      name="J4"
+      /* Three test pads at 1.27 mm rather than a 2.54 mm header. A header is
+         8 mm long and there is nowhere on this board to put 8 mm; pads are what
+         a debugger clips to anyway, and they cost no height under the pod. */
+      footprint={
+        <footprint>
+          <smtpad portHints={['1']} pcbX={0} pcbY={1.27} width="0.7mm" height="0.7mm" shape="rect" />
+          <smtpad portHints={['2']} pcbX={0} pcbY={0} width="0.7mm" height="0.7mm" shape="rect" />
+          <smtpad portHints={['3']} pcbX={0} pcbY={-1.27} width="0.7mm" height="0.7mm" shape="rect" />
+        </footprint>
+      }
+      pcbX={9.6}
+      pcbY={-12.3}
+      manufacturerPartNumber="SWD-PADS"
+      pinLabels={{ pin1: 'SWCLK', pin2: 'SWDIO', pin3: 'GND' }}
+      schX={13}
+      schY={-20}
+    />
+
+    {/* A tactile switch has four pads in two internally joined pairs, and which
+        pair is which is a property of the part rather than something this design
+        should assume. Both pads of each side are tied. */}
+    <trace from=".SW2 .A1" to=".U3 .QSPI_CS" />
+    <trace from=".SW2 .A2" to=".U3 .QSPI_CS" />
+    <trace from=".SW2 .B1" to="net.GND" />
+    <trace from=".SW2 .B2" to="net.GND" />
+    <trace from=".SW3 .A1" to=".U3 .RUN" />
+    <trace from=".SW3 .A2" to=".U3 .RUN" />
+    <trace from=".SW3 .B1" to="net.GND" />
+    <trace from=".SW3 .B2" to="net.GND" />
+    <trace from=".R9 .pin1" to="net.V3V3" />
+    <trace from=".R9 .pin2" to=".U3 .RUN" />
+    <trace from=".J4 .SWCLK" to=".U3 .SWCLK" />
+    <trace from=".J4 .SWDIO" to=".U3 .SWDIO" />
+    <trace from=".J4 .GND" to="net.GND" />
 
     {/* ---------------------------------------------------------------------
         Battery sense.

@@ -174,6 +174,26 @@ if (bom) {
   }
 }
 
+// --- every data file at least parses ----------------------------------------
+//
+// Not every file here has a cross-reference worth checking, and the ones that
+// do not were simply never loaded. data/troubleshooting.yaml was one of them:
+// it renders a whole page and a duplicate key in it passed this check silently,
+// which is how a YAML map quietly loses half its content. Parsing every file is
+// cheap and catches the class.
+{
+  for (const name of readdirSync(DATA).filter((f) => /\.ya?ml$/.test(f))) {
+    try {
+      const doc = load(name)
+      if (doc === null || typeof doc !== 'object') {
+        fail(`data/${name}: parses to ${doc === null ? 'null' : typeof doc}, which is not a document`)
+      }
+    } catch (e) {
+      fail(`data/${name}: ${String(e.message).split('\n')[0]}`)
+    }
+  }
+}
+
 // --- tier budgets -----------------------------------------------------------
 //
 // The brief's "under $60" and "under 25 g" are targets, and the whole point of

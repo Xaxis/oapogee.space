@@ -70,7 +70,7 @@ nodes:
   # --- compute, middle -----------------------------------------------------
   - id: mcu
     part: mcu
-    also: [mcu_module, arm_switch]
+    also: [mcu_module, arm_switch, boot_button, reset_button, swd_pads, res_10k_run]
     label: RP2350
     sub: State machine, fusion
     col: 2

@@ -23,9 +23,27 @@ COMPONENTS:
  - D1: RGB-LED, led5050
  - SW1: ARM-SWITCH, smdslideswitch
  - R6: 100kΩ res0402 resistor
+ - SW2: BOOT-BUTTON, smdpushbutton
+ - SW3: RESET-BUTTON, smdpushbutton
+ - R9: 10kΩ res0402 resistor
+ - J4: SWD-PADS
  - R7: 100kΩ res0402 resistor
  - R8: 100kΩ res0402 resistor
  - L1: L1, source_component
+
+NET: U3_RUN
+  - R9 pin2
+  - SW3 A2
+  - SW3 A1
+  - U3 RUN
+
+NET: U3_SWCLK
+  - J4 SWCLK
+  - U3 SWCLK
+
+NET: U3_SWDIO
+  - J4 SWDIO
+  - U3 SWDIO
 
 NET: U1_VDD
   - J1 VBUS
@@ -56,6 +74,8 @@ NET: U3_QSPI_SCK
   - U4 CLK
 
 NET: U3_QSPI_CS
+  - SW2 A2
+  - SW2 A1
   - U3 QSPI_CS
   - U4 CS
 
@@ -197,6 +217,7 @@ NET: V3V3
   - U3 VDD
   - U2 VOUT
   - C2 pin1 (+)
+  - R9 pin1
 
 NET: GND
   - U3 VREG_PGND
@@ -223,6 +244,11 @@ NET: GND
   - R2 pin2
   - R1 pin2
   - J1 GND
+  - J4 GND
+  - SW3 B2
+  - SW3 B1
+  - SW2 B2
+  - SW2 B1
 
 
 COMPONENT_PINS:
@@ -306,9 +332,9 @@ U3 (RP2350A)
 - pin21(XIN): NOT_CONNECTED
 - pin22(XOUT): NOT_CONNECTED
 - pin23(DVDD2): NETS(VCORE)
-- pin24(SWCLK): NOT_CONNECTED
-- pin25(SWDIO): NOT_CONNECTED
-- pin26(RUN): NOT_CONNECTED
+- pin24(SWCLK): NETS(U3_SWCLK)
+- pin25(SWDIO): NETS(U3_SWDIO)
+- pin26(RUN): NETS(U3_RUN)
 - pin27(SPI_MISO): NETS(U3_SPI_MISO)
 - pin28(CS_IMU): NETS(U3_CS_IMU)
 - pin29(SPI_SCK): NETS(U6_SCLK)
@@ -486,6 +512,27 @@ SW1 (ARM-SWITCH)
 R6 (100kΩ res0402)
 - pin1(anode, pos, left): NETS(U3_ARM)
 - pin2(cathode, neg, right): NETS(V3V3)
+
+SW2 (BOOT-BUTTON)
+- pin1(A1): NETS(U3_QSPI_CS)
+- pin2(A2): NETS(U3_QSPI_CS)
+- pin3(B1): NETS(GND)
+- pin4(B2): NETS(GND)
+
+SW3 (RESET-BUTTON)
+- pin1(A1): NETS(U3_RUN)
+- pin2(A2): NETS(U3_RUN)
+- pin3(B1): NETS(GND)
+- pin4(B2): NETS(GND)
+
+R9 (10kΩ res0402)
+- pin1(anode, pos, left): NETS(V3V3)
+- pin2(cathode, neg, right): NETS(U3_RUN)
+
+J4 (SWD-PADS)
+- pin1(SWCLK): NETS(U3_SWCLK)
+- pin2(SWDIO): NETS(U3_SWDIO)
+- pin3(GND): NETS(GND)
 
 R7 (100kΩ res0402)
 - pin1(anode, pos, left): NETS(VBAT)

@@ -86,25 +86,27 @@ export default function Schematic() {
         </div>
       </header>
 
-      {/* The single most important thing on this page. Somebody who takes these
-          pin numbers for datasheet pin numbers will build a board that cannot
-          work, and the drawing looks authoritative enough that they might. */}
+      {/* Still the most important thing on this page, but the risk moved. The
+          board is laid out, routed and published, so the old warning not to send
+          anything to a fabricator was both wrong and directly contradicted by
+          the Files tab twenty lines below it. What is actually unverified is
+          narrower and easier to miss. */}
       <section className="max-w-[46rem] rounded-lg border-l-3 border-[var(--color-alert)] bg-[var(--color-surface)] p-6">
-        <h2 className="text-lg font-semibold text-white">This is a netlist, not a pinout</h2>
+        <h2 className="text-lg font-semibold text-white">Before you order this board</h2>
         <p className="mt-3 text-[var(--color-muted)]">
-          It says what connects to what, which is the design decision worth reviewing. It does not
-          say which physical pin of any package a signal lands on. The pin numbers below are
-          structural placeholders, assigned in the order the labels were written, not read from a
-          datasheet.
+          The connectivity below is the design decision worth reviewing, and the layout is real:
+          routed, checked against its own design rules, and published as a fabrication package.
         </p>
         <p className="mt-3 text-[var(--color-muted)]">
-          That is deliberate. This project never publishes a number it has not measured or sourced,
-          and a datasheet pin number recalled from memory is exactly the kind of confident,
-          plausible, wrong figure that rule exists to prevent. Mapping these functional pins onto
-          real packages is a separate step, done against datasheets, and it has not been done.
+          What has not been checked is which physical pad each signal lands on. The
+          microcontroller&rsquo;s sixty pins were transcribed from the Raspberry Pi datasheet. The
+          other fourteen packages were not: their pin numbering is whatever the footprint library
+          assigns, and nothing here compares that to the manufacturer&rsquo;s land pattern.
         </p>
         <p className="mt-3 font-medium text-[var(--color-body)]">
-          Do not lay a board out from this, and do not send anything here to a fabricator.
+          A wrong pin number is invisible in a schematic, invisible in a render, and shows up as a
+          board that does not work. Confirm every package against its datasheet before you spend
+          money.
         </p>
       </section>
 
@@ -188,7 +190,7 @@ export default function Schematic() {
           {
             id: 'files',
             label: 'Files',
-            hint: 'All four artifacts, rendered from hardware/oapogee.tsx by make hw and verified against it in the build.',
+            hint: 'Every artifact, rendered from hardware/oapogee.tsx by make hw and verified against it in the build.',
             content: (
               <div className="flex max-w-2xl flex-col gap-3">
                 {DOWNLOADS.map((d) => (
