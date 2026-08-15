@@ -69,15 +69,31 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const chrome = spawn(
   CHROME,
   [
-    `--remote-debugging-port=${PORT}`,
     '--headless=new',
     '--no-first-run',
+    '--no-default-browser-check',
+    '--disable-gpu',
+    '--hide-scrollbars',
+    // As in check-responsive: a CI runner has neither the kernel namespaces
+    // Chrome's sandbox wants nor a usefully sized /dev/shm, and without these
+    // the browser exits before it opens the debug port. The only symptom is a
+    // timeout that says nothing about the cause, which is what happened.
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
     '--window-size=1400,1000',
-    '--user-data-dir=/tmp/oapogee-viewer-check',
+    `--remote-debugging-port=${PORT}`,
+    '--user-data-dir=/tmp/oapogee-viewer-profile',
     'about:blank',
   ],
-  { stdio: 'ignore' }
+  { stdio: ['ignore', 'ignore', 'pipe'] }
 )
+
+// Kept so a startup failure can say what the browser complained about rather
+// than only that it never appeared.
+let browserStderr = ''
+chrome.stderr?.on('data', (c) => {
+  browserStderr += c.toString()
+})
 
 let wsUrl
 for (let i = 0; i < 80 && !wsUrl; i++) {
@@ -90,7 +106,10 @@ for (let i = 0; i < 80 && !wsUrl; i++) {
   if (!wsUrl) await sleep(250)
 }
 if (!wsUrl) {
-  console.error('Could not start Chrome. Set CHROME_PATH if it is somewhere unusual.')
+  console.error(
+    `Could not start Chrome at ${CHROME}. Set CHROME_PATH if it is somewhere unusual.` +
+      (browserStderr ? `\n${browserStderr.trim().slice(0, 600)}` : '')
+  )
   process.exit(1)
 }
 
