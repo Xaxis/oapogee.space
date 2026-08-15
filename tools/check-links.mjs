@@ -141,7 +141,14 @@ function walk(dir, acc = []) {
   return acc
 }
 
-const files = [...walk(CONTENT), ...walk(SPEC), ...walk(DATA)]
+// Root markdown that the site renders too. CHANGELOG.md is a page at
+// /changelog, and it carried a link to /status for a while after that route was
+// deleted, because nothing here was reading it.
+const ROOT_MD = ['CHANGELOG.md', 'README.md', 'CONTRIBUTING.md', 'CONTENT-STYLE.md']
+  .map((f) => join(ROOT, f))
+  .filter((f) => existsSync(f))
+
+const files = [...walk(CONTENT), ...walk(SPEC), ...walk(DATA), ...ROOT_MD]
 
 let checked = 0
 for (const file of files) {
