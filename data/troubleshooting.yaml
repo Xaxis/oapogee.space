@@ -54,6 +54,34 @@ entries:
           the problem. If 3V3 is present and nothing runs, the microcontroller is.
     see_also: [not-a-drive]
 
+  - id: dead-after-assembly
+    category: power
+    symptom: The board is silent after assembly, and 3V3 is present
+    tiers: [solo, link, track]
+    paths: [board]
+    checks:
+      - do: Check that L1 is fitted, and fitted the right way round
+        detail: >
+          The microcontroller runs its core from an internal switching
+          regulator, and L1 is the only part of that regulator outside the chip.
+          Without it the core rail never comes up. The symptom is a board with a
+          healthy 3V3 rail and a microcontroller that does nothing at all, which
+          reads as a dead chip rather than a missing passive.
+      - do: Check the thermal pad under the microcontroller is soldered
+        detail: >
+          On this package the pad underneath is the part's only ground
+          connection, not merely a heat path. A part that looks perfectly
+          soldered around its perimeter and has an unwetted pad underneath has
+          no ground, and no amount of probing the visible pins will show it.
+          This is why the Board path needs hot air rather than an iron.
+      - do: Measure the core rail at the far side of L1
+        detail: >
+          Nothing there means the regulator is not switching. Confirm
+          VREG_VIN is at 3V3 and that VREG_FB reaches the core rail, because
+          the regulator senses its own output through that pin and will not
+          run without it.
+    see_also: [no-power]
+
   - id: not-a-drive
     category: power
     symptom: It powers on but does not appear as a USB drive

@@ -119,7 +119,10 @@ sections:
         text: Let the GNSS receiver get a fix before you close the airframe
         why: >
           A cold start takes far longer than a hot one, and the pad is not where
-          you want to be waiting for it.
+          you want to be waiting for it. You can tell from the ground station
+          before you close anything: GNSS_FIX sits in the header of every packet,
+          including the status packets sent while the payload is idle, so the fix
+          is visible without arming.
         tiers: [track]
 
       - id: mass
