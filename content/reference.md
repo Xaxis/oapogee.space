@@ -74,15 +74,26 @@ from `data/bom.yaml`.
 
 ## Schematic and PCB
 
-TODO(confirm-on-hardware): the KiCad project does not exist. When it does,
-publish the project itself rather than a PDF export, along with Gerbers, a pick
-and place file, and the assembly bill of materials.
+All of it is on the [schematic page](/reference/schematic): the drawing, the
+netlist as text, the routed PCB, the assembly view, a KiCad schematic and a
+KiCad PCB, the circuit JSON, and the fabrication package with Gerbers, both
+drill files, the bill of materials and the pick and place.
+
+Everything there is generated from `hardware/oapogee.tsx` by `make hw`, and the
+build fails when a committed artifact stops matching the source it came from.
 
 ## Pinout
 
-TODO(confirm-on-hardware): the pin assignment is not fixed. It cannot be
-published until the schematic exists, and publishing a provisional one would
-guarantee that somebody builds against it.
+The microcontroller's pin assignment is fixed and is in the circuit source. The
+60 pins of the package were transcribed from the Raspberry Pi datasheet, and
+signals sit on GPIOs their peripherals can actually reach: I2C0 on GPIO4 and
+GPIO5, SPI0 on GPIO16, GPIO18 and GPIO19, UART1 on GPIO24 and GPIO25, and the
+battery sense on GPIO26, which is the one wired to the ADC.
+
+TODO(confirm-on-hardware): the other fourteen packages have pin numbering that
+has not been checked against a datasheet. A wrong pin number is invisible in a
+schematic and in a render, and shows up as a board that does not work, so
+confirm every package by hand before ordering.
 
 ## Mechanical
 

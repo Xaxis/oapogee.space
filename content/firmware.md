@@ -63,20 +63,25 @@ Configuration lives in a plain text file on the board's filesystem, editable
 over USB. There is no configuration app to install and nothing that has to run
 on a particular operating system.
 
-TODO(confirm-on-hardware): publish the full configuration reference once the
-firmware defines it. It must cover, at minimum:
+**Nothing has a default.** Every tunable starts unset, and the payload refuses
+to arm while a required one is still unset rather than flying a number nobody
+measured. That is the whole design: a default here would be a guess with the
+authority of firmware behind it, and the guess would be invisible on the pad.
+The firmware carries the field table, and each field carries the measurement
+that would settle it, so a payload can say which number is missing rather than
+only refusing.
 
-- radio band, spreading factor, bandwidth, coding rate, and transmit power
-- log rates per flight phase
-- launch detect threshold and confirmation sample count
-- apogee confirmation sample count
-- landing detect criteria
-- buzzer beacon pattern and interval
-- callsign, for anyone operating under an amateur licence
-- the simulated flag, for bench runs
+The fields cover the sample rate, the pad reference window, launch detection,
+burnout, apogee confirmation, landing detection, the log rates per flight phase,
+the buzzer and LED behaviour, the radio parameters, the callsign for anyone
+operating under an amateur licence, the simulated flag for bench runs, and the
+sensor plausibility limits the health monitor applies. A check whose limit is
+unset is not performed, and the payload reports which checks it did not perform
+rather than reporting no fault.
 
-Every one of those has a default, and every default is a decision that should be
-documented with its reasoning rather than presented as a number.
+TODO(confirm-on-hardware): publish the field reference itself, generated from
+the firmware's table rather than written out here, once there is hardware to
+state the units and ranges against.
 
 ## Calibration
 

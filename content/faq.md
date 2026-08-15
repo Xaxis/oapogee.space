@@ -78,9 +78,14 @@ restrict. That is marked as unfinished rather than guessed at. See the
 
 ## Will it fit my rocket?
 
-The internal sled fits a 24 mm coupler or a BT-50 payload bay. The external pod
-straps to the outside of any body tube and requires no modification to the
-airframe, which is what makes it work on a rocket you already own.
+The external pod straps to the outside of any body tube and requires no
+modification to the airframe, which is what makes it work on a rocket you
+already own. That is the answer for a small rocket.
+
+The internal sled is cut for a BT-55 payload bay by default, and it needs a
+rocket that has a payload bay. It is not offered for a BT-50, because a 22 mm
+board in that bore leaves about 0.6 mm of rail either side, which prints and
+then breaks. Both parts are parametric: measure your own tube and re-render.
 
 The pod costs you drag and moves your centre of gravity, so
 [re-simulate](/mounting) before flying. That is not a formality.
