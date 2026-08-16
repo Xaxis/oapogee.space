@@ -124,6 +124,13 @@ for (const file of files) {
  */
 const SOURCED = [
   {
+    values: ['1575 MHz'],
+    why:
+      'GPS L1, the civil signal every consumer GNSS receiver listens on. A published carrier ' +
+      'frequency defined by the system operator, not a figure this project measured. It is here ' +
+      'so the antenna row names the band it has to work in.',
+  },
+  {
     values: ['12 MHz'],
     why:
       'The RP2350 crystal frequency, from Raspberry Pi, Hardware design with RP2350 chapter 4. ' +

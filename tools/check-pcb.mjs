@@ -67,7 +67,12 @@ const advisories = []
 // Source errors are read first for that reason. A netlist missing half its
 // connections is not a board with a routing problem, it is not the board.
 {
-  for (const [type, id, label] of [
+  // An invalid prop is not a warning. tscircuit reports a footprint it does not
+// recognise as source_invalid_component_property_error, exits zero, and builds
+// the component with no pads: the part exists on the schematic, has no copper
+// on the board, and its nets quietly go unrouted. That is how J5 shipped as a
+// GNSS antenna socket that was not connected to anything.
+for (const [type, id, label] of [
     ['source_failed_to_create_component_error', 'component-failed', 'component(s) failed to be created'],
     ['source_trace_not_connected_error', 'selector-unresolved', 'trace selector(s) name a port that does not exist'],
   ]) {
@@ -188,6 +193,71 @@ for (const [type, id, label] of [
   }
 }
 
+// --- named pins that go nowhere ----------------------------------------------
+//
+// This one exists because the board shipped two dead-on-arrival defects that
+// every other check in this repository passed cleanly.
+//
+// XIN and XOUT were declared on the microcontroller and connected to nothing.
+// The RP2350 runs without a crystal, so nothing complained, and the board would
+// have been unflashable: USB needs an accurate reference and USB is the only
+// connector it has. RF_IN on the GNSS receiver was declared and connected to
+// nothing, which is a Track tier that cannot produce a position, the one thing
+// that tier exists for.
+//
+// Both built, routed, exported a clean Gerber package and reported no
+// fabrication blockers, because a pin nobody connects is indistinguishable from
+// a pin nobody needed. The difference is intent, so intent has to be written
+// down: a named pin is either connected or listed here with the reason.
+//
+// Only named pins. A pin called pin7 is a footprint pad that no declared pin
+// maps onto, which is the pinout-incomplete blocker above and a different
+// problem. And spare GPIOs on the microcontroller are spare on purpose: an
+// unused GPIO is a header waiting to happen, not a defect.
+
+const INTENTIONALLY_UNCONNECTED = {
+  'U1.STAT': 'Charger status output. There is no charge indicator LED on this board: the ' +
+    'status LED is driven by the microcontroller, which knows more about what is happening ' +
+    'than the charger does.',
+  'U6.INT1': 'IMU data ready interrupt. The firmware polls the sensors on a fixed cadence ' +
+    'rather than reacting to them, because a flight log with an irregular sample interval is ' +
+    'harder to reason about than one that occasionally reads the same sample twice.',
+}
+
+{
+  const comps = Object.fromEntries(of('source_component').map((e) => [e.source_component_id, e.name]))
+  const connected = new Set()
+  for (const t of of('source_trace')) {
+    for (const id of t.connected_source_port_ids ?? []) connected.add(id)
+  }
+
+  const orphans = []
+  for (const port of of('source_port')) {
+    if (connected.has(port.source_port_id)) continue
+    const name = String(port.name ?? '')
+    if (/^pin\d+$/i.test(name)) continue
+    const comp = comps[port.source_component_id] ?? '?'
+    if (/^GPIO\d+$/i.test(name)) continue
+    const key = `${comp}.${name}`
+    if (key in INTENTIONALLY_UNCONNECTED) continue
+    orphans.push(key)
+  }
+
+  if (orphans.length) {
+    blockers.push({
+      id: 'pin-unconnected',
+      n: orphans.length,
+      what:
+        `${orphans.length} named pin(s) are declared and connected to nothing: ` +
+        orphans.join(', ') +
+        `. Either wire them, or add them to INTENTIONALLY_UNCONNECTED in tools/check-pcb.mjs ` +
+        `with the reason. A pin left out by accident and a pin left out on purpose look ` +
+        `identical in a netlist, and only one of them is a working board.`,
+      detail: orphans,
+    })
+  }
+}
+
 // --- copper clearance, measured rather than trusted --------------------------
 //
 // tscircuit's own design-rule pass is not the last word: on a sibling project it
@@ -204,6 +274,8 @@ for (const [type, id, label] of [
 // hard failure; between 0.1 and 0.127 the board is orderable from PCBWay and
 // not from JLCPCB, which is a real constraint on the reader and worth saying,
 // but is not a reason to refuse to publish fabrication files.
+// Counted where the clearance is measured, read by the ratchet at the bottom.
+let softPairs = 0
 const HARD_MM = 0.1 // PCBWay standard two-layer, the finer of the two
 const SOFT_MM = 0.127 // JLCPCB standard two-layer at 1 oz copper
 
@@ -260,6 +332,7 @@ const SOFT_MM = 0.127 // JLCPCB standard two-layer at 1 oz copper
         `not the placement, and it is the one thing between this board and a fab.`,
     })
   } else if (soft > 0) {
+    softPairs = soft
     advisories.push(
       `${soft} copper pair(s) under ${SOFT_MM} mm, closest ${worst.toFixed(3)} mm. Orderable from ` +
         `PCBWay, whose standard two-layer process is 4 mil trace and space, and not from JLCPCB, ` +
@@ -359,7 +432,21 @@ for (const [type, label] of [
 // --- report ------------------------------------------------------------------
 
 const fabReady = blockers.length === 0
+/**
+ * What the ratchet watches.
+ *
+ * Blockers, plus the count of copper pairs too close together for the cheaper
+ * fabricator. That second one is not a blocker: the board is orderable with it,
+ * from PCBWay rather than JLCPCB, and calling it a blocker would stop a board
+ * that can be made. But it is a real number about how much the board costs to
+ * make and how likely a run is to come back with shorts, and it moved from 37
+ * to 82 in a single commit that added two connectors, with nothing to say so.
+ *
+ * A number that only ever appears in an advisory list is a number that can
+ * double while every check still prints a reassuring summary.
+ */
 const state = Object.fromEntries(blockers.map((b) => [b.id, b.n]))
+state['soft-clearance'] = softPairs
 
 console.log(`PCB: ${count('pcb_component')} components, ${routed} routed traces, ${count('pcb_via')} vias, ${netlist} nets`)
 

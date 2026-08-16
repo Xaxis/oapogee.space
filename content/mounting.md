@@ -199,6 +199,38 @@ closed assembly hard and listen. Anything you can hear moving in your hand moves
 far harder under boost, where the acceleration is many times what your arm can
 produce.
 
+## Antennas
+
+A Link or Track payload has one antenna, a Track payload has two, and both plug
+into sockets rather than being soldered down. That is deliberate: where an
+antenna goes is a question about your airframe, not about the board, and the two
+antennas want opposite things.
+
+**The radio antenna wants to be away from metal and along the airframe.** It is
+transmitting to somebody standing on the ground, so the useful direction is
+sideways and down, not up. A quarter-wave wire run along the inside of a body
+tube is the usual answer and costs nothing.
+
+**The GNSS antenna wants to see sky.** It is receiving from satellites overhead,
+which puts it in direct conflict with the radio antenna's preferences and with
+most of the places a payload physically fits. A patch antenna is directional and
+needs to point up; a helical is less fussy and worse in the open.
+
+Two constraints that decide more than the antenna choice does:
+
+- **Airframe material.** Cardboard and most plastics are close to transparent at
+  both frequencies. Carbon fibre is not: it is conductive, and a payload sealed
+  inside a carbon tube is a payload inside a Faraday cage. Metal is worse.
+- **Distance from each other.** A transmitter and a receiver a few centimetres
+  apart share a small volume, and the transmitter is many orders of magnitude
+  louder than the satellites the receiver is listening for.
+
+TODO(verify): this section gives directions, not distances, because no oApogee
+payload has flown. What closes it is a range test with the antenna in the
+positions people will actually use, and a time to first fix measured inside a
+real airframe rather than on a bench. Both are named on the antenna rows in the
+[bill of materials](/bom).
+
 ## Fitting to the rail
 
 Check that the rocket still slides freely on the launch rail with the pod

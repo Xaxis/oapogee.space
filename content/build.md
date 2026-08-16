@@ -143,10 +143,14 @@ that have actually happened.
 1. Fit the radio module if you are building Link or Track.
 2. **Attach the antenna before you ever transmit.** Transmitting into a
    disconnected antenna is bad for the radio.
-3. Fit the buzzer and the status LED.
-4. Fit the arming switch. The centre pin goes to the arming GPIO and one outer
+3. On Track, fit the GNSS antenna too, and give it a view of the sky. A
+   receiver with no antenna does not report a poor position, it reports none at
+   all, and the symptom on the bench looks the same as a receiver that is
+   simply still searching.
+4. Fit the buzzer and the status LED.
+5. Fit the arming switch. The centre pin goes to the arming GPIO and one outer
    pin goes to ground. The third pin is deliberately left unconnected.
-5. Fit the battery connector, checking polarity one more time.
+6. Fit the battery connector, checking polarity one more time.
 
 > **Checkpoint 3M.** The buzzer sounds and the LED lights on command from the
 > console. The console reports armed and disarmed as you move the switch, and
@@ -207,7 +211,9 @@ assembled by the fab is the other answer.
 ### Stage 3B: Sensors, radio, and connectors
 
 1. Solder the barometer, the IMU, and the high-g accelerometer if fitting one.
-2. Solder the radio and the GNSS receiver if fitting them.
+2. Solder the radio and the GNSS receiver if fitting them, and the coaxial
+   socket that goes with each. They are the same part in two places: J3 feeds
+   the radio antenna, J5 feeds the GNSS antenna.
 3. Solder the battery connector, the buzzer, the LED, and the arming switch.
 4. Solder the USB connector last. Its legs pass through the board and it sits
    over other work, so fitting it early makes everything under it harder to

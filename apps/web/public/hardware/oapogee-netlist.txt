@@ -22,8 +22,9 @@ COMPONENTS:
  - U6: ICM-42688-P
  - U7: ADXL375
  - U8: SX1262
- - J3: U.FL-R-SMT-1(10), sma
+ - J3: U.FL-R-SMT-1(10)
  - U9: MAX-M10S
+ - J5: U.FL-R-SMT-1(10)
  - LS1: PKLCS1212E4001-R1, pinrow2
  - D1: RGB-LED-CC, led5050
  - SW1: JS102011SCQN, smdslideswitch
@@ -205,6 +206,10 @@ NET: Y1_XB
   - Y1 XB
   - R13 pin1
 
+NET: U9_RF_IN
+  - U9 RF_IN
+  - J5 SIG
+
 NET: L2_pos
   - U2 L1
   - L2 pin1 (+)
@@ -275,6 +280,8 @@ NET: GND
   - U2 EPAD
   - U2 PGND
   - U2 PSSYNC
+  - J5 GND2
+  - J5 GND
   - Y1 CASE2
   - Y1 CASE1
   - C5 pin2 (-)
@@ -285,6 +292,7 @@ NET: GND
   - D1 K
   - LS1 GND
   - U9 GND
+  - J3 GND2
   - J3 GND
   - U8 GND
   - U7 GND
@@ -553,13 +561,14 @@ U8 (SX1262)
 J3 (U.FL-R-SMT-1(10))
 - pin1(ANT): NETS(U8_ANT)
 - pin2(GND): NETS(GND)
+- pin3(GND2): NETS(GND)
 
 U9 (MAX-M10S)
 - pin1(VCC): NETS(V3V3)
 - pin2(GND): NETS(GND)
 - pin3(TXD): NETS(U3_GNSS_RX)
 - pin4(RXD): NETS(U3_GNSS_TX)
-- pin5(RF_IN): NOT_CONNECTED
+- pin5(RF_IN): NETS(U9_RF_IN)
 - pin6: NOT_CONNECTED
 - pin7: NOT_CONNECTED
 - pin8: NOT_CONNECTED
@@ -573,6 +582,11 @@ U9 (MAX-M10S)
 - pin16: NOT_CONNECTED
 - pin17: NOT_CONNECTED
 - pin18: NOT_CONNECTED
+
+J5 (U.FL-R-SMT-1(10))
+- pin1(SIG): NETS(U9_RF_IN)
+- pin2(GND): NETS(GND)
+- pin3(GND2): NETS(GND)
 
 LS1 (PKLCS1212E4001-R1)
 - pin1(IN): NETS(U3_BUZZER)

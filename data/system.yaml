@@ -91,7 +91,7 @@ nodes:
   # --- outputs, right ------------------------------------------------------
   - id: lora
     part: lora
-    also: [lora_module, antenna_connector, antenna_rocket]
+    also: [lora_module, antenna_connector, antenna_rocket, antenna_gnss]
     label: LoRa radio
     sub: SX1262, 902-928 MHz
     col: 3

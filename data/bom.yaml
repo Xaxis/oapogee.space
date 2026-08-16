@@ -481,7 +481,7 @@ parts:
     manufacturer: Hirose
     mpn: U.FL-R-SMT-1(10)
     confidence: asserted
-    designators: [J3]
+    designators: [J3, J5]
     price_usd: null
     mass_g: null
     verify: >
@@ -498,8 +498,13 @@ parts:
         one you unplug on every flight day.
     applies:
       - { tier: link, path: board, qty: 1 }
-      - { tier: track, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 2 }
     why: >
+      Two of them on Track: J3 for the radio and J5 for the GNSS receiver.
+      They are the same part because they are the same problem, a coaxial
+      connection to something that has to be positioned by whoever builds the
+      rocket rather than by whoever laid out the board.
+
       A socket rather than a soldered wire, because the antenna is the one part
       of this design whose right answer is not yet known. The radiator below is
       still an open measurement, and a connector is what makes that measurement
@@ -511,6 +516,44 @@ parts:
       Thirty mating cycles is not many. Fit the antenna when you build the
       payload and leave it connected. If a build needs a connector that comes
       apart routinely, that is a bulkhead SMA on the airframe, not this.
+    substitutes: []
+
+  - id: antenna_gnss
+    role: antenna
+    name: GNSS antenna, passive, 1575 MHz
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: []
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): choose between a ceramic patch and a small helical, and
+      measure the thing that actually decides it, which is time to first fix
+      inside the airframe you fly rather than gain in free air. A patch needs a
+      ground plane and a view of the sky in one direction, which suits a nose
+      cone bay and does not suit a pod strapped to the side of a tube. A
+      helical is smaller, worse in the open, and much less fussy about
+      orientation, which may make it better in a rocket that is not pointing up
+      once the parachute is out.
+
+      TODO(confirm-on-hardware): confirm a passive antenna acquires at all
+      through the airframe wall. If it does not, the answer is an active
+      antenna, and that is a change to the board rather than to this row: an
+      active antenna needs DC fed up the coaxial line through a bias network
+      that this design does not have.
+    applies:
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Without this the receiver never gets a fix, and the Track tier exists to
+      produce a position. It is listed separately from the connector it plugs
+      into because the connector is settled and this is not, and separately
+      from the radio antenna because they are different frequencies with
+      different constraints and no useful part in common.
+
+      Recovery is the reason it matters more than it looks. A payload that
+      lands out of sight is found by its last transmitted position, and the
+      last transmitted position is only as good as the fix behind it.
     substitutes: []
 
   - id: antenna_rocket

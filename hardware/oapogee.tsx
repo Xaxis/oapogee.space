@@ -120,6 +120,30 @@ function dualPads(opts: { pins: number; body: number; pitch: number; padLen: num
   return out
 }
 
+/**
+ * A u.FL land pattern, for both coaxial sockets.
+ *
+ * It is here rather than named as a string because tscircuit has no "ufl"
+ * footprint, and asking for one is not an error that stops anything: the export
+ * logs an invalid-property message, exits zero, and produces a component with
+ * no pads at all. That is worse than a wrong footprint. A part with no pads
+ * cannot be routed, so its net silently has no copper, and the only evidence is
+ * one line in a JSON file nobody reads. tools/check-pcb.mjs now treats an
+ * invalid property as a blocker for exactly this reason.
+ *
+ * Signal pad forward, two ground pads behind it, which is the shape every u.FL
+ * land pattern has. TODO(confirm-on-hardware): the dimensions are approximated,
+ * as everywhere else on this board. Take them from the Hirose drawing before
+ * ordering.
+ */
+function uflPads() {
+  return [
+    <smtpad key="1" portHints={['1']} pcbX={0} pcbY={-1.15} width="0.7mm" height="0.8mm" shape="rect" />,
+    <smtpad key="2" portHints={['2']} pcbX={-1.15} pcbY={0.45} width="1.0mm" height="1.6mm" shape="rect" />,
+    <smtpad key="3" portHints={['3']} pcbX={1.15} pcbY={0.45} width="1.0mm" height="1.6mm" shape="rect" />,
+  ]
+}
+
 export default () => (
   <board width="28mm" height="78mm" minTraceWidth="0.127mm">
     {/* ---------------------------------------------------------------------
@@ -547,11 +571,11 @@ export default () => (
 
     <chip
       name="J3"
-      footprint="sma"
+      footprint={<footprint>{uflPads()}</footprint>}
       pcbX={-1.25}
       pcbY={-35.25}
       manufacturerPartNumber="U.FL-R-SMT-1(10)"
-      pinLabels={{ pin1: 'ANT', pin2: 'GND' }}
+      pinLabels={{ pin1: 'ANT', pin2: 'GND', pin3: 'GND2' }}
       schX={13}
       schY={-5}
     />
@@ -577,6 +601,39 @@ export default () => (
       manufacturerPartNumber="MAX-M10S"
       pinLabels={{ pin1: 'VCC', pin2: 'GND', pin3: 'TXD', pin4: 'RXD', pin5: 'RF_IN' }}
       schX={8}
+      schY={-9}
+    />
+
+    {/* The GNSS antenna, and the second thing this board declared and never
+        connected.
+        ------------------------------------------------------------------
+        RF_IN went nowhere. A GNSS receiver with no antenna does not get a poor
+        fix, it gets no fix ever, which makes the Track tier, whose entire
+        reason to exist is position, a tier that cannot do the one thing it is
+        for. Like the crystal, it built cleanly and routed cleanly and every
+        check in this repository passed.
+
+        A socket rather than an antenna soldered down, for the same reason as
+        the radio side: this payload flies inside a body tube, a GNSS antenna
+        needs to see sky, and where it ends up is a question about the airframe
+        rather than about the board. Somebody with a fibreglass tube and
+        somebody with a nose cone bay need the antenna in different places, and
+        a connector lets both of them move it.
+
+        Passive, not active. An active antenna has an amplifier in it and wants
+        DC fed up the coaxial line through a bias network, which is more parts
+        and a short circuit waiting to happen if the wrong antenna is plugged
+        in. TODO(confirm-on-hardware): confirm a passive antenna acquires
+        through the airframe wall. If it does not, the bias network is the
+        answer and it is a change to this block. */}
+    <chip
+      name="J5"
+      footprint={<footprint>{uflPads()}</footprint>}
+      pcbX={-6.25}
+      pcbY={-34.5}
+      manufacturerPartNumber="U.FL-R-SMT-1(10)"
+      pinLabels={{ pin1: 'SIG', pin2: 'GND', pin3: 'GND2' }}
+      schX={13}
       schY={-9}
     />
 
@@ -835,6 +892,7 @@ export default () => (
     <trace from=".U7 .GND" to="net.GND" />
     <trace from=".U8 .GND" to="net.GND" />
     <trace from=".J3 .GND" to="net.GND" />
+    <trace from=".J3 .GND2" to="net.GND" />
     <trace from=".U9 .GND" to="net.GND" />
     <trace from=".LS1 .GND" to="net.GND" />
     <trace from=".D1 .K" to="net.GND" />
@@ -872,6 +930,9 @@ export default () => (
     <trace from=".U7 .VDD" to="net.V3V3" />
     <trace from=".U8 .VDD" to="net.V3V3" />
     <trace from=".U9 .VCC" to="net.V3V3" />
+    <trace from=".U9 .RF_IN" to=".J5 .SIG" />
+    <trace from=".J5 .GND" to="net.GND" />
+    <trace from=".J5 .GND2" to="net.GND" />
     <trace from=".R6 .pin2" to="net.V3V3" />
 
     {/* The regulator runs whenever the cell is connected. There is no soft power

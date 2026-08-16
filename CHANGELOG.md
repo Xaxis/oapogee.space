@@ -12,9 +12,9 @@ Dates are ISO. Versions follow the repository's `VERSION` file.
 
 ### Added
 
-- **The board.** The circuit source carries footprints and placement for all 27
+- **The board.** The circuit source carries footprints and placement for all 40
   parts, the RP2350's 60 pins transcribed from the Raspberry Pi datasheet, and
-  the layout routes: 95 traces, 154 vias, nothing unrouted. Gerbers, drill
+  the layout routes: 132 traces, 203 vias, nothing unrouted. Gerbers, drill
   files, bill of materials and pick and place are published, gated behind a
   verification pass that refuses to write them while any blocker is open.
 - **Firmware.** Sixteen core modules in freestanding C11, host-testable with
@@ -50,6 +50,35 @@ Dates are ISO. Versions follow the repository's `VERSION` file.
   and its ban on hardcoded thresholds; the two packet implementations agreeing;
   the printed parts matching their dimensions; the board's own design rules; and
   supplier links resolving.
+
+### Fixed
+
+- **The board had no crystal.** XIN and XOUT were declared on the
+  microcontroller and connected to nothing. The RP2350 runs without one, so
+  nothing complained, and the board would have been unflashable: USB needs an
+  accurate reference and USB is its only connector. Now Raspberry Pi's own
+  circuit, their crystal, their capacitor values, their damping resistor.
+- **The GNSS receiver had no antenna.** RF_IN was declared and connected to
+  nothing, which is a Track tier that cannot produce a position, the one thing
+  that tier is for. It now has a coaxial socket of its own.
+- **A footprint that did not exist produced a part with no pads.** Asking
+  tscircuit for a footprint it does not have is not an error that stops
+  anything: it logs a message, exits zero, and builds the component with no
+  copper, so the part is on the schematic and its net silently has none. Both
+  coaxial sockets now use a land pattern defined in the source.
+- Three new checks, one per defect above, because each of them built cleanly,
+  routed cleanly, exported a clean fabrication package and passed every check
+  in this repository. A named pin must now be connected or listed with the
+  reason it is not; a rejected component property is a blocker; and the count
+  of copper pairs too close together for the cheaper fabricator is ratcheted
+  rather than only printed, after it doubled in one commit with nothing to say
+  so.
+- The ground station page said every packet carries a device identifier. The
+  header has no identifier field. It now says so, says what to do instead, and
+  the question of whether one belongs there is in `docs/open-questions.md`.
+- Troubleshooting had path gating in the data that the page never rendered, so
+  Modules builders were sent looking for parts that only exist on the custom
+  board.
 
 ### Decided
 
