@@ -243,8 +243,10 @@ typedef enum {
                                                                                                     \
     /* --- buzzer and LED ---------------------------------------------------------------- */     \
     X(buzzer_freq_hz, BUZZER_FREQ_HZ, OA_REQ_ALWAYS, "Hz",                                         \
-      "The drive frequency. A piezo element is loudest at its resonance, and no buzzer part has "  \
-      "been chosen, so there is no datasheet resonance to quote yet.")                             \
+      "The drive frequency. LS1 is a Murata PKLCS1212E4001-R1 and its datasheet resonance is "     \
+      "4 kHz, so the starting value is known. It stays unset because loudest is not the same as "  \
+      "easiest to walk toward: measure which frequency is actually findable in the open, over "    \
+      "wind, and set it from that rather than from the peak on a bench.")                          \
     X(buzzer_armed_period_ms, BUZZER_ARMED_PERIOD_MS, OA_REQ_ALWAYS, "ms",                         \
       "The armed indication has to be recognisable from several metres away while the operator "  \
       "walks back. Choose it, then confirm it is audible over a launch site.")                     \

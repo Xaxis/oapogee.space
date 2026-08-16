@@ -75,8 +75,14 @@ typedef enum {
      * only recovery aid there is, which is why it earns its mass. */
     OA_OUT_BUZZER = 0,
 
-    /* Addressable RGB LED, D1 on the schematic, on the pin labelled LED. Says
-     * what state the payload is in from arm's length. */
+    /* RGB LED, D1 on the schematic, common cathode, on the three pins labelled
+     * LED_R, LED_G and LED_B through series resistors R10, R11 and R12. Says
+     * what state the payload is in from arm's length.
+     *
+     * One enumerator, three pins. The boundary this file protects is about what
+     * the firmware is allowed to drive, not how many wires it takes to do it,
+     * and an LED that needed three entries here would make the count of
+     * outputs a fact about packaging rather than about capability. */
     OA_OUT_STATUS_LED = 1
 } oa_out_t;
 
@@ -102,18 +108,32 @@ _Static_assert((int)OA_OUT_STATUS_LED == OA_OUT_COUNT - 1,
 
 /* Drive the buzzer at `freq_hz`, or silence it when freq_hz is 0.
  *
- * The frequency is a parameter rather than a constant because a piezo element is
- * loudest at its resonance, no buzzer part has been chosen, and there is
- * therefore no datasheet resonance to quote. It comes from buzzer_freq_hz in the
- * configuration, which is unset. */
+ * The frequency is a parameter rather than a constant for two reasons. LS1 is an
+ * externally driven piezo transducer: it makes no sound on DC, so something has
+ * to generate a square wave and the only question is where. And a piezo element
+ * is loudest at its resonance, which for the chosen part is 4 kHz, but the
+ * number that matters is the one a person can actually walk toward in a field
+ * rather than the peak on a bench. It comes from buzzer_freq_hz in the
+ * configuration, which is unset until that is measured. */
 oa_result_t oa_out_buzzer_set(uint16_t freq_hz);
 
 /* Set the status LED colour. Eight bits per channel, 0,0,0 is off.
  *
- * TODO(confirm-on-hardware): the LED on the schematic is an addressable part
- * with a DIN pin, so the colour is sent as a serial word with timing that
- * depends on the specific part, which has not been selected. The implementation
- * of this function is where that lives; nothing above it needs to know. */
+ * D1 is a plain common cathode RGB LED, not an addressable one: three dice in a
+ * package, each with its own anode on its own microcontroller pin through its
+ * own series resistor, sharing a cathode to ground. So a pin high is that colour
+ * lit and the three combine to eight colours.
+ *
+ * The signature is still eight bits per channel rather than three booleans,
+ * because the interface should not force a decision the port is entitled to
+ * make. A port that drives the three pins on and off treats any non-zero
+ * channel as on and loses nothing this project currently asks for. A port that
+ * puts them on PWM slices gets intermediate colours and dimming for free. Both
+ * satisfy this function; neither is visible above it.
+ *
+ * TODO(confirm-on-hardware): whether dimming is worth having at all. An
+ * indicator that is bright enough to read in direct sun is uncomfortable at
+ * night, and which of those two a launch actually is has not been tested. */
 oa_result_t oa_out_status_led_set(uint8_t r, uint8_t g, uint8_t b);
 
 /* Silence the buzzer and blank the LED, in one call, and return the first

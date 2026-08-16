@@ -38,5 +38,5 @@
 # Format: NAME  designator  pin  purpose
 # Lines beginning with # and blank lines are ignored.
 
-OA_OUT_BUZZER      LS1  BUZZER  Piezo buzzer. Arm indication, and the recovery beacon pattern after landing. On a Solo build it is the only recovery aid there is.
-OA_OUT_STATUS_LED  D1   LED     Status LED. Shows flight state and fault conditions to a person standing next to the rocket.
+OA_OUT_BUZZER      LS1  BUZZER               Piezo transducer, externally driven, so the firmware generates the waveform. Arm indication, and the recovery beacon pattern after landing. On a Solo build it is the only recovery aid there is.
+OA_OUT_STATUS_LED  D1   LED_R,LED_G,LED_B    RGB LED, common cathode, three pins through series resistors R10 to R12. Shows flight state and fault conditions to a person standing next to the rocket. Three pins, one output: this list is about capability, not wire count.
