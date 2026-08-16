@@ -360,6 +360,59 @@ export default () => (
 
     <capacitor name="C3" capacitance="100nF" schX={-6} schY={-3} footprint="0402" pcbX={5.62} pcbY={14.38} />
 
+    {/* The crystal, and the reason it is not optional.
+        ------------------------------------------------------------------
+        This board previously declared XIN and XOUT and connected neither, on
+        the reasoning that the RP2350 has an internal oscillator and will run
+        without one. It does, and it will, and the board would still have been
+        unflashable: "Hardware design with RP2350" chapter 4 says the internal
+        oscillator's frequency is not well defined or controlled, varying by
+        chip, supply and temperature, and that applications relying on exact
+        frequencies are not possible without an external source, USB being
+        their named example. USB is the only connector on this board and UF2
+        drag-and-drop is the whole reason this microcontroller family was
+        chosen, so a missing crystal is a dead board rather than a degraded
+        one.
+
+        Every value here is Raspberry Pi's, not this project's. The crystal is
+        the ABM8-272-T3 they specify and the Pico 2 uses, 12 MHz, 30 ppm, 10 pF
+        load, 50 ohm maximum ESR. C4 and C5 are 15 pF: in series they present
+        7.5 pF, and the guide adds an assumed 3 pF of track and pin parasitic
+        capacitance to reach 10.5 pF against the crystal's 10 pF target. R13 is
+        the 1k series resistor that keeps a 50 ohm ESR crystal from being
+        overdriven at an IOVDD of 3.3 V.
+
+        Two consequences for layout, both from the same chapter: the parasitic
+        capacitance of the tracks is part of the sum above, so XIN and XOUT
+        must be kept short, and the whole circuit is tuned for 3.3 V IOVDD. It
+        is the one part of this board where copying the reference design
+        exactly is the correct engineering. */}
+    <chip
+      name="Y1"
+      /* ABM8, 3.2 by 2.5 mm. Pads 1 and 3 are the crystal terminals, 2 and 4
+         are the case, which is grounded. TODO(confirm-on-hardware): the pad
+         geometry is approximated, as everywhere else on this board. Take it
+         from the Abracon drawing before ordering. */
+      footprint={
+        <footprint>
+          <smtpad portHints={['1']} pcbX={-1.1} pcbY={-0.85} width="1.2mm" height="1.0mm" shape="rect" />
+          <smtpad portHints={['2']} pcbX={1.1} pcbY={-0.85} width="1.2mm" height="1.0mm" shape="rect" />
+          <smtpad portHints={['3']} pcbX={1.1} pcbY={0.85} width="1.2mm" height="1.0mm" shape="rect" />
+          <smtpad portHints={['4']} pcbX={-1.1} pcbY={0.85} width="1.2mm" height="1.0mm" shape="rect" />
+        </footprint>
+      }
+      pcbX={-1.0}
+      pcbY={-2.5}
+      manufacturerPartNumber="ABM8-272-T3"
+      pinLabels={{ pin1: 'XA', pin2: 'CASE1', pin3: 'XB', pin4: 'CASE2' }}
+      schX={-4}
+      schY={4}
+    />
+
+    <capacitor name="C4" capacitance="15pF" schX={-6} schY={3} footprint="0402" pcbX={-4.5} pcbY={-2.5} />
+    <capacitor name="C5" capacitance="15pF" schX={-2} schY={3} footprint="0402" pcbX={2.5} pcbY={-2.5} />
+    <resistor name="R13" resistance="1k" schX={-2} schY={5} footprint="0402" pcbX={-1.0} pcbY={-4.5} />
+
     {/* Soldered down, deliberately. A microSD card is held in by a friction
         detent and boost acceleration is enough to unseat one, with the worst
         failure mode available: the flight proceeds normally and the data is
@@ -796,6 +849,21 @@ export default () => (
     <trace from=".U2 .VOUT" to="net.V3V3" />
     <trace from=".U3 .VDD" to="net.V3V3" />
     <trace from=".C3 .pin1" to="net.V3V3" />
+
+    {/* Crystal, per "Hardware design with RP2350" figure 10. XIN goes straight
+        to one terminal; XOUT reaches the other through the 1k damping
+        resistor, so the load capacitor C5 sits on the crystal side of it
+        rather than on the pin side. Getting that the wrong way round puts the
+        resistor inside the tank and changes what the capacitors do. */}
+    <trace from=".U3 .XIN" to=".Y1 .XA" />
+    <trace from=".Y1 .XB" to=".R13 .pin1" />
+    <trace from=".R13 .pin2" to=".U3 .XOUT" />
+    <trace from=".C4 .pin1" to=".Y1 .XA" />
+    <trace from=".C4 .pin2" to="net.GND" />
+    <trace from=".C5 .pin1" to=".Y1 .XB" />
+    <trace from=".C5 .pin2" to="net.GND" />
+    <trace from=".Y1 .CASE1" to="net.GND" />
+    <trace from=".Y1 .CASE2" to="net.GND" />
     <trace from=".U4 .VCC" to="net.V3V3" />
     <trace from=".U5 .VDD" to="net.V3V3" />
     <trace from=".R4 .pin2" to="net.V3V3" />

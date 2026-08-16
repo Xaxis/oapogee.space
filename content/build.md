@@ -144,10 +144,14 @@ that have actually happened.
 2. **Attach the antenna before you ever transmit.** Transmitting into a
    disconnected antenna is bad for the radio.
 3. Fit the buzzer and the status LED.
-4. Fit the battery connector, checking polarity one more time.
+4. Fit the arming switch. The centre pin goes to the arming GPIO and one outer
+   pin goes to ground. The third pin is deliberately left unconnected.
+5. Fit the battery connector, checking polarity one more time.
 
 > **Checkpoint 3M.** The buzzer sounds and the LED lights on command from the
-> console. The radio reports present. You have not transmitted yet.
+> console. The console reports armed and disarmed as you move the switch, and
+> the reported state matches the position you can see. The radio reports
+> present. You have not transmitted yet.
 
 ---
 
@@ -184,7 +188,10 @@ assembled by the fab is the other answer.
 
 1. Solder the microcontroller.
 2. Solder the QSPI flash.
-3. Solder the crystal and its load capacitors if the design uses one.
+3. Solder the crystal, its two load capacitors, and the damping resistor next
+   to it. Keep these joints tidy and keep the parts flat: this is the circuit
+   the USB connection depends on, and a board with a crystal that does not
+   start looks exactly like a board that is dead.
 
 > **Checkpoint 2B.** Hold SW2, tap SW3, release SW2, and the board appears to
 > your computer as a USB drive. Copying a known-good test firmware onto it
@@ -201,10 +208,15 @@ assembled by the fab is the other answer.
 
 1. Solder the barometer, the IMU, and the high-g accelerometer if fitting one.
 2. Solder the radio and the GNSS receiver if fitting them.
-3. Solder the battery connector, the buzzer, and the LED.
+3. Solder the battery connector, the buzzer, the LED, and the arming switch.
+4. Solder the USB connector last. Its legs pass through the board and it sits
+   over other work, so fitting it early makes everything under it harder to
+   reach and harder to inspect.
 
 > **Checkpoint 3B.** Every populated part reports present over the serial
-> console, and the sensor values move sensibly when you move the board.
+> console, and the sensor values move sensibly when you move the board. The
+> console reports armed and disarmed as you move the switch, and the reported
+> state matches the position you can see.
 
 TODO(photo): a completed board, top and bottom, at high enough resolution to
 check joint quality against.
@@ -279,9 +291,16 @@ should fail on your bench, where it costs an evening.
 3. Confirm the rocket still slides freely on the rail, with the pod fitted. An
    external pod is the most common thing to catch on a rail button.
 
-> **Checkpoint 8.** Your simulated stability margin with the payload fitted is
-> within the range on the [safety page](/safety#stability-is-a-safety-issue), and the rocket
-> moves freely on the rail.
+> **Checkpoint 8.** You have re-simulated with the payload's measured mass at
+> the position you actually mounted it, the margin has not gone backwards, and
+> the rocket moves freely on the rail with the pod fitted.
+
+TODO(verify): this checkpoint asks whether the margin moved, not whether it
+clears a threshold, because this site does not yet publish a threshold. The
+[safety page](/safety#stability-is-a-safety-issue) says why: the caliber margin
+to aim for needs quoting from NAR or Tripoli guidance rather than asserting,
+and that has not been done. Until it is, use the margin your rocket flew well
+at as the reference and treat a large move as a reason to stop.
 
 Then work through the [preflight checklist](/preflight) on the day.
 

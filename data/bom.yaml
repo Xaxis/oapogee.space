@@ -1247,6 +1247,113 @@ parts:
       makes. Buying the margin costs a few cents and one line in this file.
     substitutes: []
 
+  - id: crystal_12m
+    role: passive
+    name: Crystal, 12 MHz, 30 ppm
+    manufacturer: Abracon
+    mpn: ABM8-272-T3
+    confidence: asserted
+    designators: [Y1]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): weigh and price it with the rest of the order.
+    datasheet:
+      document: Raspberry Pi, Hardware design with RP2350, chapter 4, Crystal Oscillator
+      url: https://pip.raspberrypi.com/documents/RP-008280-DS-hardware-design-with-rp2350.pdf
+      checked: 2026-08-15
+      facts: >
+        12 MHz, 30 ppm frequency tolerance, 10 pF load capacitance, 50 ohm
+        maximum ESR. This is the exact part Raspberry Pi recommends for
+        original RP2350 designs and the one fitted to the Pico and Pico 2, and
+        the guide says the Pico 2 was specifically tuned for it. The chapter
+        also states plainly that the internal oscillator's frequency is not
+        well defined or controlled, varying by chip, supply voltage and
+        temperature, and that applications relying on exact frequencies are
+        not possible without an external source, naming USB as the example.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Without this the board is not slow or imprecise, it is unflashable. USB
+      needs an accurate reference and USB is the only connector this board has,
+      so the crystal is what makes drag-and-drop firmware loading possible, and
+      drag-and-drop is why this microcontroller family was chosen at all.
+
+      Not substituted, and that is unusual for a passive on this board. The
+      guide is explicit that the circuit is tuned for this crystal's ESR and
+      load capacitance at an IOVDD of 3.3 V, that any deviation needs testing
+      across temperature, and that changing the crystal parameters risks
+      instability in everything clocked from it. This is the one place where
+      copying the reference design exactly is the engineering, not a shortcut
+      around it.
+    substitutes: []
+
+  - id: cap_15p
+    role: passive
+    name: Capacitor, 15pF, 0402, C0G or NP0
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    designators: [C4, C5]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(confirm-on-hardware): confirm the crystal starts reliably from cold,
+      at the lowest temperature the payload will see, on a board built with the
+      final layout. The guide's arithmetic assumes 3 pF of track and pin
+      parasitic capacitance, and that assumption is only true if the XIN and
+      XOUT traces stay short. It is a measurement about this board, not about
+      the part.
+    applies:
+      - { tier: solo, path: board, qty: 2 }
+      - { tier: link, path: board, qty: 2 }
+      - { tier: track, path: board, qty: 2 }
+    why: >
+      The crystal's load capacitors. In series they present half of 15 pF,
+      which is 7.5 pF, and the RP2350 hardware design guide adds an assumed
+      3 pF of track and pin parasitic capacitance to reach 10.5 pF against the
+      crystal's 10 pF target.
+
+      C0G or NP0 rather than the X5R used elsewhere on this board. The cheaper
+      dielectrics change capacitance with temperature and with applied voltage,
+      and a payload sits on a pad in the sun and then climbs into air that is
+      considerably colder. A load capacitance that drifts detunes the
+      oscillator, and the failure shows up as a board that sometimes does not
+      enumerate over USB.
+    substitutes: []
+
+  - id: res_1k_xtal
+    role: passive
+    name: Resistor, 1k, 0402, crystal damping
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    designators: [R13]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): nothing outstanding on the value. It is Raspberry Pi's,
+      given for this crystal at this IO voltage, and this board runs 3.3 V IO.
+      Weigh and price it with the other passives.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      Damping, in series between XOUT and the crystal. The RP2350 hardware
+      design guide gives 1k as the value that stops a 50 ohm ESR crystal being
+      overdriven and damaged at an IOVDD of 3.3 V. It is a part whose job is to
+      make a working circuit keep working, which is why it is easy to leave off
+      a schematic and hard to diagnose afterwards.
+
+      The value is tied to the IO voltage, not just to the crystal. The guide
+      notes that below 3.3 V the XIN and XOUT drive current falls, the
+      oscillation amplitude drops with it, and a smaller resistor is needed or
+      the crystal may not start at all.
+    substitutes: []
+
   - id: cap_100n
     role: passive
     name: Capacitor, 100nF, 0402, X7R

@@ -274,6 +274,33 @@ If a company is ever formed to hold it, that is a one-line change plus the
 agreement of anyone who has contributed by then, and it gets harder with every
 contributor rather than easier.
 
+## A payload identifier in the telemetry header
+
+**Open.** The header is eight bytes and carries no way to tell two payloads
+apart. The log written to flash carries a stable device identity, derived from
+the microcontroller's unique number, but that is only readable after the flight.
+
+For adding one: several payloads on one field is not an exotic case, it is a
+club launch. Without an identifier a ground station cannot separate two
+airborne payloads, sequence numbers appear to skip, and the link quality figure
+becomes meaningless in exactly the situation where somebody most wants it. The
+current answer, agree different frequencies beforehand, works right up until
+somebody forgets.
+
+Against: every byte is paid for on every packet, by every user, forever, to
+solve a problem most flights do not have. A one byte identifier is a 12 percent
+increase on the header and collides among any 256 payloads that meet, so it
+needs a coordination scheme to be reliable, and a scheme nobody administers is
+one people get wrong. A four byte identifier does not collide in practice and
+is a real cost to airtime and therefore to range.
+
+Worth noting that the alternatives are not free either. Filtering by frequency
+pushes the coordination to the humans, which is where model rocketry already
+puts frequency coordination, and it costs nothing on the air.
+
+This one is genuinely undecided and it should be decided by somebody who has
+run a ground station at a busy launch, not from a desk.
+
 ## How to weigh in
 
 Open an issue at

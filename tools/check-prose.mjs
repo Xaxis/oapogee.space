@@ -124,6 +124,13 @@ for (const file of files) {
  */
 const SOURCED = [
   {
+    values: ['12 MHz'],
+    why:
+      'The RP2350 crystal frequency, from Raspberry Pi, Hardware design with RP2350 chapter 4. ' +
+      'Not a value this project picked: the guide names the frequency, the exact crystal, and ' +
+      'the surrounding component values, and says the circuit is tuned for that combination.',
+  },
+  {
     values: ['2.5 MHz'],
     why:
       'TPS63001 typical switching frequency, TI SLVS520C section 8.2.2.2, quoted in the ' +

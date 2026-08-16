@@ -73,9 +73,23 @@ factor, and coding rate. One mismatch and the link is silent rather than
 degraded, which is a useful property when debugging: a partially working link
 means something other than a settings mismatch.
 
-Multiple payloads on one field share the band. Each packet carries the payload's
-device identifier, so a ground station can display several flights at once, and
-whether it does is a display decision rather than a protocol one.
+Multiple payloads on one field share the band, and the packet format does not
+currently help you tell them apart. There is no identifier in the header: it
+carries a version, a type, a sequence number, a state and a timestamp, and
+nothing else. Two oApogee payloads on the same frequency and settings will both
+be received, their packets will interleave, and the sequence numbers will appear
+to jump.
+
+The payload does have a stable identity, derived from the microcontroller's
+unique identifier, but it is written to the flight log rather than transmitted.
+So the flight recording tells you whose it is afterwards, and the live link does
+not tell you at the time.
+
+Until that changes, the way to fly alongside somebody else is to agree different
+frequencies, which the settings already allow. Whether an identifier belongs in
+the header at all is open, and the cost is real, so the argument is written down
+rather than settled quietly: see
+[open questions](https://github.com/Xaxis/oapogee.space/blob/main/docs/open-questions.md).
 
 ## Antennas
 

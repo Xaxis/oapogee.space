@@ -11,6 +11,10 @@ COMPONENTS:
  - C2: 22uF cap0805 capacitor
  - U3: RP2350A
  - C3: 100nF cap0402 capacitor
+ - Y1: ABM8-272-T3
+ - C4: 15pF cap0402 capacitor
+ - C5: 15pF cap0402 capacitor
+ - R13: 1kΩ res0402 resistor
  - U4: W25Q128JVSIQ, soic8
  - U5: BMP390
  - R4: 4.7kΩ res0402 resistor
@@ -187,6 +191,20 @@ NET: D1_A_B
   - R12 pin2
   - D1 A_B
 
+NET: U3_XOUT
+  - R13 pin2
+  - U3 XOUT
+
+NET: U3_XIN
+  - C4 pin1 (+)
+  - U3 XIN
+  - Y1 XA
+
+NET: Y1_XB
+  - C5 pin1 (+)
+  - Y1 XB
+  - R13 pin1
+
 NET: L2_pos
   - U2 L1
   - L2 pin1 (+)
@@ -257,6 +275,10 @@ NET: GND
   - U2 EPAD
   - U2 PGND
   - U2 PSSYNC
+  - Y1 CASE2
+  - Y1 CASE1
+  - C5 pin2 (-)
+  - C4 pin2 (-)
   - U5 SDO
   - R8 pin2
   - SW1 B
@@ -375,8 +397,8 @@ U3 (RP2350A)
 - pin18(BUZZER): NETS(U3_BUZZER)
 - pin19(LED_R): NETS(U3_LED_R)
 - pin20(IOVDD3): NETS(V3V3)
-- pin21(XIN): NOT_CONNECTED
-- pin22(XOUT): NOT_CONNECTED
+- pin21(XIN): NETS(U3_XIN)
+- pin22(XOUT): NETS(U3_XOUT)
 - pin23(DVDD2): NETS(VCORE)
 - pin24(SWCLK): NETS(U3_SWCLK)
 - pin25(SWDIO): NETS(U3_SWDIO)
@@ -420,6 +442,24 @@ U3 (RP2350A)
 C3 (100nF cap0402)
 - pin1(pos, anode, left): NETS(V3V3)
 - pin2(neg, cathode, right): NETS(GND)
+
+Y1 (ABM8-272-T3)
+- pin1(XA): NETS(U3_XIN)
+- pin2(CASE1): NETS(GND)
+- pin3(XB): NETS(Y1_XB)
+- pin4(CASE2): NETS(GND)
+
+C4 (15pF cap0402)
+- pin1(pos, anode, left): NETS(U3_XIN)
+- pin2(neg, cathode, right): NETS(GND)
+
+C5 (15pF cap0402)
+- pin1(pos, anode, left): NETS(Y1_XB)
+- pin2(neg, cathode, right): NETS(GND)
+
+R13 (1kΩ res0402)
+- pin1(anode, pos, left): NETS(Y1_XB)
+- pin2(cathode, neg, right): NETS(U3_XOUT)
 
 U4 (W25Q128JVSIQ)
 - pin1(CS): NETS(U3_QSPI_CS)
