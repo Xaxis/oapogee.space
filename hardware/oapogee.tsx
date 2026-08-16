@@ -136,7 +136,7 @@ export default () => (
       footprint="usbcmidmount"
       pcbX={-0.4}
       pcbY={32.5}
-      manufacturerPartNumber="USB-C-16P"
+      manufacturerPartNumber="USB4085-GF-A"
       pinLabels={{ pin1: 'VBUS', pin2: 'GND', pin3: 'DP', pin4: 'DM', pin5: 'CC1', pin6: 'CC2' }}
       schX={-20}
       schY={-8}
@@ -215,8 +215,14 @@ export default () => (
         datasheet's typical application uses 2.2 uH. */}
     <inductor name="L2" inductance="2.2uH" footprint="0805" pcbX={10.5} pcbY={15.5} schX={-7} schY={-6} />
 
+    {/* C1 is the input capacitor, C2 the output. They are different values
+        because the datasheet asks for different values: SLVS520C section
+        8.2.2.3 wants at least 4.7 uF in and a nominal 15 uF out. C2 is 22 uF
+        rather than 15 uF because a small ceramic loses a large fraction of its
+        marked capacitance under DC bias, so 15 uF marked is not 15 uF on the
+        rail, and 22 uF is the next standard value with room for that. */}
     <capacitor name="C1" capacitance="10uF" schX={-12} schY={-11} footprint="0805" pcbX={-8.75} pcbY={11.25} />
-    <capacitor name="C2" capacitance="10uF" schX={-8} schY={-11} footprint="0805" pcbX={-4.38} pcbY={11.25} />
+    <capacitor name="C2" capacitance="22uF" schX={-8} schY={-11} footprint="0805" pcbX={-4.38} pcbY={11.25} />
 
     {/* ---------------------------------------------------------------------
         Compute. RP2350 and its QSPI flash.
@@ -491,7 +497,7 @@ export default () => (
       footprint="sma"
       pcbX={-1.25}
       pcbY={-35.25}
-      manufacturerPartNumber="ANT-902-928"
+      manufacturerPartNumber="U.FL-R-SMT-1(10)"
       pinLabels={{ pin1: 'ANT', pin2: 'GND' }}
       schX={13}
       schY={-5}
@@ -533,7 +539,7 @@ export default () => (
       footprint="pinrow2"
       pcbX={8.12}
       pcbY={-18.75}
-      manufacturerPartNumber="PIEZO-BUZZER"
+      manufacturerPartNumber="PKLCS1212E4001-R1"
       pinLabels={{ pin1: 'IN', pin2: 'GND' }}
       schX={8}
       schY={-13}
@@ -574,7 +580,7 @@ export default () => (
       footprint="smdslideswitch"
       pcbX={8.5}
       pcbY={-5.0}
-      manufacturerPartNumber="ARM-SWITCH"
+      manufacturerPartNumber="JS102011SCQN"
       pinLabels={{ pin1: 'A', pin2: 'B' }}
       schX={13}
       schY={-16}
@@ -606,7 +612,7 @@ export default () => (
       footprint="smdpushbutton"
       pcbX={-9.38}
       pcbY={0.62}
-      manufacturerPartNumber="BOOT-BUTTON"
+      manufacturerPartNumber="B3U-1000P"
       pinLabels={{ pin1: 'A1', pin2: 'A2', pin3: 'B1', pin4: 'B2' }}
       schX={-13}
       schY={-16}
@@ -616,7 +622,7 @@ export default () => (
       footprint="smdpushbutton"
       pcbX={9.38}
       pcbY={0.25}
-      manufacturerPartNumber="RESET-BUTTON"
+      manufacturerPartNumber="B3U-1000P"
       pinLabels={{ pin1: 'A1', pin2: 'A2', pin3: 'B1', pin4: 'B2' }}
       schX={-13}
       schY={-19}

@@ -150,27 +150,33 @@ parts:
 
   - id: mcu_module
     role: mcu
-    name: RP2350 or RP2040 development module
-    manufacturer: multiple
-    mpn: null
-    confidence: unverified
+    name: Raspberry Pi Pico 2
+    manufacturer: Raspberry Pi
+    mpn: SC1631
+    confidence: supplier
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): select one canonical module and one alternate. Candidates to
-      evaluate, none confirmed: Raspberry Pi Pico 2, Seeed XIAO RP2350, Adafruit
-      Feather RP2040. Selection criteria in priority order: mass, whether the
-      castellated or through-hole footprint suits a beginner, whether onboard
-      QSPI flash is accessible to LittleFS, presence of a LiPo charger, and
-      USB-C rather than micro-B. Weigh each candidate before choosing.
+      TODO(verify): weigh it, price it, and confirm the pin header footprint
+      the mounting page assumes. Held at confidence unverified on purpose:
+      module product numbers and the boards behind them change without notice,
+      which is why this repository never asserts them.
     applies:
       - { tier: solo, path: modules, qty: 1 }
       - { tier: link, path: modules, qty: 1 }
       - { tier: track, path: modules, qty: 1 }
     why: >
-      The Modules path needs a carrier that already solves USB, the 3V3 rail, and
-      the boot button, so the builder's soldering is limited to sensor
-      connections.
+      Same silicon as the Board path. That is the whole selection rule for the
+      Modules path and it is worth stating plainly: the RP2350 on the custom
+      board and the RP2350 on this module run one firmware build, so there is
+      one thing to document, one thing to test, and no class of bug that only
+      appears on one of the two paths. A cheaper or lighter module carrying
+      different silicon would double the project's work forever to save a few
+      grams once.
+
+      It is also the reference board for the part, which means its schematic is
+      published, its bootloader behaviour is the documented one, and a beginner
+      searching for help finds answers about the exact thing in their hand.
     substitutes: []
 
   - id: flash
@@ -417,61 +423,103 @@ parts:
 
   - id: lora_module
     role: radio
-    name: SX1262 module
-    manufacturer: multiple
-    mpn: null
-    confidence: unverified
+    name: Ebyte E22-900M22S LoRa module
+    manufacturer: Ebyte
+    mpn: E22-900M22S
+    confidence: supplier
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): select a canonical SX1262 module for the Modules path.
-      Candidates to evaluate, none confirmed: Ebyte E22-900M22S, Waveshare
-      Core1262, Seeed Wio-SX1262, Ai-Thinker Ra-01SH. Criteria: FCC modular
-      approval status, whether the module includes a PA and at what output,
-      antenna connector type, mass, and whether the vendor publishes a real
-      datasheet rather than a two-page flyer. Modular approval matters: a
-      pre-certified module is the difference between Part 15 compliance being
-      inherited and being the builder's problem.
+      TODO(verify): confirm the regulatory position before publishing a build
+      that transmits. A module carrying its own approval does not make a
+      finished payload approved, and the answer differs by country. Also weigh
+      it, price it, and measure range against the Board path so the two are
+      known to be comparable rather than assumed to be.
     applies:
       - { tier: link, path: modules, qty: 1 }
       - { tier: track, path: modules, qty: 1 }
     why: >
-      A pre-certified module removes both the RF layout risk and most of the
-      regulatory burden from a first-time builder.
+      Carries the same SX1262 as the Board path, for the same reason the
+      microcontroller does: one radio driver, one set of settings, one link
+      budget to explain. A module with a different transceiver would need its
+      own driver and would quietly become a second project.
+
+      The module form rather than a bare breakout because it arrives shielded
+      and with a matching network already laid out. Radio layout is the part of
+      this design least forgiving of a beginner's first PCB, and the Modules
+      path exists precisely to let somebody skip that.
     substitutes: []
 
   - id: gnss_module
     role: gnss
-    name: GNSS receiver module
-    manufacturer: multiple
-    mpn: null
-    confidence: unverified
+    name: MAX-M10S GNSS breakout
+    manufacturer: SparkFun
+    mpn: GPS-18037
+    confidence: supplier
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): select a canonical GNSS breakout for the Modules path.
-      Criteria: exposes UART at 3V3 logic, ships with an antenna usable inside a
-      payload bay rather than on a car roof, carries a backup cell or supercap so
-      a warm start on the pad is possible, and publishes cold and warm fix times.
-      Candidates to evaluate, none confirmed: the u-blox MAX-M10S breakouts sold
-      by Adafruit and SparkFun, and the antenna-integrated SAM-M10Q. The chip
-      chosen for the Board path does not settle this. A breakout is a different
-      product with a different antenna, and the antenna is what decides whether
-      a fix survives being inside a cardboard tube.
+      TODO(verify): confirm it acquires a fix through the airframe wall rather
+      than only in open sky, and time a cold start on the pad. Those two
+      numbers decide the pad procedure, and neither can come from a datasheet.
+      Weigh and price it at the same time.
     applies:
       - { tier: track, path: modules, qty: 1 }
     why: >
-      Track is the only tier with a receiver, and on the Modules path it has to
-      be a board somebody can solder wires to rather than a QFN.
+      The same MAX-M10S the Board path uses, so the configuration the firmware
+      sends at startup is identical and the fix behaviour a builder sees on one
+      path is the behaviour they get on the other.
+
+      This breakout carries a backup cell, which is what makes a warm start
+      possible: without one every power cycle is a cold start, and a cold start
+      on the pad is minutes of waiting with a rocket already on the rail.
+    substitutes: []
+
+  - id: antenna_connector
+    role: antenna
+    name: U.FL coaxial receptacle, 50 ohm
+    manufacturer: Hirose
+    mpn: U.FL-R-SMT-1(10)
+    confidence: asserted
+    designators: [J3]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): weigh and price it with the rest of the order.
+    datasheet:
+      document: Hirose U.FL series catalogue
+      url: https://datasheet.octopart.com/U.FL-R-SMT-1(10)-Hirose-datasheet-148804156.pdf
+      checked: 2026-08-15
+      facts: >
+        Surface mount, 50 ohm, DC to 6 GHz with a VSWR of 1.3 to 1.5 maximum,
+        which covers the 902 to 928 MHz band with room to spare. Mated height
+        1.9 to 2.4 mm. Rated for 30 mating cycles, and that number is the one
+        to pay attention to: it is a connector for a cable you fit once, not
+        one you unplug on every flight day.
+    applies:
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      A socket rather than a soldered wire, because the antenna is the one part
+      of this design whose right answer is not yet known. The radiator below is
+      still an open measurement, and a connector is what makes that measurement
+      possible: a builder can fly a wire monopole, then a flexible PCB antenna,
+      and compare them on the same board on the same day. Soldering the
+      radiator straight to a pad would save a part and close the question by
+      making it too annoying to ask.
+
+      Thirty mating cycles is not many. Fit the antenna when you build the
+      payload and leave it connected. If a build needs a connector that comes
+      apart routinely, that is a bulkhead SMA on the airframe, not this.
     substitutes: []
 
   - id: antenna_rocket
     role: antenna
-    name: 902 to 928 MHz antenna, airborne side
+    name: 902 to 928 MHz radiator, airborne side
     manufacturer: null
     mpn: null
     confidence: unverified
-    designators: [J3]
+    designators: []
     price_usd: null
     mass_g: null
     verify: >
@@ -488,10 +536,10 @@ parts:
       - { tier: track, path: modules, qty: 1 }
     why: >
       The antenna is the cheapest part on the board and the one most able to
-      ruin the link. It gets its own treatment on the Ground station page.
+      ruin the link. It gets its own treatment on the Ground station page. It
+      is listed separately from the connector it plugs into because the
+      connector is settled and this is not.
     substitutes: []
-
-  # --- Position -----------------------------------------------------------
 
   - id: gnss
     role: gnss
@@ -592,29 +640,29 @@ parts:
 
   - id: charger_module
     role: power
-    name: LiPo charger breakout
-    manufacturer: multiple
-    mpn: null
-    confidence: unverified
+    name: Micro Lipo charger breakout, USB-C
+    manufacturer: Adafruit
+    mpn: 4410
+    confidence: supplier
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): decide whether the Modules path needs a separate charger at
-      all. Some microcontroller development boards integrate LiPo charging and a
-      battery connector; most do not. Settle this when `mcu_module` is selected,
-      because the answer changes the parts list: if the chosen module charges,
-      this part and the battery connector both come off the Modules list, and if
-      it does not, select a specific breakout and confirm its charge current is
-      appropriate for a cell this small. Do not resolve it by assuming.
+      TODO(verify): confirm the charge current the board ships with suits the
+      cell, and change the programming resistor if it does not. Weigh and price
+      it with the rest.
     applies:
       - { tier: solo, path: modules, qty: 1 }
       - { tier: link, path: modules, qty: 1 }
       - { tier: track, path: modules, qty: 1 }
     why: >
-      Charging over USB with the cell attached is the whole reason there is one
-      connector on this payload instead of three. The Modules path has to get
-      that from somewhere, and a SOT-23-5 charge controller is not something you
-      wire to a breakout board.
+      Decided: the Modules path does need one. The Raspberry Pi Pico 2 has no
+      charger and no battery connector, so without this the Modules path is a
+      payload that has to be disassembled to charge, which is worse than the
+      thing it is trying to be simpler than.
+
+      It carries the MCP73831 the Board path uses, so the charge behaviour, the
+      status light and the safe way to treat the cell are one explanation
+      rather than two.
     substitutes: []
 
   - id: regulator
@@ -671,7 +719,7 @@ parts:
 
   - id: inductor_2u2
     role: passive
-    name: Inductor, 2.2 uH, 0805
+    name: Inductor, 2.2 uH, Coilcraft LPS3015 or TI equivalent series
     manufacturer: multiple
     mpn: null
     confidence: unverified
@@ -679,32 +727,71 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): confirm the saturation current exceeds the converter's peak
-      switch current at full load, which the TPS63001 datasheet gives as a
-      1.8 A switch limit. An inductor that saturates does not fail visibly, it
-      simply stops being an inductor at the current where it matters.
+      TODO(verify): the saturation current cannot be chosen until the payload's
+      peak draw is measured, because Equation 4 takes the output current as its
+      input. Measure the current on the 3V3 rail during a transmit burst at the
+      lowest cell voltage the design allows, put it through Equation 4, add
+      20 percent, and buy an inductor rated above that. An inductor that
+      saturates does not fail visibly, it simply stops being an inductor at the
+      current where it matters.
+
+      TODO(confirm-on-hardware): the schematic carries an 0805 land pattern and
+      every series TI recommends is physically larger than that, LPS3015 being
+      3.0 by 3.0 mm. Redraw the footprint from the chosen part's drawing before
+      ordering a board.
+    datasheet:
+      document: TI SLVS520C, TPS6300x, section 8.2.2.2 Inductor Selection
+      url: https://www.ti.com/lit/ds/symlink/tps63001.pdf
+      checked: 2026-08-15
+      facts: >
+        Table 2 lists the inductor series TI recommends: Coilcraft LPS3015 and
+        LPS4012, Murata LQH3NP, Taiyo Yuden NR3015, TDK VLF3215 and VLF4012.
+        The switches are rated 1.8 A. The saturation current is not a number
+        the datasheet supplies directly: it is computed from the boost-mode
+        peak in Equation 4 at the lowest input voltage, and TI asks for an
+        inductor rated 20 percent above that. Switching frequency is typically
+        2.5 MHz.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
       - { tier: track, path: board, qty: 1 }
     why: >
-      The buck-boost stores energy in this on every switching cycle. Without it
-      the 3V3 rail never comes up at all.
+      The buck-boost's switching inductor. A buck-boost stores energy in this
+      on every cycle, so without it the 3V3 rail does not come up at all.
+
+      Chosen from the list in the converter's own datasheet rather than by
+      value alone. At 2.5 MHz the core material dominates efficiency, and a
+      generic chip inductor of the right inductance can be substantially worse
+      than a part designed for the job, which on a battery payload shows up as
+      shortened flight time rather than as anything obviously broken.
     substitutes: []
 
   - id: usb_connector
     role: connector
-    name: USB-C receptacle
-    manufacturer: null
-    mpn: null
-    confidence: unverified
+    name: USB-C receptacle, 16 position, through hole
+    manufacturer: GCT
+    mpn: USB4085-GF-A
+    confidence: asserted
     designators: [J1]
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): choose a specific receptacle with through-hole mounting tabs.
-      Surface-mount-only USB connectors tear off boards, and this one gets
-      handled every flight day.
+      TODO(confirm-on-hardware): the schematic currently carries a mid-mount
+      surface mount land pattern for J1, and this part is a horizontal top
+      mount with through hole legs. Those are different holes in different
+      places. Redraw the footprint from the GCT drawing before ordering a
+      board, and confirm the shell stakes clear the pod wall.
+    datasheet:
+      document: GCT USB4085 product drawing and specification
+      url: https://gct.co/connector/usb4085
+      checked: 2026-08-15
+      facts: >
+        USB 2.0 Type-C receptacle, 16 signal positions plus 8 dummy, through
+        hole, horizontal top mount, 3.46 mm profile. Shell stakes are through
+        hole with 2.10 mm stake length. Rated 5 A and 48 V, 20,000 mating
+        cycles. The 16 position variant carries power, ground, both CC lines
+        and USB 2.0 data, and omits the high speed pairs this board has no use
+        for.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
@@ -712,6 +799,14 @@ parts:
     why: >
       One connector for power, charging, configuration, and data offload. No
       programming header, no card slot, no second cable to lose.
+
+      Through hole rather than surface mount, and that is the whole reason this
+      part was chosen over the cheaper and more common SMT receptacles. The USB
+      connector is the only part of a flight computer a person grabs, twists
+      and yanks on every flight day, and a surface mount receptacle resists
+      that with nothing but solder on copper foil. When it fails it takes the
+      pads with it, which turns a bad cable day into a dead board. Legs that
+      pass through the board put the load into the laminate instead.
     substitutes: []
 
   - id: battery_connector
@@ -743,50 +838,74 @@ parts:
 
   - id: boot_button
     role: connector
-    name: Tactile push button, boot
-    manufacturer: null
-    mpn: null
-    confidence: unverified
+    name: Tactile switch, SMD, boot select
+    manufacturer: Omron
+    mpn: B3U-1000P
+    confidence: asserted
     designators: [SW2]
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): select a specific button and confirm it survives the shake
-      and drop tests without latching or changing state. A momentary switch that
-      welds shut under boost holds the flash chip select low, which is a payload
-      that reboots into its bootloader instead of recording a flight.
+      TODO(verify): weigh and price it with the rest of the order.
+    datasheet:
+      document: Omron B3U ultra-small tactile switch (SMT)
+      url: https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf
+      checked: 2026-08-15
+      facts: >
+        SPST, surface mount, 3.0 by 1.6 mm and 2.5 mm tall. 153 gf operating
+        force over 0.15 mm of travel, 200,000 operations, rated 50 mA at 12 V,
+        which is far more than a pin held low ever draws. The stiff action is
+        the reason it is here rather than a lighter switch: this is a button
+        nobody should be able to press by accident against a padded case in a
+        range box.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
       - { tier: track, path: board, qty: 1 }
     why: >
-      There is no dedicated bootloader pin on this microcontroller. Holding the
-      flash chip select low as the chip leaves reset is what selects USB boot,
-      so this button pulls that line down. Without it a fabricated board can be
-      programmed exactly once, while its flash is still blank and the bootrom
-      falls through to USB, and never again.
+      Holding this down while power comes up puts the microcontroller in USB
+      bootloader mode, and without it the board is programmable exactly once.
+      That is not a theoretical concern: the way firmware development actually
+      goes is that somebody flashes a build whose USB stack is broken, and from
+      that moment a board with no boot button is recoverable only through the
+      debug pads with hardware most beginners do not own. One switch removes an
+      entire category of dead board.
     substitutes: []
 
   - id: reset_button
     role: connector
-    name: Tactile push button, reset
-    manufacturer: null
-    mpn: null
-    confidence: unverified
+    name: Tactile switch, SMD, reset
+    manufacturer: Omron
+    mpn: B3U-1000P
+    confidence: asserted
     designators: [SW3]
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): as the boot button. A reset that fires under boost ends the
-      flight's recording, so this one is worth testing harder than most.
+      TODO(verify): weigh and price it with the rest of the order.
+    datasheet:
+      document: Omron B3U ultra-small tactile switch (SMT)
+      url: https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf
+      checked: 2026-08-15
+      facts: >
+        SPST, surface mount, 3.0 by 1.6 mm and 2.5 mm tall. 153 gf operating
+        force over 0.15 mm of travel, 200,000 operations, rated 50 mA at 12 V,
+        which is far more than a pin held low ever draws. The stiff action is
+        the reason it is here rather than a lighter switch: this is a button
+        nobody should be able to press by accident against a padded case in a
+        range box.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
       - { tier: track, path: board, qty: 1 }
     why: >
-      Pulls RUN down. Needed to re-enter the bootloader with the boot button
-      held, and needed on its own to restart a payload without unplugging a
-      lithium cell.
+      Pulls the microcontroller's RUN pin to ground. Held together with the
+      boot button it re-enters the bootloader without unplugging anything,
+      which is the difference between a flash cycle that takes two seconds and
+      one that involves reaching into a body tube. On its own it restarts the
+      flight state machine, which is what an operator wants after a scrubbed
+      countdown: the pressure reference resets and the pre-arm buffer starts
+      clean.
     substitutes: []
 
   - id: swd_pads
@@ -874,23 +993,29 @@ parts:
 
   - id: arm_switch
     role: arming
-    name: Arming switch
-    manufacturer: null
-    mpn: null
-    confidence: unverified
+    name: Slide switch, SPDT, surface mount
+    manufacturer: C&K
+    mpn: JS102011SCQN
+    confidence: asserted
     designators: [SW1]
     price_usd: null
     mass_g: null
     verify: >
-      Decided: mechanical, a slide or screw switch. The sealed-enclosure
-      argument for a reed or Hall sensor does not survive contact with this
-      design, because the pod is deliberately vented: it has static ports cut
-      through it and must have. That leaves a magnetic switch trading an
-      inspectable state for one that can be changed by anything magnetic in a
-      range box, and arm state is the thing an operator has to confirm by eye at
-      the pad. A slide switch shows its position from across a table.
-      TODO(verify): select the specific part and confirm it Then TODO(verify): select the specific part and confirm it
-      survives the shake and drop tests without changing state.
+      TODO(confirm-on-hardware): a slide switch is the one part on this board
+      that can be moved by the flight rather than by the operator. Shake the
+      built payload on all three axes and drop it from waist height onto
+      carpet, and confirm the switch is in the position you left it in. If it
+      is not, the answer is a detent cover or a screw switch, not a note in the
+      manual.
+    datasheet:
+      document: C&K JS series slide switches
+      url: https://www.ckswitches.com/media/1422/js.pdf
+      checked: 2026-08-15
+      facts: >
+        SPDT, on-on, surface mount. Rated 0.3 A at 6 VDC, 100,000 cycles,
+        70 milliohm maximum contact resistance. The rating is orders of
+        magnitude above what a logic input asks of it, which is the point: the
+        switch is chosen for how it behaves mechanically, not electrically.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
@@ -899,14 +1024,29 @@ parts:
       - { tier: link, path: modules, qty: 1 }
       - { tier: track, path: modules, qty: 1 }
     why: >
-      The flight state machine's first transition is operator-driven, and without
-      an input there is no flight: arming is what starts the pressure reference
-      settling and the pre-arm ring buffer. It sits on a GPIO rather than in the
-      power path, because oApogee is passive so cutting power arms nothing and
-      protects nobody. What the operator needs is to power the payload up, let
-      the GNSS get a fix and the barometer settle, and then arm it once the
-      rocket is on the rail, which a power switch cannot express.
-    substitutes: []
+      The flight state machine's first transition is operator-driven, and
+      without an input there is no flight: arming is what starts the pressure
+      reference settling and the pre-arm ring buffer. It sits on a GPIO rather
+      than in the power path, because oApogee is passive, so cutting power arms
+      nothing and protects nobody. What the operator needs is to power the
+      payload up, let the GNSS get a fix and the barometer settle, and then arm
+      it once the rocket is on the rail, which a power switch cannot express.
+
+      Mechanical rather than magnetic. The sealed-enclosure argument for a reed
+      or Hall sensor does not survive contact with this design, because the pod
+      is deliberately vented: it has static ports cut through it and must have.
+      That leaves a magnetic switch trading an inspectable state for one
+      anything magnetic in a range box can change, and arm state is exactly
+      what an operator has to confirm by eye at the pad. A slide switch shows
+      its position from across a table.
+
+      SPDT rather than SPST, and only one throw is wired. The common pin goes
+      to the GPIO, one throw goes to ground, and the other is left open so the
+      internal pull-up defines the pin. Driving the spare throw to 3V3 would
+      look tidier and give a defined level in both positions, but a slide
+      switch is open for a moment as the wiper crosses, so the pin would float
+      briefly on every throw and the firmware would have to debounce a state it
+      could otherwise trust.
 
   # --- Passives -------------------------------------------------------------
   #
@@ -920,7 +1060,7 @@ parts:
 
   - id: inductor_3u3
     role: passive
-    name: Inductor, 3.3 uH, 0805
+    name: Inductor, 3.3 uH, core regulator
     manufacturer: multiple
     mpn: null
     confidence: unverified
@@ -929,21 +1069,22 @@ parts:
     mass_g: null
     verify: >
       TODO(verify): confirm the inductance and saturation current against the
-      RP2350 datasheet's recommended values for the internal core regulator, and
-      confirm the saturation current exceeds the peak switch current the
-      regulator draws at full load. An inductor that saturates does not fail
-      obviously: it just stops being an inductor at the current that matters.
+      RP2350 datasheet's recommended values for the internal core regulator,
+      and confirm the saturation current exceeds the peak the regulator draws
+      at full load. As above, saturation is a silent failure: the part keeps
+      conducting and stops storing energy.
+
+      TODO(confirm-on-hardware): confirm the footprint against the chosen
+      part's drawing, as with the buck-boost inductor.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
       - { tier: track, path: board, qty: 1 }
     why: >
-      The microcontroller runs its core from an internal switching regulator,
-      and a switching regulator needs an external inductor. It was missing from
-      this list for as long as the microcontroller's pinout was a placeholder,
-      because the pins that need it were not on the schematic: VREG_LX switches
-      into this part, and the far side of it is the core rail. Exactly the kind
-      of gap a placeholder hides, since the design looked complete without it.
+      The RP2350 regulates its own 1.1 V core rail with an internal switcher,
+      and this is that switcher's inductor. It is a separate part from the
+      buck-boost's because it is a separate converter with a separate
+      datasheet, and putting them on one line would hide that.
     substitutes: []
 
   - id: res_5k1
@@ -1051,26 +1192,59 @@ parts:
 
   - id: cap_10u
     role: passive
-    name: Capacitor, 10uF, 0402, X5R or X7R
-    manufacturer: null
+    name: Capacitor, 10uF, 0805, X5R or X7R
+    manufacturer: multiple
     mpn: null
     confidence: unverified
-    designators: [C1, C2]
+    designators: [C1]
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): confirm the voltage rating and, more importantly, the DC bias
-      derating. A small ceramic 10uF part can lose most of its capacitance at its
-      working voltage, and the datasheet curve rather than the headline value is
-      what decides whether the rail is actually decoupled.
+      TODO(verify): confirm the voltage rating and, more importantly, the DC
+      bias derating. A small ceramic 10uF part can lose most of its
+      capacitance at its working voltage, and the datasheet curve rather than
+      the headline value is what decides whether the rail is actually
+      decoupled.
     applies:
-      - { tier: solo, path: board, qty: 2 }
-      - { tier: link, path: board, qty: 2 }
-      - { tier: track, path: board, qty: 2 }
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
     why: >
-      Bulk capacitance either side of the regulator. The transmit burst on Link
-      and Track is the largest current step the board makes, and it is what these
-      are sized against rather than the average draw.
+      The buck-boost's input capacitor. SLVS520C section 8.2.2.3.1 asks for at
+      least 4.7 uF placed as close as possible to VIN and PGND, to improve both
+      transient behaviour and the EMI of the whole supply. 10 uF is the next
+      standard value up, which leaves room for the derating above.
+    substitutes: []
+
+  - id: cap_22u
+    role: passive
+    name: Capacitor, 22uF, 0805, X5R or X7R
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    designators: [C2]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): measure the capacitance actually present on the 3V3 rail at
+      3.3 V, not the marked value, and confirm it is above 15 uF. This is the
+      one place on the board where DC bias derating changes whether the design
+      meets its datasheet or not, so it gets measured rather than assumed.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      The buck-boost's output capacitor, and it is a separate line from the
+      input capacitor because the datasheet asks for a separate value. SLVS520C
+      section 8.2.2.3.2 gives a recommended nominal output capacitance of
+      15 uF, with no upper limit and lower ripple for larger values.
+
+      22 uF rather than 15 uF because a marked value is not a delivered value.
+      Class II ceramics lose a large fraction of their capacitance under DC
+      bias, so a 15 uF part sitting at 3.3 V is not supplying 15 uF, and the
+      transmit burst on Link and Track is the largest current step this board
+      makes. Buying the margin costs a few cents and one line in this file.
     substitutes: []
 
   - id: cap_100n
@@ -1101,18 +1275,28 @@ parts:
 
   - id: buzzer
     role: recovery
-    name: Piezo buzzer
-    manufacturer: null
-    mpn: null
-    confidence: unverified
+    name: Piezo transducer, externally driven
+    manufacturer: Murata
+    mpn: PKLCS1212E4001-R1
+    confidence: asserted
     designators: [LS1]
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): select a part and then measure what actually matters, which
-      is not the datasheet sound pressure level but the distance at which the
-      beacon pattern is findable in tall grass on a windy day. Test it by having
-      someone hide an active unit in a field. Report that distance.
+      TODO(verify): the number that matters is not the datasheet sound pressure
+      level, it is the distance at which the beacon pattern is findable in tall
+      grass on a windy day. Measure it by having somebody hide an active unit in
+      a field and timing the search. Then weigh it and price it with the rest.
+    datasheet:
+      document: Murata PKLCS1212E4001-R1, surface mount piezo transducer
+      url: https://www.digikey.com/en/products/detail/murata-electronics/PKLCS1212E4001-R1/1219314
+      checked: 2026-08-15
+      facts: >
+        Externally driven, meaning it makes no sound on DC and needs a square
+        wave at its resonant frequency, which the firmware generates. 4 kHz
+        resonance, in the band human hearing is most sensitive to. 84 dB at
+        1.5 V measured at 10 cm, so louder on this board's 3V3 rail. Surface
+        mount solder pads, 12 by 12 mm.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
@@ -1123,11 +1307,30 @@ parts:
     why: >
       On a Solo build with no radio, the buzzer is the only recovery aid there
       is. It earns its mass.
+
+      Piezo rather than magnetic, and that is a wiring decision as much as an
+      acoustic one. A piezo element is capacitive: it draws single-digit
+      milliamps, produces no back-EMF, and a microcontroller pin can drive it
+      directly. A magnetic buzzer is a coil, which means tens of milliamps, a
+      transistor to carry them, and a flyback diode to catch the spike when the
+      pin turns off. That is three more parts and one more failure mode on the
+      one output the whole recovery story depends on.
+
+      Externally driven rather than self-oscillating, which is the other half of
+      the same choice. A self-driving buzzer makes one note for as long as it
+      has power. This one is silent until the firmware plays it, so the beacon
+      pattern, the arm confirmation and the fault codes are all the same part
+      making different sounds.
+
+      TODO(confirm-on-hardware): if it is not loud enough, the next move is a
+      second pin driving the other terminal in antiphase, which doubles the
+      voltage across the element for the cost of one pin and no parts. That is
+      worth measuring before it is worth building.
     substitutes: []
 
   - id: status_led
     role: indicator
-    name: RGB LED, common anode, 3 colour
+    name: RGB LED, common cathode, 5050
     manufacturer: multiple
     mpn: null
     confidence: unverified

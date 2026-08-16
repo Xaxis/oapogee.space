@@ -215,7 +215,7 @@
     "source_component_id": "source_component_0",
     "ftype": "simple_chip",
     "name": "J1",
-    "manufacturer_part_number": "USB-C-16P",
+    "manufacturer_part_number": "USB4085-GF-A",
     "supplier_part_numbers": {
       "jlcpcb": []
     },
@@ -788,8 +788,8 @@
         "C1713"
       ]
     },
-    "capacitance": 0.00001,
-    "display_capacitance": "10uF",
+    "capacitance": 0.000022,
+    "display_capacitance": "22uF",
     "are_pins_interchangeable": true,
     "source_group_id": "source_group_0"
   },
@@ -2790,7 +2790,7 @@
     "source_component_id": "source_component_19",
     "ftype": "simple_chip",
     "name": "J3",
-    "manufacturer_part_number": "ANT-902-928",
+    "manufacturer_part_number": "U.FL-R-SMT-1(10)",
     "supplier_part_numbers": {
       "jlcpcb": []
     },
@@ -3063,7 +3063,7 @@
     "source_component_id": "source_component_21",
     "ftype": "simple_chip",
     "name": "LS1",
-    "manufacturer_part_number": "PIEZO-BUZZER",
+    "manufacturer_part_number": "PKLCS1212E4001-R1",
     "supplier_part_numbers": {
       "jlcpcb": []
     },
@@ -3253,7 +3253,7 @@
     "source_component_id": "source_component_23",
     "ftype": "simple_chip",
     "name": "SW1",
-    "manufacturer_part_number": "ARM-SWITCH",
+    "manufacturer_part_number": "JS102011SCQN",
     "supplier_part_numbers": {
       "jlcpcb": []
     },
@@ -3369,7 +3369,7 @@
     "source_component_id": "source_component_25",
     "ftype": "simple_chip",
     "name": "SW2",
-    "manufacturer_part_number": "BOOT-BUTTON",
+    "manufacturer_part_number": "B3U-1000P",
     "supplier_part_numbers": {
       "jlcpcb": []
     },
@@ -3436,7 +3436,7 @@
     "source_component_id": "source_component_26",
     "ftype": "simple_chip",
     "name": "SW3",
-    "manufacturer_part_number": "RESET-BUTTON",
+    "manufacturer_part_number": "B3U-1000P",
     "supplier_part_numbers": {
       "jlcpcb": []
     },
@@ -6549,7 +6549,7 @@
   {
     "type": "schematic_text",
     "schematic_text_id": "schematic_text_0",
-    "text": "USB-C-16P",
+    "text": "USB4085-GF-A",
     "schematic_component_id": "schematic_component_0",
     "anchor": "left",
     "rotation": 0,
@@ -6829,7 +6829,7 @@
     "source_component_id": "source_component_9",
     "is_box_with_pins": true,
     "symbol_name": "capacitor_right",
-    "symbol_display_value": "10uF",
+    "symbol_display_value": "22uF",
     "schematic_group_id": "schematic_group_0"
   },
   {
@@ -7319,7 +7319,7 @@
   {
     "type": "schematic_text",
     "schematic_text_id": "schematic_text_20",
-    "text": "ANT-902-928",
+    "text": "U.FL-R-SMT-1(10)",
     "schematic_component_id": "schematic_component_19",
     "anchor": "left",
     "rotation": 0,
@@ -7418,7 +7418,7 @@
   {
     "type": "schematic_text",
     "schematic_text_id": "schematic_text_24",
-    "text": "PIEZO-BUZZER",
+    "text": "PKLCS1212E4001-R1",
     "schematic_component_id": "schematic_component_21",
     "anchor": "left",
     "rotation": 0,
@@ -7516,7 +7516,7 @@
   {
     "type": "schematic_text",
     "schematic_text_id": "schematic_text_28",
-    "text": "ARM-SWITCH",
+    "text": "JS102011SCQN",
     "schematic_component_id": "schematic_component_23",
     "anchor": "left",
     "rotation": 0,
@@ -7583,7 +7583,7 @@
   {
     "type": "schematic_text",
     "schematic_text_id": "schematic_text_30",
-    "text": "BOOT-BUTTON",
+    "text": "B3U-1000P",
     "schematic_component_id": "schematic_component_25",
     "anchor": "left",
     "rotation": 0,
@@ -7633,7 +7633,7 @@
   {
     "type": "schematic_text",
     "schematic_text_id": "schematic_text_32",
-    "text": "RESET-BUTTON",
+    "text": "B3U-1000P",
     "schematic_component_id": "schematic_component_26",
     "anchor": "left",
     "rotation": 0,
@@ -11357,23 +11357,23 @@
           "y": -16.1
         },
         "to": {
-          "x": -15.17,
+          "x": -15.169999999999998,
           "y": -16.1
         }
       },
       {
         "from": {
-          "x": -15.17,
+          "x": -15.169999999999998,
           "y": -16.1
         },
         "to": {
-          "x": -15.17,
+          "x": -15.169999999999998,
           "y": -15.9
         }
       },
       {
         "from": {
-          "x": -15.17,
+          "x": -15.169999999999998,
           "y": -15.9
         },
         "to": {
@@ -14538,11 +14538,11 @@
     "text": "U3_QSPI_CS",
     "source_net_id": "unnamedsubcircuitsubcircuit_source_group_0_connectivity_net0",
     "anchor_position": {
-      "x": -15.17,
+      "x": -15.169999999999998,
       "y": -16.1
     },
     "center": {
-      "x": -15.83,
+      "x": -15.829999999999998,
       "y": -16.1
     },
     "anchor_side": "right"
@@ -48633,163 +48633,157 @@
     "subcircuit_id": "subcircuit_source_group_0"
   },
   {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_YFyZX9uvwY",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#114 name=\".R3\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25744 (copper IoU 0.7741).",
-    "source_component_id": "source_component_4",
-    "pcb_component_id": "pcb_component_4",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25744",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_hlKD2DQMU3",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#592 name=\".R8\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25741 (copper IoU 0.7741).",
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_2EwT3INAJ7",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#592 name=\".R8\" /> (jlcpcb:C25741): Unable to connect. Is the computer able to access the url?",
     "source_component_id": "source_component_33",
-    "pcb_component_id": "pcb_component_33",
     "subcircuit_id": "subcircuit_source_group_0",
     "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25741",
-    "footprint_copper_intersection_over_union": 0.7741
+    "supplier_part_number": "C25741"
   },
   {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_5IrifcQLyM",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#523 name=\".R11\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25091 (copper IoU 0.7741).",
-    "source_component_id": "source_component_28",
-    "pcb_component_id": "pcb_component_28",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25091",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_GxuA1rAWWy",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#510 name=\".R10\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25104 (copper IoU 0.7741).",
-    "source_component_id": "source_component_27",
-    "pcb_component_id": "pcb_component_27",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25104",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Eh3ykGtBaL",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<capacitor#249 name=\".C3\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C1525 (copper IoU 0.7249).",
-    "source_component_id": "source_component_11",
-    "pcb_component_id": "pcb_component_11",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C1525",
-    "footprint_copper_intersection_over_union": 0.7249
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_hCZ9ubVnOk",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#549 name=\".R9\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25744 (copper IoU 0.7741).",
-    "source_component_id": "source_component_30",
-    "pcb_component_id": "pcb_component_30",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25744",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_frnd8suLkj",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#316 name=\".R5\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25900 (copper IoU 0.7741).",
-    "source_component_id": "source_component_15",
-    "pcb_component_id": "pcb_component_15",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25900",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_fBnTgDqscB",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#303 name=\".R4\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25900 (copper IoU 0.7741).",
-    "source_component_id": "source_component_14",
-    "pcb_component_id": "pcb_component_14",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25900",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_CLhUwoBPTE",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#451 name=\".R6\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25741 (copper IoU 0.7741).",
-    "source_component_id": "source_component_24",
-    "pcb_component_id": "pcb_component_24",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25741",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_lAxu0jIoF9",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#536 name=\".R12\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25091 (copper IoU 0.7741).",
-    "source_component_id": "source_component_29",
-    "pcb_component_id": "pcb_component_29",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25091",
-    "footprint_copper_intersection_over_union": 0.7741
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_ydB3S0jCKN",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#579 name=\".R7\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25741 (copper IoU 0.7741).",
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_Kl4vBVfAlZ",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#579 name=\".R7\" /> (jlcpcb:C25741): Unable to connect. Is the computer able to access the url?",
     "source_component_id": "source_component_32",
-    "pcb_component_id": "pcb_component_32",
     "subcircuit_id": "subcircuit_source_group_0",
     "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25741",
-    "footprint_copper_intersection_over_union": 0.7741
+    "supplier_part_number": "C25741"
   },
   {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_aHXM3PKGS9",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#75 name=\".R2\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25905 (copper IoU 0.7741).",
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_qaGSz89oHN",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#549 name=\".R9\" /> (jlcpcb:C25744): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_30",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25744"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_ENUTI8E47h",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#536 name=\".R12\" /> (jlcpcb:C25091): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_29",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25091"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_QOOsMgtnKd",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#523 name=\".R11\" /> (jlcpcb:C25091): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_28",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25091"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_OjiKxnJPG9",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#510 name=\".R10\" /> (jlcpcb:C25104): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_27",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25104"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_QWlqBek4Ki",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#451 name=\".R6\" /> (jlcpcb:C25741): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_24",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25741"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_GXUVBlpA4w",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#316 name=\".R5\" /> (jlcpcb:C25900): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_15",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25900"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_RjX2Jel7uH",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#303 name=\".R4\" /> (jlcpcb:C25900): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_14",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25900"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_yDTlGd3Gw8",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <capacitor#249 name=\".C3\" /> (jlcpcb:C1525): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_11",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C1525"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_V2XA4iOBPh",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <capacitor#175 name=\".C2\" /> (jlcpcb:C15850): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_9",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C15850"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_ujAMwYwNQh",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <capacitor#163 name=\".C1\" /> (jlcpcb:C15850): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_8",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C15850"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_tNc0J4r9RJ",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#114 name=\".R3\" /> (jlcpcb:C25744): Unable to connect. Is the computer able to access the url?",
+    "source_component_id": "source_component_4",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C25744"
+  },
+  {
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_Fd7C0VqllW",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#75 name=\".R2\" /> (jlcpcb:C25905): Unable to connect. Is the computer able to access the url?",
     "source_component_id": "source_component_2",
-    "pcb_component_id": "pcb_component_2",
     "subcircuit_id": "subcircuit_source_group_0",
     "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25905",
-    "footprint_copper_intersection_over_union": 0.7741
+    "supplier_part_number": "C25905"
   },
   {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_UlfYdy1G1K",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<resistor#62 name=\".R1\" /> footprint \"0402\" does not match supplier footprint jlcpcb:C25905 (copper IoU 0.7741).",
+    "type": "source_part_not_found_warning",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_8RhDQV2s1C",
+    "warning_type": "source_part_not_found_warning",
+    "message": "Failed to fetch supplier footprint for <resistor#62 name=\".R1\" /> (jlcpcb:C25905): Unable to connect. Is the computer able to access the url?",
     "source_component_id": "source_component_1",
-    "pcb_component_id": "pcb_component_1",
     "subcircuit_id": "subcircuit_source_group_0",
     "supplier_name": "jlcpcb",
-    "supplier_part_number": "C25905",
-    "footprint_copper_intersection_over_union": 0.7741
+    "supplier_part_number": "C25905"
   },
   {
     "type": "source_project_metadata",
-    "source_filesystem_md5_hash": "0811a5698664f8ee3d452ffb455b3c3a"
+    "source_filesystem_md5_hash": "1abff0077ad523473d4f93a77fe3efd0"
   }
 ]

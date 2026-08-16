@@ -28,9 +28,12 @@ In practice:
 - `TODO(confirm-on-hardware)` for steps that need a physical board.
   `TODO(confirm)` for open decisions. `TODO(photo)` for image slots, describing
   what the photo must show.
-- Manufacturer part numbers are asserted only when confident. Breakout board
-  product numbers and supplier links are `confidence: unverified` because they
-  change without notice.
+- `confidence` in `data/bom.yaml` has three levels and they mean different
+  things. `asserted` is a manufacturer part number this project stands behind.
+  `supplier` is a specific vendor product, chosen and orderable, whose number
+  the vendor can revise or retire without telling anybody, which is every
+  breakout board and module. `unverified` means not chosen yet, and it is the
+  only one that may carry a null part number. Enforced in `make data`.
 - Rounded physics is not invention. "A heavier payload costs altitude" is fine.
   "It costs 31 m" needs OpenRocket output behind it.
 

@@ -1,5 +1,5 @@
 COMPONENTS:
- - J1: USB-C-16P, usbcmidmount
+ - J1: USB4085-GF-A, usbcmidmount
  - R1: 5.1kΩ res0402 resistor
  - R2: 5.1kΩ res0402 resistor
  - U1: MCP73831, sot23_5
@@ -8,7 +8,7 @@ COMPONENTS:
  - U2: TPS63001
  - L2: L2, source_component
  - C1: 10uF cap0805 capacitor
- - C2: 10uF cap0805 capacitor
+ - C2: 22uF cap0805 capacitor
  - U3: RP2350A
  - C3: 100nF cap0402 capacitor
  - U4: W25Q128JVSIQ, soic8
@@ -18,14 +18,14 @@ COMPONENTS:
  - U6: ICM-42688-P
  - U7: ADXL375
  - U8: SX1262
- - J3: ANT-902-928, sma
+ - J3: U.FL-R-SMT-1(10), sma
  - U9: MAX-M10S
- - LS1: PIEZO-BUZZER, pinrow2
+ - LS1: PKLCS1212E4001-R1, pinrow2
  - D1: RGB-LED-CC, led5050
- - SW1: ARM-SWITCH, smdslideswitch
+ - SW1: JS102011SCQN, smdslideswitch
  - R6: 100kΩ res0402 resistor
- - SW2: BOOT-BUTTON, smdpushbutton
- - SW3: RESET-BUTTON, smdpushbutton
+ - SW2: B3U-1000P, smdpushbutton
+ - SW3: B3U-1000P, smdpushbutton
  - R10: 330Ω res0402 resistor
  - R11: 220Ω res0402 resistor
  - R12: 220Ω res0402 resistor
@@ -288,7 +288,7 @@ NET: GND
 
 
 COMPONENT_PINS:
-J1 (USB-C-16P)
+J1 (USB4085-GF-A)
 - pin1(VBUS): NETS(U1_VDD)
 - pin2(GND): NETS(GND)
 - pin3(DP): NETS(J1_DP)
@@ -350,7 +350,7 @@ C1 (10uF cap0805)
 - pin1(pos, anode, left): NETS(VBAT)
 - pin2(neg, cathode, right): NETS(GND)
 
-C2 (10uF cap0805)
+C2 (22uF cap0805)
 - pin1(pos, anode, left): NETS(V3V3)
 - pin2(neg, cathode, right): NETS(GND)
 
@@ -510,7 +510,7 @@ U8 (SX1262)
 - pin24: NOT_CONNECTED
 - pin25: NOT_CONNECTED
 
-J3 (ANT-902-928)
+J3 (U.FL-R-SMT-1(10))
 - pin1(ANT): NETS(U8_ANT)
 - pin2(GND): NETS(GND)
 
@@ -534,7 +534,7 @@ U9 (MAX-M10S)
 - pin17: NOT_CONNECTED
 - pin18: NOT_CONNECTED
 
-LS1 (PIEZO-BUZZER)
+LS1 (PKLCS1212E4001-R1)
 - pin1(IN): NETS(U3_BUZZER)
 - pin2(GND): NETS(GND)
 
@@ -546,7 +546,7 @@ D1 (RGB-LED-CC)
 - pin5: NOT_CONNECTED
 - pin6: NOT_CONNECTED
 
-SW1 (ARM-SWITCH)
+SW1 (JS102011SCQN)
 - pin1(A): NETS(U3_ARM)
 - pin2(B): NETS(GND)
 - pin3: NOT_CONNECTED
@@ -559,13 +559,13 @@ R6 (100kΩ res0402)
 - pin1(anode, pos, left): NETS(U3_ARM)
 - pin2(cathode, neg, right): NETS(V3V3)
 
-SW2 (BOOT-BUTTON)
+SW2 (B3U-1000P)
 - pin1(A1): NETS(U3_QSPI_CS)
 - pin2(A2): NETS(U3_QSPI_CS)
 - pin3(B1): NETS(GND)
 - pin4(B2): NETS(GND)
 
-SW3 (RESET-BUTTON)
+SW3 (B3U-1000P)
 - pin1(A1): NETS(U3_RUN)
 - pin2(A2): NETS(U3_RUN)
 - pin3(B1): NETS(GND)

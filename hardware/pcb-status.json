@@ -10,7 +10,6 @@
     "33 copper pair(s) under 0.127 mm, closest 0.115 mm. Orderable from PCBWay, whose standard two-layer process is 4 mil trace and space, and not from JLCPCB, whose standard two-layer at 1 oz copper is 5 mil.",
     "closest copper to board edge 0.62 mm",
     "180 signal names are assigned to footprint pads by number, and NOTHING HERE CHECKS that the numbering matches the datasheet. Confirm each package by hand.",
-    "13 x footprint does not match the supplier part",
     "18 x component pins underspecified",
     "8 x reference designator convention",
     "123 x unnamed trace"

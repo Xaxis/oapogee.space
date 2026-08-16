@@ -91,7 +91,7 @@ export type Part = {
   name: string
   manufacturer: string | null
   mpn: string | null
-  confidence: 'asserted' | 'unverified'
+  confidence: 'asserted' | 'supplier' | 'unverified'
   price_usd: number | null
   mass_g: number | null
   verify?: string

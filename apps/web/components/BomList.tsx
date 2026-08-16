@@ -96,6 +96,11 @@ function Row({
             {part.confidence === 'unverified' && (
               <span className="ml-2 text-[var(--color-orange)]">unconfirmed</span>
             )}
+            {/* A vendor product number, not a manufacturer part number. The
+                part is chosen; the number is the vendor's and they change it. */}
+            {part.confidence === 'supplier' && (
+              <span className="ml-2 text-[var(--color-dim)]">check before ordering</span>
+            )}
           </span>
         ) : generic ? (
           <span className="text-[var(--color-dim)]">any manufacturer</span>

@@ -124,6 +124,20 @@ for (const file of files) {
  */
 const SOURCED = [
   {
+    values: ['2.5 MHz'],
+    why:
+      'TPS63001 typical switching frequency, TI SLVS520C section 8.2.2.2, quoted in the ' +
+      'definition of Equation 4. It is in data/bom.yaml because it is the reason the inductor ' +
+      'is chosen from the datasheet list rather than by inductance alone: at that frequency ' +
+      'the core material, not the value, decides efficiency.',
+  },
+  {
+    values: ['1.1 V'],
+    why:
+      'RP2350 core rail voltage, produced by the regulator built into the part. A fixed ' +
+      'property of the silicon, not a figure this project chose or measured.',
+  },
+  {
     values: ['902 MHz', '928 MHz', '863 MHz', '870 MHz', '868 MHz'],
     why: 'Radio band edges. Regulatory definitions, with the primary source linked where stated.',
   },

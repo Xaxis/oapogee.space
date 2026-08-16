@@ -119,11 +119,20 @@ if (bom) {
         )
       }
     }
-    if (part.confidence && !['asserted', 'unverified'].includes(part.confidence)) {
+    // Three levels, because a breakout board is a different kind of claim from
+    // a component. "asserted" means a manufacturer part number this repository
+    // is willing to stand behind. "supplier" means a specific product from a
+    // specific vendor: chosen, orderable, and named, but carrying a number the
+    // vendor can revise or retire without telling anybody, which is why
+    // CLAUDE.md says never to assert one. "unverified" means not chosen yet.
+    if (part.confidence && !['asserted', 'supplier', 'unverified'].includes(part.confidence)) {
       fail(`data/bom.yaml: part "${part.id}" has confidence "${part.confidence}"`)
     }
-    if (part.mpn && part.confidence !== 'asserted') {
-      warn(`data/bom.yaml: part "${part.id}" carries an mpn but is not marked asserted`)
+    if (part.mpn && part.confidence === 'unverified') {
+      warn(
+        `data/bom.yaml: part "${part.id}" carries an mpn but is marked unverified. ` +
+          'Use "asserted" for a manufacturer part number or "supplier" for a vendor product number.'
+      )
     }
   }
 }
