@@ -12,11 +12,15 @@ Dates are ISO. Versions follow the repository's `VERSION` file.
 
 ### Added
 
-- **The board.** The circuit source carries footprints and placement for all 40
-  parts, the RP2350's 60 pins transcribed from the Raspberry Pi datasheet, and
-  the layout routes: 132 traces, 203 vias, nothing unrouted. Gerbers, drill
-  files, bill of materials and pick and place are published, gated behind a
-  verification pass that refuses to write them while any blocker is open.
+- **The board.** The circuit source carries footprints and placement for 42
+  parts, and the layout routes with nothing unrouted. Two pinouts are
+  transcribed from the manufacturer's own datasheet rather than assumed: the
+  RP2350's sixty pins, and the SX1262's twenty-five.
+
+  The fabrication package is gated behind a verification pass that refuses to
+  write it while any blocker is open, and there are open blockers, so it is not
+  published. That gate is the feature. It has already stopped one board whose
+  radio had no reference oscillator from being orderable.
 - **Firmware.** Sixteen core modules in freestanding C11, host-testable with
   nothing but cmake and a compiler, thirteen test binaries. The passive boundary
   is enforced by a check over the sources rather than asserted in a comment, and
@@ -95,8 +99,8 @@ Dates are ISO. Versions follow the repository's `VERSION` file.
   amateur radio rules. Compact binary is efficiency; scrambling would be
   obfuscation.
 - **Two build paths.** Modules, on breakout boards, buildable before a PCB
-  exists. Board, the custom PCB, whose fabrication files now exist. The tier owns
-  the capability content and the path owns only the assembly content.
+  exists. Board, the custom PCB. The tier owns the capability content and the
+  path owns only the assembly content.
 - **The high-g accelerometer is optional at every tier, including Solo.**
   Whether an IMU saturates depends on the motor, not on whether the board has a
   radio, and tying the part to Link left the cheapest build most likely to record
@@ -143,8 +147,21 @@ priced, or flown. Every cost, mass, range and endurance figure on the site is
 absent rather than estimated, and each gap records what evidence would close it.
 
 The PCB is a real step past a paper design and is not the same as a board that
-works. Its fabrication files are published and one thing stands between them and
-an order worth placing: 152 signal names are mapped onto footprint pads by pin
-number, and only the microcontroller's 60 have been checked against a datasheet.
-The [schematic page](https://oapogee.space/reference/schematic) says so on every
-build, generated from the check rather than written by hand.
+works. Its fabrication files are not published, because the check that gates
+them refuses while anything is open, and two things are:
+
+Seven parts have footprint pads the source never named, so those pads sit on the
+board connected to nothing. On an integrated circuit an unnamed pad is a supply
+rail or a crystal terminal, which is how this board reached a clean export with
+a microcontroller that had no crystal and a GNSS receiver that had no antenna.
+Both are fixed; the remaining seven pinouts are being transcribed one datasheet
+at a time.
+
+The radio's RF front end is not designed. Between the transceiver's transmit
+output, its receive inputs and one antenna, the reference design puts a switch
+and about fourteen matching components whose values Semtech does not print in
+the datasheet. That argument is in `docs/open-questions.md` with the three ways
+to close it.
+
+The [schematic page](https://oapogee.space/reference/schematic) says all of this
+on every build, generated from the check rather than written by hand.

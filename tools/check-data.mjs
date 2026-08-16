@@ -400,7 +400,7 @@ function walkMd(dir, acc = []) {
 // contains a TODO marker did not apply to the two pages a third party
 // implements the wire format from.
 for (const file of [...walkMd(CONTENT), ...walkMd(join(ROOT, 'docs/spec'))]) {
-  const rel = file.slice(ROOT.length + 1)
+  const rel = file.slice(ROOT.length)
   const { data, content } = matter(readFileSync(file, 'utf8'))
 
   for (const field of ['title', 'description', 'tier', 'difficulty', 'updated', 'status']) {
@@ -419,6 +419,52 @@ for (const file of [...walkMd(CONTENT), ...walkMd(join(ROOT, 'docs/spec'))]) {
   // still admits, in its own text, that something in it is unverified.
   if (data.status === 'verified' && /TODO\((verify|confirm-on-hardware|confirm|photo)\)/.test(content)) {
     fail(`${rel}: marked verified but still contains open TODO markers`)
+  }
+}
+
+// --- artifacts the prose says exist ------------------------------------------
+//
+// The Reference page said the fabrication package with Gerbers was on the site.
+// It was, until a check found that the radio had no reference oscillator, at
+// which point `make fab` started refusing to write it and the files came down.
+// The sentence stayed. So did one in the changelog, and another calling the
+// custom board the path "whose fabrication files now exist".
+//
+// A page that promises a download is making a checkable claim, so it gets
+// checked: every hardware artifact named anywhere in the prose has to be a file
+// that is actually there. This is the same failure as the board dimensions, one
+// layer out: the site described a state of the world that a tool had since
+// changed underneath it.
+
+{
+  const PUBLIC_HW = join(ROOT, 'apps/web/public/hardware')
+  const present = existsSync(PUBLIC_HW) ? new Set(readdirSync(PUBLIC_HW)) : new Set()
+
+  const prose = []
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name.startsWith('.') || entry.name === 'node_modules') continue
+      const full = join(dir, entry.name)
+      if (entry.isDirectory()) walk(full)
+      else if (/\.mdx?$/.test(entry.name)) prose.push(full)
+    }
+  }
+  for (const d of ['content', 'docs']) if (existsSync(join(ROOT, d))) walk(join(ROOT, d))
+  for (const f of ['CHANGELOG.md', 'README.md']) {
+    if (existsSync(join(ROOT, f))) prose.push(join(ROOT, f))
+  }
+
+  for (const file of prose) {
+    const rel = file.slice(ROOT.length)
+    const text = readFileSync(file, 'utf8')
+    for (const m of text.matchAll(/\boapogee[\w.-]*\.(zip|kicad_pcb|kicad_sch|svg|json|txt|stl)\b/g)) {
+      if (!present.has(m[0])) {
+        fail(
+          `${rel} names the artifact ${m[0]}, which is not in apps/web/public/hardware. ` +
+            `Either it is not built, or the prose is describing a file this project no longer publishes.`
+        )
+      }
+    }
   }
 }
 

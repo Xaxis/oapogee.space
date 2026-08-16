@@ -89,9 +89,14 @@ from `data/bom.yaml`.
 ## Schematic and PCB
 
 All of it is on the [schematic page](/reference/schematic): the drawing, the
-netlist as text, the routed PCB, the assembly view, a KiCad schematic and a
-KiCad PCB, the circuit JSON, and the fabrication package with Gerbers, both
-drill files, the bill of materials and the pick and place.
+netlist as text, the routed PCB, the assembly view, a KiCad schematic and the
+circuit JSON.
+
+The fabrication package is not there, and that page says why rather than this
+one. `make fab` refuses to write Gerbers while the board has an open blocker,
+and it currently has two, so publishing them would be publishing a board that
+does not work. The list is generated from the check on every build, so it is
+right on the day you read it rather than on the day somebody wrote it.
 
 Everything there is generated from `hardware/oapogee.tsx` by `make hw`, and the
 build fails when a committed artifact stops matching the source it came from.
