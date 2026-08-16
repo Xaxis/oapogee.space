@@ -148,46 +148,52 @@ for (const [type, id, label] of [
 
 // --- pinout completeness -----------------------------------------------------
 //
-// The one this board actually fails on, and the one a generic PCB checker would
-// not look for. A <chip> may declare fewer pins than the package it is placed
-// into has pads: the schematic is then a connectivity diagram, which is useful,
-// while the layout built from it is a board whose unmapped pads go nowhere.
-// Several logical pins can also land on the same pad, which is where the pad
-// clearance errors above come from.
+// This check used to compare a component's pad count against its port count and
+// blocked when there were more pads than ports. It never fired once, because
+// tscircuit creates a port for every pad in the footprint whether or not the
+// source names it. pads > ports is not reachable, so the check passed on every
+// run while the radio had nine of twenty-five pins wired.
+//
+// What actually matters is how many pads the source NAMED. An unnamed port is
+// called pin17, it is connected to nothing, and on a real integrated circuit
+// pin17 is a supply rail, an RF port, or a crystal terminal. The board this
+// produces has an SX1262 with no reference oscillator and no RF front end, and
+// it exports a clean Gerber package, because a pad nobody named looks exactly
+// like a pad nobody needed.
+//
+// Only parts with a manufacturer part number are held to this. A two terminal
+// passive placed in a four pad land pattern is a footprint question, not a
+// pinout question.
 
 {
-  const srcByComp = Object.fromEntries(of('source_component').map((e) => [e.source_component_id, e]))
-  const declared = {}
-  for (const p of of('source_port')) {
-    declared[p.source_component_id] = (declared[p.source_component_id] ?? 0) + 1
-  }
-  const padsByPcb = {}
-  for (const t of ['pcb_smtpad', 'pcb_plated_hole']) {
-    for (const p of of(t)) {
-      if (!p.pcb_component_id) continue
-      padsByPcb[p.pcb_component_id] = (padsByPcb[p.pcb_component_id] ?? 0) + 1
-    }
+  const named = {}
+  const generic = {}
+  for (const port of of('source_port')) {
+    const bucket = /^pin\d+$/i.test(String(port.name ?? '')) ? generic : named
+    bucket[port.source_component_id] = (bucket[port.source_component_id] ?? 0) + 1
   }
 
   const gaps = []
-  for (const pc of of('pcb_component')) {
-    const src = srcByComp[pc.source_component_id]
-    if (!src) continue
-    const pins = declared[pc.source_component_id] ?? 0
-    const pads = padsByPcb[pc.pcb_component_id] ?? 0
-    if (pads > pins) gaps.push({ name: src.name, pins, pads })
+  for (const src of of('source_component')) {
+    if (!src.manufacturer_part_number) continue
+    const unnamed = generic[src.source_component_id] ?? 0
+    if (unnamed === 0) continue
+    const total = unnamed + (named[src.source_component_id] ?? 0)
+    gaps.push({ name: src.name, mpn: src.manufacturer_part_number, named: total - unnamed, total })
   }
-  gaps.sort((a, b) => b.pads - b.pins - (a.pads - a.pins))
+  gaps.sort((a, b) => b.total - b.named - (a.total - a.named))
+
   if (gaps.length) {
     blockers.push({
       id: 'pinout-incomplete',
       n: gaps.length,
       what:
-        `${gaps.length} part(s) have footprint pads no declared pin maps onto, so those pads ` +
-        `connect to nothing and the mapping of the ones that do is ambiguous: ` +
-        gaps.map((g) => `${g.name} ${g.pins}/${g.pads}`).join(', ') +
-        `. Each one needs its real pinout transcribed from the part's datasheet before a ` +
-        `board is ordered.`,
+        `${gaps.length} part(s) have footprint pads the source never named, so those pads are ` +
+        `on the board connected to nothing: ` +
+        gaps.map((g) => `${g.name} ${g.mpn} ${g.named}/${g.total}`).join(', ') +
+        `. On an integrated circuit the unnamed pads are supply rails, RF ports and crystal ` +
+        `terminals. Transcribe each part's pinout from its datasheet into pinLabels and wire ` +
+        `what it requires.`,
       detail: gaps,
     })
   }

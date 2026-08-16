@@ -34,7 +34,7 @@ const DOWNLOADS = [
   {
     file: 'oapogee-pcb.svg',
     label: 'PCB layout',
-    what: 'Footprints and placement on the 22 by 60 mm board.',
+    what: 'Footprints and placement.',
   },
   {
     file: 'oapogee-assembly.svg',
@@ -193,23 +193,50 @@ export default function Schematic() {
             hint: 'Every artifact, rendered from hardware/oapogee.tsx by make hw and verified against it in the build.',
             content: (
               <div className="flex max-w-2xl flex-col gap-3">
-                {DOWNLOADS.map((d) => (
-                  <a
-                    key={d.file}
-                    href={`/hardware/${d.file}`}
-                    download
-                    className="rounded-lg border border-[var(--color-line)] p-4 !no-underline hover:border-[var(--color-line-bright)]"
-                  >
-                    <div className="flex flex-wrap items-baseline gap-2">
-                      <span className="font-medium !text-white">{d.label}</span>
-                      <code className="font-mono text-xs text-[var(--color-hivis)]">{d.file}</code>
-                      <span className="ml-auto font-mono text-xs text-[var(--color-dim)]">
-                        {sizeOf(d.file) ?? 'not built'}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm text-[var(--color-muted)]">{d.what}</p>
-                  </a>
-                ))}
+                {DOWNLOADS.map((d) => {
+                  const size = sizeOf(d.file)
+                  // A missing artifact is not a broken page. `make fab` refuses
+                  // to write fabrication files while the board has open
+                  // blockers, so the Gerbers are absent exactly when ordering
+                  // from them would waste somebody's money. A dead link would
+                  // say nothing; this says why.
+                  if (!size) {
+                    return (
+                      <div
+                        key={d.file}
+                        className="rounded-lg border border-dashed border-[var(--color-line)] p-4"
+                      >
+                        <div className="flex flex-wrap items-baseline gap-2">
+                          <span className="font-medium text-[var(--color-muted)]">{d.label}</span>
+                          <code className="font-mono text-xs text-[var(--color-dim)]">{d.file}</code>
+                          <span className="ml-auto font-mono text-xs text-[var(--color-orange)]">
+                            not published
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-[var(--color-muted)]">
+                          {d.what} Held back while the board has open blockers, listed above.
+                        </p>
+                      </div>
+                    )
+                  }
+                  return (
+                    <a
+                      key={d.file}
+                      href={`/hardware/${d.file}`}
+                      download
+                      className="rounded-lg border border-[var(--color-line)] p-4 !no-underline hover:border-[var(--color-line-bright)]"
+                    >
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span className="font-medium !text-white">{d.label}</span>
+                        <code className="font-mono text-xs text-[var(--color-hivis)]">{d.file}</code>
+                        <span className="ml-auto font-mono text-xs text-[var(--color-dim)]">
+                          {size}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-[var(--color-muted)]">{d.what}</p>
+                    </a>
+                  )
+                })}
               </div>
             ),
           },

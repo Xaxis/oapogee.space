@@ -1,6 +1,7 @@
 {
   "note": "Recorded by tools/check-pcb.mjs --update. Counts may fall, never rise.",
   "blockers": {
+    "pinout-incomplete": 8,
     "soft-clearance": 82
   }
 }
