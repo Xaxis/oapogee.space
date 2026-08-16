@@ -111,9 +111,12 @@ confirm every package by hand before ordering.
 
 ## Mechanical
 
-The board is 22 by 60 mm. That outline is set in the circuit source and in
-`data/mechanical.yaml`, and the build fails if the two disagree, because the
-printed enclosure is generated from it.
+The board outline is set in the circuit source and in `data/mechanical.yaml`,
+and the build fails if the two disagree, because the printed enclosure is
+generated from it. The dimensions themselves are not repeated here: they have
+changed twice as the layout grew, and a third copy in prose is a third thing to
+forget. The [Mounting](/mounting) page renders them from the data, along with
+the overall size of each printed part measured off its own model.
 
 The sled and pod are published as OpenSCAD source alongside their STLs, with
 every dimension and where it came from, on the [Mounting](/mounting) page.

@@ -49,10 +49,12 @@ longer, which interacts with the sled length.
 
 **Decided: the 24 mm case is external-pod only, and the sled is BT-55.**
 
-The geometry settled it rather than a preference. The circuit source puts the
-board at 22 mm wide, and a BT-50 bore is 24.13 mm, which leaves 0.6 mm of rail
-on each side of a sled: a slicer will emit that and a landing will break it.
-Sizing the sled for BT-55 gives 4.8 mm a side.
+The geometry settled it rather than a preference, and it has settled harder
+since. When this was written the board was narrow enough to sit inside a BT-50
+bore of 24.13 mm with a sliver of rail on each side of the sled: a slicer will
+emit that and a landing will break it. The board has grown twice since then to
+give the autorouter room, and it is now wider than that bore, so a BT-50 sled is
+not a thin-walled part, it is not a part.
 
 This costs nothing, because the pod already covers the small-tube case and
 covers it better. A pod needs no payload bay at all, which is the entire reason

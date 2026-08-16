@@ -237,15 +237,17 @@ const SOURCED = [
       'dimensions, cited in data/mechanical.yaml beside the millimetre values derived from them.',
   },
   {
-    values: ['24.13 mm', '32.59 mm', '22 mm', '60 mm', '0.6 mm', '4.8 mm'],
+    values: ['24.13 mm', '32.59 mm'],
     why:
-      'Arithmetic on dimensions already declared in data/mechanical.yaml with their provenance: ' +
-      'the two tube bores in millimetres, the board width, and the rail left on each side, which ' +
-      'is (bore - board - clearance) / 2, and the board outline itself. Every input is on the ' +
-      'mounting page with its source, and the outline is declared in data/mechanical.yaml and ' +
-      'cross-checked against the circuit source by check-data, so it cannot drift. ' +
-      'so these restate a derivation rather than introducing a figure. They are listed because ' +
-      'the alternative is a rule that exempts anything it can call a calculation.',
+      'The two body tube bores in millimetres, converted from the Estes catalogue inch dimensions ' +
+      'and declared in data/mechanical.yaml with that provenance. ' +
+      'This entry used to also carry the board width, the board length, and the rail thickness ' +
+      'derived from them, on the reasoning that a figure cross-checked between the circuit source ' +
+      'and data/mechanical.yaml "cannot drift". It drifted. check-data compares those two against ' +
+      'each other and has no idea what the prose says, so when the board grew the pages went on ' +
+      'quoting the old width and the rail arithmetic built on it, and the allowlist is what let ' +
+      'them. Derived dimensions are not restated in prose any more: the pages point at the data ' +
+      'and the Mounting page renders it.',
   },
   {
     values: ['2 in'],

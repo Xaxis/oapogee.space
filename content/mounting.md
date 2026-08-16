@@ -26,8 +26,9 @@ The two form factors are sized for different rockets on purpose. The pod straps
 to the outside of a tube as small as a BT-50, which is the whole point of it:
 your rocket needs no payload bay. The sled needs a rocket that has one, and a
 rocket with a payload section is a bigger rocket. Sizing the sled for a BT-50
-as well produced a part with 0.6 mm of rail on each side of the board, which a
-slicer will happily emit and a landing will happily break.
+as well produced a part with a sliver of rail on each side of the board, which
+a slicer will happily emit and a landing will happily break. The board has grown
+since, and no longer fits that bore at all.
 
 A coupler is narrower than the tube it joins, so it is not the same fit either.
 Measure yours and re-render with that bore rather than assuming.

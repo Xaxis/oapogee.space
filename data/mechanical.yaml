@@ -97,13 +97,15 @@ params:
     what: Short dimension of the PCB outline.
     closes: >
       TODO(confirm-on-hardware): as board_length, mirrors hardware/oapogee.tsx.
-      The board grew from 22 by 60 because the autorouter could not finish on
-      the smaller one: routing time went from seconds to over ten minutes and
-      then to not completing at all once the real regulator and the programming
-      buttons were on it. At 28 by 78 it routes in under a minute and the
-      closest copper improved as well. This is the dimension the sled is
-      tightest on: a BT-55 bore is 32.59 mm, so 28 mm of board leaves about
-      1.85 mm of rail each side.
+
+      This is the dimension the sled is tightest on, and it is why the board has
+      only ever grown in one direction. What is left for the sled rail on each
+      side is half of (tube_id minus this width minus fit_clearance), and the
+      rail cannot usefully be thinner than floor_thickness, which is what the
+      printer can lay down and have hold together. Widening the board eats that
+      allowance twice over, once on each side, while lengthening it costs
+      nothing at all. So when the layout has needed room it has been given
+      length, and this number moves only if the tube does.
 
   - id: board_thickness
     group: board
@@ -225,12 +227,17 @@ params:
       Estes BT-55, 1.283 in from the published catalogue dimension. Deliberately
       a different airframe from tube_od above, because the two form factors suit
       different rockets and pretending otherwise produced a part that did not
-      work. A BT-50 bore is 24.13 mm, and a 22 mm board inside it leaves 0.6 mm
-      of rail on each side: printable in the sense that a slicer will emit it,
-      and nothing in the sense of a part that survives a landing. The pod exists
-      so a small tube needs no payload bay at all; a sled needs a rocket that
-      has one, and a rocket with a payload section is a bigger rocket. BT-55
-      leaves 4.8 mm a side. Measure your own tube and re-render either way.
+      work.
+
+      When the sled was first drawn this was an argument about rail thickness: a
+      BT-50 bore is 24.13 mm and the board was narrow enough to sit inside it
+      with a sliver of rail on each side, printable in the sense that a slicer
+      would emit it and nothing in the sense of a part that survives a landing.
+      The board has grown since, and the argument is now arithmetic rather than
+      judgement: board_width exceeds a BT-50 bore, so the board does not enter
+      that tube at all. The pod exists so a small tube needs no payload bay; a
+      sled needs a rocket that has one, and a rocket with a payload section is a
+      bigger rocket. Measure your own tube and re-render either way.
 
   # --- pod ------------------------------------------------------------------
   - id: pod_wall
