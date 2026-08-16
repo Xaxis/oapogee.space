@@ -21,7 +21,13 @@ function Entry({ entry, all }: { entry: TroubleEntry; all: TroubleEntry[] }) {
     <article id={entry.id} className="max-w-[46rem] scroll-mt-24">
       <h3 className="text-xl font-semibold text-white">&ldquo;{entry.symptom}&rdquo;</h3>
       {entry.tiers.length < 3 && (
-        <span className="chip mt-2 inline-flex">{entry.tiers.join(', ')} only</span>
+        <span className="chip mt-2 mr-2 inline-flex">{entry.tiers.join(', ')} only</span>
+      )}
+      {/* Path gating was in the data and never on the page, so an entry about
+          a part that only exists on the custom board was shown to Modules
+          builders with nothing to say it did not apply to them. */}
+      {entry.paths && entry.paths.length === 1 && (
+        <span className="chip mt-2 inline-flex">{entry.paths[0]} path only</span>
       )}
 
       <ol className="mt-4 flex flex-col gap-4">

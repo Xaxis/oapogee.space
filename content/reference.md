@@ -47,6 +47,20 @@ data it was drawn from.
 The same enumeration appears in the firmware, the log format, and the packet
 format. Values 7 to 255 are reserved.
 
+**There is no transition back to `PAD_IDLE`.** Moving the arming switch to safe
+after the payload has armed does not disarm it, and that is deliberate rather
+than unfinished: the switch is a mechanical contact on a vehicle that vibrates,
+and a state machine that dropped out of `ARMED` on a momentary open would lose
+the pre-arm buffer and the settled pressure reference at the worst possible
+moment. Arming is a latch. To genuinely return to `PAD_IDLE` after a scrubbed
+countdown, press reset or cycle the power, then arm again once the reference has
+settled.
+
+This costs nothing in safety, because oApogee is a passive payload. Disarming
+does not make anything safe that was dangerous: no charge is fired, no
+deployment is controlled, no motor is ignited. What arming changes is whether
+the payload is recording.
+
 TODO(verify): every threshold marked N above is unset. They must come from
 measured sensor noise on real hardware, not from intuition, and each carries its
 own verification note in `data/flight-phases.yaml`.

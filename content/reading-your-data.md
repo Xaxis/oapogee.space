@@ -77,8 +77,11 @@ flight.
 **If the acceleration is a flat plateau here, look at what value it is flat at.**
 A plateau sitting at a constant value means the sensor saturated: it reached its
 full-scale range and reported its maximum rather than an error, so real
-acceleration above that limit looks like a constant. The `HIGH_G` flag says
-whether the value came from the dedicated high-g part or from the IMU.
+acceleration above that limit looks like a constant. The `HIGH_G` flag is set
+when the dedicated high-g accelerometer is present and healthy, which is also
+when the acceleration field carries its reading. Clear means the number came
+from the IMU and is subject to saturation, and it does not distinguish a board
+built without the part from one whose part has failed.
 
 TODO(verify): state the full-scale range oApogee configures on the IMU, quoted
 from its datasheet, and the motor class at which a representative loaded

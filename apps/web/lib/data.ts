@@ -217,6 +217,13 @@ export type TroubleEntry = {
   category: string
   symptom: string
   tiers: string[]
+  /**
+   * Which build path an entry applies to, when it does not apply to both. The
+   * Modules path has no L1 and no thermal pad, so a check about them is not
+   * merely irrelevant there, it sends somebody looking for a part they do not
+   * have.
+   */
+  paths?: string[]
   checks: Check[]
   note?: string
   see_also?: string[]

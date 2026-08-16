@@ -241,8 +241,9 @@ entries:
           The HIGH_G flag in the log and in the telemetry says whether the value
           came from the dedicated part or from the IMU. If it came from the IMU,
           the boost phase is not measurable with what is on the board. The
-          high-g accelerometer is specified at Link and above, so on a Solo
-          build there is no dedicated part to fall back to.
+          high-g accelerometer is an optional populate at every tier including
+          Solo, so a board without one is not a wrong build, it is a build that
+          cannot measure boost.
           The part is an optional populate at every tier, including Solo,
           because saturation depends on the motor rather than on whether the
           board has a radio. TODO(verify): which motor class actually needs it
@@ -373,8 +374,13 @@ entries:
           match. One mismatch and the link is silent rather than degraded.
       - do: Confirm the payload is transmitting
         detail: >
-          The status LED indicates transmission. If it is not transmitting, the
-          problem is the payload, not the link.
+          Read it on the serial console rather than from across the field: the
+          payload reports what it is doing over USB, and that answer is
+          unambiguous. TODO(confirm): the status LED's meanings are not
+          specified anywhere yet, so this check cannot be done by looking at
+          the board. Define the indication pattern in the firmware, publish it
+          on the Reference page, then say here which pattern means
+          transmitting.
       - do: Check the browser
         detail: >
           The ground station display uses WebSerial, which is not supported in
