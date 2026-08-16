@@ -84,10 +84,47 @@ function countShells(path) {
   return new Set([...parent.keys()].map(find)).size
 }
 
+/**
+ * The overall size of the exported solid, measured off the triangles.
+ *
+ * It exists because the Mounting page could not answer the first question
+ * anybody printing a part asks, which is whether it fits on their bed and in
+ * their rocket. That number was not in data/mechanical.yaml and could not
+ * honestly be put there by hand: the parts are built from two dozen parameters
+ * through unions, differences and a hull, so the envelope is an output of the
+ * geometry rather than an input to it, and a hand-typed figure would drift the
+ * first time a wall thickness changed.
+ *
+ * Measuring the STL avoids that entirely. It is not an estimate of the model,
+ * it is the model, and it is recomputed on every `make mech`.
+ */
+function boundingBox(path) {
+  const buf = readFileSync(path)
+  const count = buf.readUInt32LE(80)
+  const lo = [Infinity, Infinity, Infinity]
+  const hi = [-Infinity, -Infinity, -Infinity]
+  for (let i = 0; i < count; i++) {
+    const base = 84 + i * 50 + 12
+    for (let v = 0; v < 3; v++) {
+      for (let a = 0; a < 3; a++) {
+        const x = buf.readFloatLE(base + v * 12 + a * 4)
+        if (x < lo[a]) lo[a] = x
+        if (x > hi[a]) hi[a] = x
+      }
+    }
+  }
+  // One decimal. The models are built in millimetres from parameters given to
+  // one decimal at most, so a third decimal would be reporting float noise as
+  // precision.
+  return [0, 1, 2].map((a) => Number((hi[a] - lo[a]).toFixed(1)))
+}
+
 // Rendered from an isometric angle that shows the cavity and one strap slot,
 // because the preview exists to let somebody recognise the part rather than to
 // be pretty.
 const CAMERA = '0,0,0,62,0,32,0'
+
+const sizes = {}
 
 for (const part of mech.parts) {
   const scad = join(SRC, part.source)
@@ -121,7 +158,9 @@ for (const part of mech.parts) {
     )
     process.exit(1)
   }
-  console.log(`${part.id}: ${part.source} -> ${stl.slice(ROOT.length)} (1 solid)`)
+  const [bx, by, bz] = boundingBox(stl)
+  sizes[part.id] = { x_mm: bx, y_mm: by, z_mm: bz }
+  console.log(`${part.id}: ${part.source} -> ${stl.slice(ROOT.length)} (1 solid, ${bx} x ${by} x ${bz} mm)`)
 }
 
 // Every .scad in the directory, including the ones that are only included, so
@@ -136,6 +175,8 @@ const manifest = {
   sources: Object.fromEntries(
     sources.map((f) => [f, createHash('sha256').update(readFileSync(join(SRC, f))).digest('hex')])
   ),
+  // Measured off the exported triangles, not typed. See boundingBox above.
+  sizes,
 }
 writeFileSync(join(SRC, 'rendered.json'), JSON.stringify(manifest, null, 2) + '\n')
 

@@ -1,4 +1,4 @@
-import { getMechanical, type MechProvenance } from '@/lib/data'
+import { getMechanical, getPartSizes, type MechProvenance } from '@/lib/data'
 import { Marked } from '@/components/Marked'
 
 /**
@@ -24,6 +24,7 @@ const BADGE: Record<MechProvenance, string> = {
 
 export function PrintedParts() {
   const mech = getMechanical()
+  const sizes = getPartSizes()
   const provisional = mech.params.filter((p) => p.provenance === 'provisional')
 
   return (
@@ -51,6 +52,7 @@ export function PrintedParts() {
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {mech.parts.map((part) => {
             const stem = `oapogee-${part.id.replace(/_/g, '-')}`
+            const size = sizes[part.id]
             return (
               <div
                 key={part.id}
@@ -66,6 +68,18 @@ export function PrintedParts() {
                 />
                 <h3 className="mt-4 font-semibold text-white">{part.name}</h3>
                 <p className="mt-2 flex-1 text-sm text-[var(--color-muted)]">{part.note}</p>
+                {/* The first question anybody printing a part asks is whether
+                    it fits on the bed. Measured off the STL, not typed. */}
+                {size ? (
+                  <p className="mt-3 text-sm text-[var(--color-muted)]">
+                    <span className="font-mono text-xs uppercase tracking-wider text-[var(--color-dim)]">
+                      Overall:{' '}
+                    </span>
+                    <span className="font-mono">
+                      {size.x_mm} &times; {size.y_mm} &times; {size.z_mm} mm
+                    </span>
+                  </p>
+                ) : null}
                 <p className="mt-3 text-sm text-[var(--color-muted)]">
                   <span className="font-mono text-xs uppercase tracking-wider text-[var(--color-dim)]">
                     Printing:{' '}

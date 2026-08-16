@@ -282,11 +282,16 @@ and recovery. Adding one touches all three.
 ### The federal rules
 
 In the US, FAA regulations divide amateur rockets into classes. Class 1 is the
-model rocket class and carries the fewest requirements. Class is determined by
-propellant mass and total vehicle weight, which means **adding a payload moves a
-rocket toward a class boundary.** On a low power rocket with a payload in this
-mass range that is very unlikely to be the operative constraint, but it is worth
-knowing which direction you are moving in.
+model rocket class and carries the fewest requirements. Total vehicle weight is
+one of the criteria, which means **adding a payload moves a rocket toward a
+class boundary.** On a low power rocket with a payload in this mass range that
+is very unlikely to be the operative constraint, but it is worth knowing which
+direction you are moving in.
+
+The full set of criteria is not listed here, and the omission is deliberate: a
+partial list of legal criteria reads like a complete one, and somebody would
+check their rocket against it and conclude they had finished. Read the primary
+source, or wait for the transcription below.
 
 - Primary source: [14 CFR Part 101](https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-101)
 

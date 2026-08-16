@@ -292,6 +292,23 @@ export type Mechanical = {
 
 export const getMechanical = () => load<Mechanical>('mechanical.yaml')
 
+/**
+ * The overall size of each printed part, measured off its exported STL by
+ * tools/render-mechanical.mjs.
+ *
+ * Read from the render manifest rather than from mechanical.yaml because it is
+ * an output of the geometry, not an input to it: the parts are built from two
+ * dozen parameters through unions, differences and a hull, so a hand-typed
+ * envelope would be a fourth place for the same number to drift. This one is
+ * recomputed every time the models are rendered.
+ */
+export const getPartSizes = (): Record<string, { x_mm: number; y_mm: number; z_mm: number }> => {
+  const manifest = parse(
+    readFileSync(join(REPO_ROOT, 'hardware/mechanical/rendered.json'), 'utf8')
+  ) as { sizes?: Record<string, { x_mm: number; y_mm: number; z_mm: number }> }
+  return manifest.sizes ?? {}
+}
+
 // --- pcb status -------------------------------------------------------------
 
 export type PcbStatus = {

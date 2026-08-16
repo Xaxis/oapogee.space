@@ -156,11 +156,15 @@ the parachute opens, and a slow descent to a flat line at the ground.
 That curve is the point of the whole project. [Reading your data](/data) walks
 through every feature of it.
 
-You will probably also get something wrong on the first attempt. The most common
-first-flight problems, in order: a static port blocked with glue or paint, a
-payload that was powered but not armed, and a rocket that was not re-simulated
-with the payload fitted. All three are on the [preflight
-checklist](/preflight) for that reason.
+You will probably also get something wrong on the first attempt. Three failures
+account for most of what this project has seen or been told about: a static port
+blocked with glue or paint, a payload that was powered but not armed, and a
+rocket that was not re-simulated with the payload fitted. They are on the
+[preflight checklist](/preflight) for that reason.
+
+TODO(verify): no ranking is given because there is no data behind one. Put an
+ordering here once the community flight log has enough entries to count what
+actually goes wrong, rather than what is easiest to imagine going wrong.
 
 ## The order to do things in
 

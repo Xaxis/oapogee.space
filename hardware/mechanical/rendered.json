@@ -7,5 +7,22 @@
     "pod-cap.scad": "089aa215117a5bc5d3cf5cc341e346fe29dfa1566e4eead97d96f1a8c2ed0181",
     "pod-shape.scad": "817e5287dea5cb4d49301d9ec5524422a9f063d30b8b68a906f13870663ca26a",
     "sled.scad": "be6b25b4acf9f92a9bd6f9aef7554221e5042d035551d7ba4f518c661336bbe8"
+  },
+  "sizes": {
+    "pod_base": {
+      "x_mm": 136.8,
+      "y_mm": 31.8,
+      "z_mm": 15.9
+    },
+    "pod_cap": {
+      "x_mm": 127.9,
+      "y_mm": 31.8,
+      "z_mm": 8.7
+    },
+    "sled": {
+      "x_mm": 127.4,
+      "y_mm": 32.3,
+      "z_mm": 7.8
+    }
   }
 }
