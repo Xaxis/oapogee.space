@@ -124,6 +124,14 @@ for (const file of files) {
  */
 const SOURCED = [
   {
+    values: ['32 MHz', '3.25 MHz', '5 MHz'],
+    why:
+      'SX1262 clock frequencies, from Semtech DS.SX1261-2.W.APP. 32 MHz is the reference the ' +
+      'datasheet requires on XTA and XTB. 3.25 MHz and roughly 5 MHz are the internal DC-DC ' +
+      'switching frequencies in standby and while transmitting, quoted in section 5.1. All ' +
+      'three are properties of the part, not figures this project chose or measured.',
+  },
+  {
     values: ['1575 MHz'],
     why:
       'GPS L1, the civil signal every consumer GNSS receiver listens on. A published carrier ' +

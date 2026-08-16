@@ -21,7 +21,7 @@
 //   20 while the circuit source said 60 by 22, and the enclosure was being built
 //   for a board nothing else described. Neither is measured until a board is
 //   fabricated and put on calipers.
-board_length = 78;  // mm
+board_length = 92;  // mm
 
 // Short dimension of the PCB outline. [PROVISIONAL]
 //   TODO(confirm-on-hardware): as board_length, mirrors hardware/oapogee.tsx.

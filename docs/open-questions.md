@@ -301,6 +301,42 @@ puts frequency coordination, and it costs nothing on the air.
 This one is genuinely undecided and it should be decided by somebody who has
 run a ground station at a busy launch, not from a desk.
 
+## The radio's RF front end
+
+**Open, and it is the single thing between this board and a fabricator.**
+
+The SX1262's transmit output and its receive input are different pins, and
+between them and one antenna the reference design puts an RF switch, a
+differential to single ended network on the receive side, and a matching and
+harmonic filter network on the transmit side. Roughly fourteen components.
+
+The topology is published. Figure 14-2 of the Semtech datasheet shows every
+part and how they connect, including that the switch is a PE4259 and that the
+radio drives it from DIO2. That much is transcribed and settled.
+
+**The values are not published.** No inductance or capacitance is printed for
+any component in that matching network in either revision of the datasheet, and
+the datasheet says why in as many words: "The application schematics presented
+here are for information only. Always refer to the latest reference designs
+posted on www.semtech.com." Matching is band specific, so a network for 868 MHz
+is not a network for 915 MHz.
+
+Three ways forward, none of them free:
+
+- **Take the values from Semtech's reference design files** for the band. This
+  is the intended path and it is a download, not a derivation. It has not been
+  done because it needs a Semtech account.
+- **Design the matching network** from the impedances in the datasheet. This is
+  real RF work and it needs a vector network analyser to confirm, which is not a
+  tool most people building this project own.
+- **Use a module with the front end already on it**, which is what the Modules
+  path does and part of why that path exists.
+
+Until one of those happens this board is not orderable, and this project will
+not publish Gerbers for it. A payload whose transmitter is matched to a guess
+would pass every check here, look correct on the bench at arm's length, and lose
+somebody's rocket.
+
 ## How to weigh in
 
 Open an issue at

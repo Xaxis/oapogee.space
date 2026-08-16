@@ -2,7 +2,7 @@
   "note": "Written by tools/render-mechanical.mjs. Verified by tools/gen-mechanical.mjs --check, which needs no OpenSCAD. If this check fails, run `make mech` and commit the result.",
   "sources": {
     "common.scad": "77a12e60fc87acbc7cc334d8d26c0ca7484a043e99dca5ad8f9ed5a3e56e0e56",
-    "params.scad": "f397ac5785d1863ec7a67259cda4e1049eb5e45990d55f0fa6164d237ea75bae",
+    "params.scad": "08ba44f73e8b3e95e958c377009c677006feccb1fc25b5f0de861c250d78ade2",
     "pod-base.scad": "ec641159b83381421ba93c3c6b2096078f2926b3d3595c3e60ab8bf7e0a2709d",
     "pod-cap.scad": "089aa215117a5bc5d3cf5cc341e346fe29dfa1566e4eead97d96f1a8c2ed0181",
     "pod-shape.scad": "817e5287dea5cb4d49301d9ec5524422a9f063d30b8b68a906f13870663ca26a",
@@ -10,17 +10,17 @@
   },
   "sizes": {
     "pod_base": {
-      "x_mm": 136.8,
+      "x_mm": 150.8,
       "y_mm": 31.8,
       "z_mm": 15.9
     },
     "pod_cap": {
-      "x_mm": 127.9,
+      "x_mm": 141.9,
       "y_mm": 31.8,
       "z_mm": 8.7
     },
     "sled": {
-      "x_mm": 127.4,
+      "x_mm": 141.4,
       "y_mm": 32.3,
       "z_mm": 7.8
     }

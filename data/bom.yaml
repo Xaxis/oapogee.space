@@ -1290,6 +1290,92 @@ parts:
       makes. Buying the margin costs a few cents and one line in this file.
     substitutes: []
 
+  - id: crystal_32m
+    role: passive
+    name: Crystal, 32 MHz, 10 pF load
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [Y2]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): choose a specific part meeting the datasheet's numbers
+      below, then weigh and price it. The electrical requirement is closed, the
+      part is not.
+    datasheet:
+      document: Semtech DS.SX1261-2.W.APP, sections 4.1.3 and 3.4
+      url: https://cdn.sparkfun.com/assets/6/b/5/1/4/SX1262_datasheet.pdf
+      checked: 2026-08-15
+      facts: >
+        32 MHz, 10 pF nominal load capacitance, ESR 30 ohm typical and 60 ohm
+        maximum, drive level at most 100 microwatt.
+
+        No external load capacitors. Section 4.1.3 states that the device "does
+        not require the user to set external foot capacitors on the XTAL",
+        because it carries programmable capacitors on XTA and XTB, adjustable
+        in 0.47 pF steps and impossible to deactivate. Entering STDBY_XOSC
+        writes 19.7 pF into both.
+    applies:
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      The radio's reference. Everything the transceiver does with frequency,
+      which is everything it does, is measured against this.
+
+      It is a separate row from the microcontroller's crystal and a different
+      frequency, and the pair of them is worth noticing: two crystals on one
+      small board is two oscillators to lay out and keep away from each other.
+
+      The pair of load capacitors that normally flanks a crystal is deliberately
+      absent here and present on the microcontroller's, which is the sort of
+      inconsistency that looks like a mistake and is not. The RP2350 needs
+      external capacitors and Raspberry Pi specifies their value; the SX1262
+      has them built in and Semtech says adding external ones is wrong.
+    substitutes: []
+
+  - id: inductor_15u
+    role: passive
+    name: Inductor, 15 uH, radio DC-DC
+    manufacturer: null
+    mpn: null
+    confidence: unverified
+    designators: [L3]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): choose a part meeting the four criteria below, then confirm
+      the radio actually runs in DC-DC mode rather than falling back to the LDO,
+      by measuring transmit current both ways on real hardware. The datasheet
+      says the difference is roughly a factor of two, and that is the largest
+      single number in this payload's power budget.
+    datasheet:
+      document: Semtech DS.SX1261-2.W.APP, sections 5.1, 5.1.5 and 13.1.11
+      url: https://cdn.sparkfun.com/assets/6/b/5/1/4/SX1262_datasheet.pdf
+      checked: 2026-08-15
+      facts: >
+        15 uH between VREG and DCC_SW, the two pins of the internal buck
+        converter. Selection criteria are given rather than a single part:
+        shielded, DC resistance at most 2 ohm, rated current at least 100 mA,
+        self resonant frequency above 20 MHz. Semtech names Coilcraft LPS3010
+        and several TDK MLZ2012 and VLS2010 parts as examples.
+
+        The converter switches at 3.25 MHz in standby and around 5 MHz while
+        transmitting, recomputed each time the operating frequency is set.
+    applies:
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      The radio can run on its internal linear regulator instead, and this
+      inductor is what lets it use the switching one. Section 13.1.11 is blunt
+      about the cost of not fitting it: "Using only a linear regulator implies
+      that the RX or TX current is almost doubled."
+
+      On a payload built around one small cell, where endurance on the pad is
+      the thing that decides whether a scrubbed countdown means a lost flight,
+      halving the transmit current for one passive is not a close call.
+    substitutes: []
+
   - id: crystal_12m
     role: passive
     name: Crystal, 12 MHz, 30 ppm

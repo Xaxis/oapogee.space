@@ -77,7 +77,7 @@ params:
   # --- board ----------------------------------------------------------------
   - id: board_length
     group: board
-    value: 78
+    value: 92
     unit: mm
     provenance: provisional
     what: Long dimension of the PCB outline.

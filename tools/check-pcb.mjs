@@ -225,6 +225,9 @@ const INTENTIONALLY_UNCONNECTED = {
   'U1.STAT': 'Charger status output. There is no charge indicator LED on this board: the ' +
     'status LED is driven by the microcontroller, which knows more about what is happening ' +
     'than the charger does.',
+  'U8.DIO3': 'Multi-purpose IO, and the supply pin for a temperature compensated ' +
+    'oscillator. This design uses a plain crystal, so there is nothing for it to power, and ' +
+    'the radio already has an interrupt line on DIO1.',
   'U6.INT1': 'IMU data ready interrupt. The firmware polls the sensors on a fixed cadence ' +
     'rather than reacting to them, because a flight log with an irregular sample interval is ' +
     'harder to reason about than one that occasionally reads the same sample twice.',

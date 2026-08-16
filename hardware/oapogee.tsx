@@ -145,7 +145,7 @@ function uflPads() {
 }
 
 export default () => (
-  <board width="28mm" height="78mm" minTraceWidth="0.127mm">
+  <board width="28mm" height="92mm" minTraceWidth="0.127mm">
     {/* ---------------------------------------------------------------------
         Power. USB-C in, charger, cell, 3V3 rail.
 
@@ -308,8 +308,8 @@ export default () => (
         pin38: 'IOVDD5',
         pin39: 'DVDD3',
         pin40: 'VBAT_SENSE',
-        pin41: 'GPIO27',
-        pin42: 'GPIO28',
+        pin41: 'RADIO_NRESET',
+        pin42: 'RADIO_DIO2',
         pin43: 'GPIO29',
         pin44: 'ADC_AVDD',
         pin45: 'IOVDD6',
@@ -551,29 +551,99 @@ export default () => (
           <smtpad portHints={['25']} pcbX={0} pcbY={0} width="2.2mm" height="2.2mm" shape="rect" />
         </footprint>
       }
-      pcbX={-4.5}
-      pcbY={-23.0}
+      pcbX={-6.0}
+      pcbY={-27.0}
       manufacturerPartNumber="SX1262"
+      /* Semtech DS.SX1261-2.W.APP Table 2-1, QFN 4x4 24L. Identical in
+         revision 1.2 (2019) and revision 2.2 (2024), checked against both and
+         against the package top view in Figure 2-1. Note the datasheet
+         designates the exposed pad 0 in Table 2-1 and 25 in the schematic
+         symbol of Figure 14-2; it is one pad, and it is ground. */
       pinLabels={{
-        pin1: 'VDD',
-        pin2: 'GND',
-        pin3: 'SCK',
-        pin4: 'MOSI',
-        pin5: 'MISO',
-        pin6: 'NSS',
-        pin7: 'BUSY',
-        pin8: 'DIO1',
-        pin9: 'ANT',
+        pin1: 'VDD_IN',
+        pin2: 'GND2',
+        pin3: 'XTA',
+        pin4: 'XTB',
+        pin5: 'GND5',
+        pin6: 'DIO3',
+        pin7: 'VREG',
+        pin8: 'GND8',
+        pin9: 'DCC_SW',
+        pin10: 'VBAT',
+        pin11: 'VBAT_IO',
+        pin12: 'DIO2',
+        pin13: 'DIO1',
+        pin14: 'BUSY',
+        pin15: 'NRESET',
+        pin16: 'MISO',
+        pin17: 'MOSI',
+        pin18: 'SCK',
+        pin19: 'NSS',
+        pin20: 'GND20',
+        pin21: 'RFI_P',
+        pin22: 'RFI_N',
+        pin23: 'RFO',
+        pin24: 'VR_PA',
+        pin25: 'EPAD',
       }}
       schX={8}
       schY={-5}
     />
 
+    {/* The radio's own 32 MHz reference, and the thing about it that is easy to
+        get wrong.
+        ------------------------------------------------------------------
+        Semtech DS.SX1261-2.W.APP section 4.1.3: the SX1262 "does not require
+        the user to set external foot capacitors on the XTAL supplying the
+        32MHz clock", because it carries programmable capacitors on both XTA
+        and XTB, trimmed in 0.47 pF steps and impossible to switch off. The
+        state machine writes 19.7 pF into both on entering STDBY_XOSC. So this
+        crystal has no load capacitors beside it, and adding the pair that
+        every other crystal circuit wants would detune it.
+
+        The crystal itself is specified by the datasheet rather than chosen:
+        Table 3-4 asks for 32 MHz at 10 pF nominal load with an ESR of 30 ohm
+        typical and 60 ohm maximum, and a drive level of at most 100 microwatt.
+
+        A TCXO is the alternative and this design does not use one. It would go
+        on XTA through a 220 ohm resistor and a 10 pF DC block with XTB left
+        open, powered from DIO3, and it costs more and draws more. A crystal is
+        accurate enough for LoRa. */}
+    <chip
+      name="Y2"
+      footprint={
+        <footprint>
+          <smtpad portHints={['1']} pcbX={-1.1} pcbY={-0.85} width="1.2mm" height="1.0mm" shape="rect" />
+          <smtpad portHints={['2']} pcbX={1.1} pcbY={-0.85} width="1.2mm" height="1.0mm" shape="rect" />
+          <smtpad portHints={['3']} pcbX={1.1} pcbY={0.85} width="1.2mm" height="1.0mm" shape="rect" />
+          <smtpad portHints={['4']} pcbX={-1.1} pcbY={0.85} width="1.2mm" height="1.0mm" shape="rect" />
+        </footprint>
+      }
+      pcbX={-6.0}
+      pcbY={-22.0}
+      manufacturerPartNumber="XTAL-32M-10PF"
+      pinLabels={{ pin1: 'XA', pin2: 'CASE1', pin3: 'XB', pin4: 'CASE2' }}
+      schX={4}
+      schY={-2}
+    />
+
+    {/* The DC-DC inductor, between VREG and DCC_SW. Section 5.1 of the same
+        datasheet: running the radio on its LDO alone "negates the need for the
+        15 uH inductor between pins 7 and 9", and section 13.1.11 says what that
+        costs, which is that "the RX or TX current is almost doubled". On a
+        payload sized around a single cell, doubling the transmit current to
+        save one inductor is the wrong trade.
+
+        Section 5.1.5 gives the selection rule rather than a part: shielded,
+        DC resistance at most 2 ohm, rated for at least 100 mA, self resonant
+        above 20 MHz. */}
+    <inductor name="L3" inductance="15uH" footprint="0805" pcbX={1.0} pcbY={-22.0} schX={4} schY={-4} />
+
     <chip
       name="J3"
       footprint={<footprint>{uflPads()}</footprint>}
-      pcbX={-1.25}
-      pcbY={-35.25}
+      pcbX={2.0}
+      pcbY={-40.0}
       manufacturerPartNumber="U.FL-R-SMT-1(10)"
       pinLabels={{ pin1: 'ANT', pin2: 'GND', pin3: 'GND2' }}
       schX={13}
@@ -596,8 +666,8 @@ export default () => (
           {dualPads({ pins: 18, body: 4.5, pitch: 0.5, padLen: 0.8, padWid: 0.3 })}
         </footprint>
       }
-      pcbX={-6.25}
-      pcbY={-30.0}
+      pcbX={-7.0}
+      pcbY={-33.5}
       manufacturerPartNumber="MAX-M10S"
       pinLabels={{ pin1: 'VCC', pin2: 'GND', pin3: 'TXD', pin4: 'RXD', pin5: 'RF_IN' }}
       schX={8}
@@ -629,8 +699,8 @@ export default () => (
     <chip
       name="J5"
       footprint={<footprint>{uflPads()}</footprint>}
-      pcbX={-6.25}
-      pcbY={-34.5}
+      pcbX={-8.0}
+      pcbY={-40.0}
       manufacturerPartNumber="U.FL-R-SMT-1(10)"
       pinLabels={{ pin1: 'SIG', pin2: 'GND', pin3: 'GND2' }}
       schX={13}
@@ -647,8 +717,8 @@ export default () => (
     <chip
       name="LS1"
       footprint="pinrow2"
-      pcbX={8.12}
-      pcbY={-18.75}
+      pcbX={9.0}
+      pcbY={-19.0}
       manufacturerPartNumber="PKLCS1212E4001-R1"
       pinLabels={{ pin1: 'IN', pin2: 'GND' }}
       schX={8}
@@ -661,8 +731,8 @@ export default () => (
     <chip
       name="D1"
       footprint="led5050"
-      pcbX={7.5}
-      pcbY={-28.12}
+      pcbX={6.5}
+      pcbY={-31.0}
       manufacturerPartNumber="RGB-LED-CC"
       pinLabels={{ pin1: 'A_R', pin2: 'A_G', pin3: 'A_B', pin4: 'K' }}
       schX={8}
@@ -852,7 +922,14 @@ export default () => (
     <trace from=".U3 .CS_RADIO" to=".U8 .NSS" />
     <trace from=".U3 .RADIO_BUSY" to=".U8 .BUSY" />
     <trace from=".U3 .RADIO_DIO1" to=".U8 .DIO1" />
-    <trace from=".U8 .ANT" to=".J3 .ANT" />
+    <trace from=".U3 .RADIO_NRESET" to=".U8 .NRESET" />
+    {/* DIO2 is the RF switch control. SetDio2AsRfSwitchCtrl makes the radio
+        drive it high in TX and low everywhere else, so the switch follows the
+        radio without the firmware having to keep them in step. It is brought
+        to the microcontroller as well because the same pin is a general
+        interrupt line when that mode is off, and which of the two this design
+        uses is not settled until the RF front end below is. */}
+    <trace from=".U3 .RADIO_DIO2" to=".U8 .DIO2" />
 
     {/* GNSS on a UART. Crossed, because TX on one end is RX on the other, and
         this is the single most common wiring mistake on a serial link. */}
@@ -890,7 +967,11 @@ export default () => (
     <trace from=".U5 .GND" to="net.GND" />
     <trace from=".U6 .GND" to="net.GND" />
     <trace from=".U7 .GND" to="net.GND" />
-    <trace from=".U8 .GND" to="net.GND" />
+    <trace from=".U8 .GND2" to="net.GND" />
+    <trace from=".U8 .GND5" to="net.GND" />
+    <trace from=".U8 .GND8" to="net.GND" />
+    <trace from=".U8 .GND20" to="net.GND" />
+    <trace from=".U8 .EPAD" to="net.GND" />
     <trace from=".J3 .GND" to="net.GND" />
     <trace from=".J3 .GND2" to="net.GND" />
     <trace from=".U9 .GND" to="net.GND" />
@@ -928,7 +1009,20 @@ export default () => (
     <trace from=".R5 .pin2" to="net.V3V3" />
     <trace from=".U6 .VDD" to="net.V3V3" />
     <trace from=".U7 .VDD" to="net.V3V3" />
-    <trace from=".U8 .VDD" to="net.V3V3" />
+    {/* VBAT and VBAT_IO are both supplies: the radio core and the digital
+        interface. VDD_IN feeds the power amplifier regulator, and on an SX1262
+        the datasheet's own pin table says it connects to pin 10, which is
+        VBAT. All three sit on the 3V3 rail rather than on the cell, so the
+        radio sees a regulated supply at the bottom of the discharge. */}
+    <trace from=".U8 .VBAT" to="net.V3V3" />
+    <trace from=".U8 .VBAT_IO" to="net.V3V3" />
+    <trace from=".U8 .VDD_IN" to="net.V3V3" />
+    <trace from=".U8 .VREG" to=".L3 .pin1" />
+    <trace from=".L3 .pin2" to=".U8 .DCC_SW" />
+    <trace from=".U8 .XTA" to=".Y2 .XA" />
+    <trace from=".U8 .XTB" to=".Y2 .XB" />
+    <trace from=".Y2 .CASE1" to="net.GND" />
+    <trace from=".Y2 .CASE2" to="net.GND" />
     <trace from=".U9 .VCC" to="net.V3V3" />
     <trace from=".U9 .RF_IN" to=".J5 .SIG" />
     <trace from=".J5 .GND" to="net.GND" />
