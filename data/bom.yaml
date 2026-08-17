@@ -1055,10 +1055,22 @@ parts:
       url: https://www.ckswitches.com/media/1422/js.pdf
       checked: 2026-08-15
       facts: >
-        SPDT, on-on, surface mount. Rated 0.3 A at 6 VDC, 100,000 cycles,
-        70 milliohm maximum contact resistance. The rating is orders of
-        magnitude above what a logic input asks of it, which is the point: the
-        switch is chosen for how it behaves mechanically, not electrically.
+        SPDT, surface mount, three terminals. Terminal 2 is the common; the
+        C&K legend reads "C: COMMON PIN". Rated 0.3 A at 6 VDC for 5,000 make
+        and break cycles, or 0.1 A at 30 VDC for 15,000. Contact resistance
+        70 milliohm maximum.
+
+        The recommended land pattern has exactly three pads, staggered across
+        two rows rather than in a line, and no mounting or shield lands: the
+        housing and actuator are nylon and the only metal reaching the board is
+        the three brass terminals.
+
+        Those cycle figures are far lower than a slide switch of this size is
+        usually assumed to manage, and the reason they do not bind here is that
+        this switch carries no power. It pulls a logic input to ground. A switch
+        in the battery path would have to carry the payload's full current
+        including inrush into the bulk capacitance, and the datasheet publishes
+        no inrush or surge rating at all.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
@@ -1483,28 +1495,111 @@ parts:
       the crystal may not start at all.
     substitutes: []
 
+  - id: cap_10n
+    role: passive
+    name: Capacitor, 10nF, 0402, X7R
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    designators: [C10]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): weigh and price it with the other passives.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      The IMU's interface supply bypass, and it is 10 nF rather than the 100 nF
+      every other digital supply on this board gets. That is the value in Table
+      11 of the ICM-42688-P datasheet, quantity one, X7R.
+
+      It is a separate row rather than folded into the 100 nF line precisely
+      because the difference looks like a typo. Somebody tidying this schematic
+      would normalise it, the board would still work, and the part would be
+      running outside the configuration its manufacturer characterised.
+    substitutes: []
+
+  - id: cap_2u2
+    role: passive
+    name: Capacitor, 2.2uF, 0603, X7R
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    designators: [C9]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(verify): weigh and price it with the other passives.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      The IMU's bulk supply bypass, in parallel with the 100 nF one. The
+      datasheet's bill of materials lists both, as two separate line items with
+      quantity one each, not as alternatives: the small part handles the fast
+      edges and this one holds the rail up underneath them.
+    substitutes: []
+
+  - id: cap_1u
+    role: passive
+    name: Capacitor, 1uF, 0603, X7R
+    manufacturer: multiple
+    mpn: null
+    confidence: unverified
+    designators: [C12]
+    price_usd: null
+    mass_g: null
+    verify: >
+      TODO(confirm-on-hardware): the ADXL375 datasheet recommends 1 uF on the
+      supply and its own specification table was characterised with 10 uF.
+      Those are different claims and the document does not reconcile them, so a
+      part fitted with 1 uF may not reach the published noise figures. Measure
+      the noise floor both ways and let the measurement decide which number this
+      project publishes.
+    applies:
+      - { tier: solo, path: board, qty: 1 }
+      - { tier: link, path: board, qty: 1 }
+      - { tier: track, path: board, qty: 1 }
+    why: >
+      The high-g accelerometer's supply decoupling. The datasheet asks for a
+      tantalum part here and this row specifies ceramic, which is a deliberate
+      substitution: a 1 uF ceramic in 0603 is cheaper, smaller, has lower series
+      resistance and does not have tantalum's failure mode. What it does have is
+      voltage and temperature coefficients a tantalum does not, which is the
+      thing the measurement above is really checking.
+    substitutes: []
+
   - id: cap_100n
     role: passive
     name: Capacitor, 100nF, 0402, X7R
     manufacturer: null
     mpn: null
     confidence: unverified
-    designators: [C3]
+    designators: [C3, C6, C7, C8, C11]
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): the decoupling network is currently one capacitor per rail,
-      which is a placeholder rather than a design. Every supply pin on every part
-      needs its own, placed close, and that count comes out of the layout.
+      TODO(verify): weigh and price them with the other passives. The count is
+      no longer a guess: each of the five is asked for by name in a datasheet.
     applies:
-      - { tier: solo, path: board, qty: 1 }
-      - { tier: link, path: board, qty: 1 }
-      - { tier: track, path: board, qty: 1 }
+      - { tier: solo, path: board, qty: 5 }
+      - { tier: link, path: board, qty: 5 }
+      - { tier: track, path: board, qty: 5 }
     why: >
-      Local decoupling for the microcontroller. Stated honestly: one capacitor is
-      what the schematic currently shows, and a real board needs one per supply
-      pin placed next to that pin, which is a layout decision rather than a
-      schematic one.
+      Local supply decoupling, and the count is not a rounding of "some
+      decoupling". Every one of the five is named in a manufacturer's datasheet:
+      C3 on the microcontroller, C6 and C7 on the barometer's two separate
+      supplies, C8 on the IMU's VDD alongside a larger part, and C11 on the
+      high-g accelerometer's interface supply.
+
+      This row used to say the decoupling was "one capacitor per rail, which is
+      a placeholder rather than a design". It is a design now, because reading
+      each part's datasheet to transcribe its pinout also produced the list of
+      capacitors that part requires. A board that fitted four of these would
+      work most of the time, which is the worst available outcome.
     substitutes: []
 
   # --- Recovery aids ------------------------------------------------------
@@ -1566,7 +1661,7 @@ parts:
 
   - id: status_led
     role: indicator
-    name: RGB LED, common cathode, 5050
+    name: RGB LED, 5050 PLCC-6, six independent pins
     manufacturer: multiple
     mpn: null
     confidence: unverified

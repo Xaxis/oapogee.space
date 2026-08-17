@@ -157,11 +157,78 @@ export default () => (
 
     <chip
       name="J1"
-      footprint="usbcmidmount"
+      /* GCT USB4085 product drawing, revision B, sheet 1/3: the pin table and
+         the recommended PCB layout. Sixteen round plated holes in two rows of
+         eight on 0.85 mm pitch, rows 1.35 mm apart, plus four oblong slots for
+         the shell stakes. There is no hole for the eight nominal Type-C
+         positions this part omits, which are the SuperSpeed pairs.
+
+         THE THING THAT WOULD HAVE RUINED THIS BOARD is the row ordering. The
+         two rows run in OPPOSITE directions, so the pins do not pair up
+         vertically. Left to right, row A is A1 A4 A5 A6 A7 A8 A9 A12 and row B
+         is B12 B9 B8 B7 B6 B5 B4 B1. Column 4 is therefore Dp1 sitting directly
+         above Dn2, and column 5 is Dn1 above Dp2.
+
+         So bridging straight down a column, which is the obvious move and
+         exactly what the ground and VBUS columns invite, shorts USB data plus to
+         data minus. The correct connections are the two diagonals and they
+         cross. Columns 3 and 6 have the same trap with a configuration channel
+         above a sideband pin. Only columns 1, 2, 7 and 8 are same-signal pairs.
+
+         TODO(confirm-on-hardware): the four shell stakes are slots rather than
+         round holes, dimensioned 0.60 and 0.90 across with different lengths
+         top and bottom, and their exact positions are approximated here. Take
+         them from the GCT drawing before ordering. The sixteen signal holes are
+         the drawing's own geometry. */
+      footprint={
+        <footprint>
+          {(() => {
+            const PITCH = 0.85
+            const ROW = 1.35
+            const A = ['A1', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A12']
+            const B = ['B12', 'B9', 'B8', 'B7', 'B6', 'B5', 'B4', 'B1']
+            const out: React.ReactNode[] = []
+            for (const [row, names, y] of [
+              ['A', A, ROW / 2],
+              ['B', B, -ROW / 2],
+            ] as const) {
+              names.forEach((name, i) => {
+                out.push(
+                  <platedhole
+                    key={name}
+                    portHints={[name]}
+                    pcbX={(i - (names.length - 1) / 2) * PITCH}
+                    pcbY={y}
+                    holeDiameter="0.35mm"
+                    outerDiameter="0.65mm"
+                    shape="circle"
+                  />
+                )
+              })
+            }
+            for (const [i, x] of [-3.7, 3.7].entries()) {
+              for (const [j, y] of [ROW / 2, -ROW / 2].entries()) {
+                out.push(
+                  <platedhole
+                    key={`SHELL${i}${j}`}
+                    portHints={[`SHELL${i}${j}`]}
+                    pcbX={x}
+                    pcbY={y}
+                    holeDiameter="0.6mm"
+                    outerDiameter="1.0mm"
+                    shape="circle"
+                  />
+                )
+              }
+            }
+            return out
+          })()}
+        </footprint>
+      }
       pcbX={-0.4}
       pcbY={32.5}
       manufacturerPartNumber="USB4085-GF-A"
-      pinLabels={{ pin1: 'VBUS', pin2: 'GND', pin3: 'DP', pin4: 'DM', pin5: 'CC1', pin6: 'CC2' }}
+
       schX={-20}
       schY={-8}
     />
@@ -434,6 +501,38 @@ export default () => (
     />
 
     <capacitor name="C4" capacitance="15pF" schX={-6} schY={3} footprint="0402" pcbX={-4.5} pcbY={-2.5} />
+    {/* The barometer's two supply decoupling capacitors. The BMP390 datasheet
+        gives one value for both, under Figure 24 and Figure 25: "the
+        recommended value for C1, C2 is 100 nF". They are separate parts because
+        the part has separate supplies, an analog VDD and a digital VDDIO, and
+        one capacitor shared between them decouples neither properly. */}
+    {/* The IMU's three bypass capacitors, all from the datasheet's own bill of
+        materials in Table 11. Two on VDD, 0.1 uF and 2.2 uF, listed as both and
+        not either: the small one handles the fast edges and the large one the
+        bulk. One on VDDIO, and it is 10 nF, not the 100 nF that every other
+        digital supply on this board gets, which is the sort of difference that
+        gets quietly normalised by somebody tidying a schematic. */}
+    {/* The high-g accelerometer's two decoupling capacitors, from the
+        ADXL375 Power Supply Decoupling section: "A 1 uF tantalum capacitor (CS)
+        at VS and a 0.1 uF ceramic capacitor (CI/O) at VDD I/O placed close to
+        the ADXL375 supply pins are recommended".
+
+        TODO(confirm-on-hardware): the datasheet recommends 1 uF on VS but its
+        specification table was characterised with 10 uF. Those are different
+        claims and the difference is not addressed anywhere in the document, so
+        a part fitted with 1 uF may not meet the published noise figures.
+        Measure the noise floor both ways before deciding which number this
+        project publishes. */}
+    <capacitor name="C11" capacitance="100nF" footprint="0402" pcbX={-11.6} pcbY={-16.2} schX={6} schY={-16} />
+    <capacitor name="C12" capacitance="1uF" footprint="0603" pcbX={-11.6} pcbY={-19.0} schX={6} schY={-17.5} />
+
+    <capacitor name="C8" capacitance="100nF" footprint="0402" pcbX={10.2} pcbY={-9.6} schX={10} schY={-10} />
+    <capacitor name="C9" capacitance="2.2uF" footprint="0603" pcbX={10.2} pcbY={-14.2} schX={10} schY={-11.5} />
+    <capacitor name="C10" capacitance="10nF" footprint="0402" pcbX={3.6} pcbY={-11.9} schX={10} schY={-13} />
+
+    <capacitor name="C6" capacitance="100nF" footprint="0402" pcbX={-11.5} pcbY={-10.5} schX={6} schY={-10} />
+    <capacitor name="C7" capacitance="100nF" footprint="0402" pcbX={-11.5} pcbY={-13.2} schX={6} schY={-11.5} />
+
     <capacitor name="C5" capacitance="15pF" schX={-2} schY={3} footprint="0402" pcbX={2.5} pcbY={-2.5} />
     <resistor name="R13" resistance="1k" schX={-2} schY={5} footprint="0402" pcbX={-1.0} pcbY={-4.5} />
 
@@ -479,7 +578,24 @@ export default () => (
       pcbX={-8.12}
       pcbY={-11.88}
       manufacturerPartNumber="BMP390"
-      pinLabels={{ pin1: 'VDD', pin2: 'GND', pin3: 'SDA', pin4: 'SCL', pin5: 'SDO' }}
+      /* Bosch BMP390 datasheet, Table 52 and Figure 25 (I2C connection).
+         Transcribed rather than assumed, and the assumption it replaces was
+         fatal: this part previously had SDA on pin 3 and SCL on pin 4, and on
+         the real part pin 3 is VSS. The board would have shorted the I2C data
+         line to ground and the bus would have been dead with both sensors on
+         it, not just this one. */
+      pinLabels={{
+        pin1: 'VDDIO',
+        pin2: 'SCL',
+        pin3: 'VSS3',
+        pin4: 'SDA',
+        pin5: 'SDO',
+        pin6: 'CSB',
+        pin7: 'INT',
+        pin8: 'VSS8',
+        pin9: 'VSS9',
+        pin10: 'VDD',
+      }}
       schX={8}
       schY={7}
     />
@@ -487,8 +603,8 @@ export default () => (
     {/* One set of pull-ups on the bus, on the board. On the Modules path each
         breakout brings its own and several in parallel load the bus enough to
         stop it working, which presents as intermittent dropouts. */}
-    <resistor name="R4" resistance="4.7k" schX={12} schY={9} footprint="0402" pcbX={-1.88} pcbY={-11.88} />
-    <resistor name="R5" resistance="4.7k" schX={12} schY={10.5} footprint="0402" pcbX={1.25} pcbY={-11.88} />
+    <resistor name="R4" resistance="4.7k" schX={12} schY={9} footprint="0402" pcbX={-5.0} pcbY={-10.5} />
+    <resistor name="R5" resistance="4.7k" schX={12} schY={10.5} footprint="0402" pcbX={-5.0} pcbY={-13.2} />
 
     <chip
       name="U6"
@@ -500,14 +616,33 @@ export default () => (
       pcbX={6.88}
       pcbY={-11.88}
       manufacturerPartNumber="ICM-42688-P"
+      /* TDK InvenSense ICM-42688-P datasheet, Table 10, and the 4-wire SPI
+         application schematic. Transcribed rather than assumed, and again the
+         assumption was fatal: this part previously had VDD on pin 1, and pin 1
+         is AP_SDO, the part's own data output. The board would have connected a
+         3.3 V rail straight to an output driver.
+
+         Four of the fourteen pins are reserved. The datasheet distinguishes
+         between them and the distinction is not cosmetic: pins 2, 3, 10 and 11
+         say "No Connect or Connect to GND", while pin 7 says "Connect to GND"
+         with no alternative. They are grounded here because a defined pin is
+         easier to inspect than a floating one, and because it is one of the two
+         readings the datasheet permits for the optional four. */
       pinLabels={{
-        pin1: 'VDD',
-        pin2: 'GND',
-        pin3: 'SCLK',
-        pin4: 'SDI',
-        pin5: 'SDO',
-        pin6: 'CS',
-        pin7: 'INT1',
+        pin1: 'SDO',
+        pin2: 'RESV2',
+        pin3: 'RESV3',
+        pin4: 'INT1',
+        pin5: 'VDDIO',
+        pin6: 'GND',
+        pin7: 'RESV7',
+        pin8: 'VDD',
+        pin9: 'INT2',
+        pin10: 'RESV10',
+        pin11: 'RESV11',
+        pin12: 'CS',
+        pin13: 'SCLK',
+        pin14: 'SDI',
       }}
       schX={8}
       schY={3}
@@ -527,13 +662,29 @@ export default () => (
       pcbX={-8.12}
       pcbY={-17.5}
       manufacturerPartNumber="ADXL375"
+      /* Analog Devices ADXL375 datasheet, Table 5. Transcribed rather than
+         assumed. The two reserved pins are worth reading twice, because they
+         are opposites and a schematic that treats them alike is wrong on one of
+         them: pin 3 "must be connected to VS or left open", pin 11 "must be
+         connected to ground or left open". Not interchangeable.
+
+         The previous guess had the SPI clock on pin 3, which is one of those
+         two reserved pins. */
       pinLabels={{
-        pin1: 'VDD',
-        pin2: 'GND',
-        pin3: 'SCLK',
-        pin4: 'SDI',
-        pin5: 'SDO',
-        pin6: 'CS',
+        pin1: 'VDDIO',
+        pin2: 'GND2',
+        pin3: 'RESV3',
+        pin4: 'GND4',
+        pin5: 'GND5',
+        pin6: 'VS',
+        pin7: 'CS',
+        pin8: 'INT1',
+        pin9: 'INT2',
+        pin10: 'NC',
+        pin11: 'RESV11',
+        pin12: 'SDO',
+        pin13: 'SDI',
+        pin14: 'SCLK',
       }}
       schX={8}
       schY={-1}
@@ -669,7 +820,37 @@ export default () => (
       pcbX={-7.0}
       pcbY={-33.5}
       manufacturerPartNumber="MAX-M10S"
-      pinLabels={{ pin1: 'VCC', pin2: 'GND', pin3: 'TXD', pin4: 'RXD', pin5: 'RF_IN' }}
+      /* u-blox MAX-M10S datasheet UBX-20035208 R08, with the connection
+         requirements from the Integration manual UBX-20053088. Transcribed
+         rather than assumed: the guess had VCC on pin 1 and pin 1 is GND, and
+         RF_IN on pin 5 when it is pin 11.
+
+         The good news from reading it is what this design does NOT need. The
+         module integrates its own LNA, SAW filter and LTE band 13 notch filter,
+         and RF_IN carries a built-in DC block matched to 50 ohm: "no additional
+         RF front-end component is needed" for a passive antenna. So unlike the
+         radio, whose front end is the one thing still blocking this board, the
+         GNSS front end is inside the can. */
+      pinLabels={{
+        pin1: 'GND1',
+        pin2: 'TXD',
+        pin3: 'RXD',
+        pin4: 'TIMEPULSE',
+        pin5: 'EXTINT',
+        pin6: 'V_BCKP',
+        pin7: 'V_IO',
+        pin8: 'VCC',
+        pin9: 'RESET_N',
+        pin10: 'GND10',
+        pin11: 'RF_IN',
+        pin12: 'GND12',
+        pin13: 'LNA_EN',
+        pin14: 'VCC_RF',
+        pin15: 'VIO_SEL',
+        pin16: 'SDA',
+        pin17: 'SCL',
+        pin18: 'SAFEBOOT_N',
+      }}
       schX={8}
       schY={-9}
     />
@@ -725,16 +906,41 @@ export default () => (
       schY={-13}
     />
 
-    {/* Common cathode: three ordinary dice in one package, each with its own
-        anode, sharing a cathode to ground. The microcontroller sources through
-        a resistor per colour, so a pin high is that colour lit. */}
+    {/* Three dice in one package, wired common cathode ON THE BOARD rather than
+        inside the part.
+        ------------------------------------------------------------------
+        A PLCC-6 5050 usually brings out six independent pins, an anode and a
+        cathode per colour, rather than a shared cathode. So "common cathode" is
+        a decision this schematic makes by tying the three cathodes together at
+        the ground pour, not a property to look for in a catalogue. The
+        arrangement is the same either way from the microcontroller's side: a pin
+        high through a resistor lights that colour.
+
+        Doing it this way also means a part sold as common anode is not a
+        different board. Six independent pins can be wired either direction; it
+        is only a part with the commoning already inside it that constrains you.
+
+        TODO(verify): the pin ORDER is supplier specific and this is where the
+        risk sits. The common arrangement is pads 1 and 2 blue, 3 and 4 red, 5
+        and 6 green, anode first, which is what is assumed below. Confirm it
+        against the datasheet of the part actually ordered, because getting it
+        wrong reverse-biases three dice and lights nothing, and because the
+        series resistors above cannot be sized until that datasheet supplies a
+        forward voltage per colour anyway. */}
     <chip
       name="D1"
       footprint="led5050"
       pcbX={6.5}
       pcbY={-31.0}
       manufacturerPartNumber="RGB-LED-CC"
-      pinLabels={{ pin1: 'A_R', pin2: 'A_G', pin3: 'A_B', pin4: 'K' }}
+      pinLabels={{
+        pin1: 'A_B',
+        pin2: 'K_B',
+        pin3: 'A_R',
+        pin4: 'K_R',
+        pin5: 'A_G',
+        pin6: 'K_G',
+      }}
       schX={8}
       schY={-16}
     />
@@ -757,11 +963,40 @@ export default () => (
 
     <chip
       name="SW1"
-      footprint="smdslideswitch"
+      /* C&K JS Series catalogue, page I-53, "PCB LAYOUT RECOMMENDED". Three
+         pads and no others: the housing and actuator are both nylon and the
+         Materials list has no metal shield, so there is nothing on this part to
+         ground and no mounting land to add. Any footprint for this part with
+         more than three pads did not come from C&K.
+
+         The trap is the geometry, not the count. The pads are STAGGERED, not in
+         a line: terminal 2, the common, exits one long side alone on the body
+         centreline, and terminals 1 and 3 exit the other long side at 2.5 mm
+         either side of it. Almost every other slide switch this size has three
+         pins in a row, which is the footprint muscle memory draws, and it
+         leaves this part with a lead in mid-air.
+
+         Printed dimensions: pad width 1 mm, throws 2.5 mm either side of
+         centre, 3 mm clear between the rows, 8.00 mm across the whole pattern.
+         Pad length is not printed; 2.5 mm is (8.00 - 3) / 2, which is
+         arithmetic on two printed numbers rather than a published figure.
+
+         TODO(confirm-on-hardware): the plan view and the land pattern drawing
+         are not labelled top or bottom view, so which throw is terminal 1 and
+         which is terminal 3 is ambiguous. It does not matter here, because the
+         two throws are functionally symmetric and this design uses one of them,
+         but confirm with a meter before assuming a specific throw. */
+      footprint={
+        <footprint>
+          <smtpad portHints={['1']} pcbX={-2.5} pcbY={-2.75} width="1.0mm" height="2.5mm" shape="rect" />
+          <smtpad portHints={['2']} pcbX={0} pcbY={2.75} width="1.0mm" height="2.5mm" shape="rect" />
+          <smtpad portHints={['3']} pcbX={2.5} pcbY={-2.75} width="1.0mm" height="2.5mm" shape="rect" />
+        </footprint>
+      }
       pcbX={8.5}
       pcbY={-5.0}
       manufacturerPartNumber="JS102011SCQN"
-      pinLabels={{ pin1: 'A', pin2: 'B' }}
+      pinLabels={{ pin1: 'T1', pin2: 'COM', pin3: 'T3' }}
       schX={13}
       schY={-16}
     />
@@ -879,16 +1114,33 @@ export default () => (
         --------------------------------------------------------------------- */}
 
     {/* Power path: USB in, charge, cell, rail. */}
-    <trace from=".J1 .VBUS" to=".U1 .VDD" />
+    {/* Four VBUS pins and four grounds, all of them wired. They are rated
+        collectively, not individually, so leaving some unconnected does not
+        halve the current rating, it concentrates the whole current into the
+        ones that are connected. */}
+    <trace from=".J1 .A4" to=".U1 .VDD" />
+    <trace from=".J1 .A9" to=".U1 .VDD" />
+    <trace from=".J1 .B4" to=".U1 .VDD" />
+    <trace from=".J1 .B9" to=".U1 .VDD" />
     <trace from=".C2 .pin1" to="net.V3V3" />
-    <trace from=".J1 .CC1" to=".R1 .pin1" />
-    <trace from=".J1 .CC2" to=".R2 .pin1" />
+    {/* One pulldown per configuration channel, and they must never be tied to
+        each other: the source uses which of the two it sees pulled down to work
+        out which way round the plug went in. Tie them together and orientation
+        detection stops. */}
+    <trace from=".J1 .A5" to=".R1 .pin1" />
+    <trace from=".J1 .B5" to=".R2 .pin1" />
     <trace from=".U1 .PROG" to=".R3 .pin1" />
 
     {/* USB data straight to the microcontroller. One connector does power,
         charging, configuration and offload. */}
-    <trace from=".J1 .DP" to=".U3 .USB_DP" />
-    <trace from=".J1 .DM" to=".U3 .USB_DM" />
+    {/* The diagonals. A6 and B6 are both data plus, A7 and B7 are both data
+        minus, and because the rows run opposite ways those pairs sit diagonally
+        rather than in a column. Whichever way the cable goes in, one of each
+        pair is the live one, so both have to reach the microcontroller. */}
+    <trace from=".J1 .A6" to=".U3 .USB_DP" />
+    <trace from=".J1 .B6" to=".U3 .USB_DP" />
+    <trace from=".J1 .A7" to=".U3 .USB_DM" />
+    <trace from=".J1 .B7" to=".U3 .USB_DM" />
 
     {/* QSPI flash. */}
     <trace from=".U3 .QSPI_SCK" to=".U4 .CLK" />
@@ -952,7 +1204,17 @@ export default () => (
         work.
         --------------------------------------------------------------------- */}
 
-    <trace from=".J1 .GND" to="net.GND" />
+    <trace from=".J1 .A1" to="net.GND" />
+    <trace from=".J1 .A12" to="net.GND" />
+    <trace from=".J1 .B1" to="net.GND" />
+    <trace from=".J1 .B12" to="net.GND" />
+    {/* The shell. The drawing's own signal column reads GND for it, on both
+        halves of the table, so this is the manufacturer's instruction rather
+        than a convention. */}
+    <trace from=".J1 .SHELL00" to="net.GND" />
+    <trace from=".J1 .SHELL01" to="net.GND" />
+    <trace from=".J1 .SHELL10" to="net.GND" />
+    <trace from=".J1 .SHELL11" to="net.GND" />
     <trace from=".R1 .pin2" to="net.GND" />
     <trace from=".R2 .pin2" to="net.GND" />
     <trace from=".U1 .VSS" to="net.GND" />
@@ -964,9 +1226,27 @@ export default () => (
     <trace from=".U3 .GND" to="net.GND" />
     <trace from=".C3 .pin2" to="net.GND" />
     <trace from=".U4 .GND" to="net.GND" />
-    <trace from=".U5 .GND" to="net.GND" />
+    <trace from=".U5 .VSS3" to="net.GND" />
+    <trace from=".U5 .VSS8" to="net.GND" />
+    <trace from=".U5 .VSS9" to="net.GND" />
     <trace from=".U6 .GND" to="net.GND" />
-    <trace from=".U7 .GND" to="net.GND" />
+    {/* Pin 7 is the reserved pin the datasheet makes mandatory: "Connect to
+        GND", with no alternative offered. The other four are permitted to be
+        either grounded or left open, and they are grounded so that a reviewer
+        reading the netlist sees a decision rather than an absence. */}
+    <trace from=".U6 .RESV7" to="net.GND" />
+    <trace from=".U6 .RESV2" to="net.GND" />
+    <trace from=".U6 .RESV3" to="net.GND" />
+    <trace from=".U6 .RESV10" to="net.GND" />
+    <trace from=".U6 .RESV11" to="net.GND" />
+    <trace from=".U7 .GND2" to="net.GND" />
+    <trace from=".U7 .GND4" to="net.GND" />
+    <trace from=".U7 .GND5" to="net.GND" />
+    {/* Pin 11 takes ground or open. Pin 3 takes VS or open, and grounding it
+        would be the mistake the datasheet is warning about by phrasing the two
+        differently. Both are tied rather than left open, so the netlist records
+        a decision. */}
+    <trace from=".U7 .RESV11" to="net.GND" />
     <trace from=".U8 .GND2" to="net.GND" />
     <trace from=".U8 .GND5" to="net.GND" />
     <trace from=".U8 .GND8" to="net.GND" />
@@ -974,10 +1254,20 @@ export default () => (
     <trace from=".U8 .EPAD" to="net.GND" />
     <trace from=".J3 .GND" to="net.GND" />
     <trace from=".J3 .GND2" to="net.GND" />
-    <trace from=".U9 .GND" to="net.GND" />
+    <trace from=".U9 .GND1" to="net.GND" />
+    <trace from=".U9 .GND10" to="net.GND" />
+    <trace from=".U9 .GND12" to="net.GND" />
+    {/* VIO_SEL picks the IO voltage: grounded selects 1.8 V, open selects 3.3 V.
+        This board has one 3V3 rail, so it stays open, and that is a decision
+        rather than an omission. A 1.8 V design would additionally have to hold
+        that rail to plus or minus 2 percent, which a buck-boost following a
+        lithium cell has no business promising. */}
     <trace from=".LS1 .GND" to="net.GND" />
-    <trace from=".D1 .K" to="net.GND" />
-    <trace from=".SW1 .B" to="net.GND" />
+    {/* The commoning. Three separate cathodes, one ground net. */}
+    <trace from=".D1 .K_R" to="net.GND" />
+    <trace from=".D1 .K_G" to="net.GND" />
+    <trace from=".D1 .K_B" to="net.GND" />
+    <trace from=".SW1 .T1" to="net.GND" />
     <trace from=".R8 .pin2" to="net.GND" />
 
     {/* The barometer's address select pin is tied low rather than left to
@@ -1005,10 +1295,40 @@ export default () => (
     <trace from=".Y1 .CASE2" to="net.GND" />
     <trace from=".U4 .VCC" to="net.V3V3" />
     <trace from=".U5 .VDD" to="net.V3V3" />
+    {/* VDDIO is the digital interface supply and shares the 3V3 rail with the
+        analog one. The part accepts 1.2 V to 3.6 V on it, so a design running
+        the microcontroller at a lower IO voltage would split them; this one has
+        one rail and every part on the board is specified at it. */}
+    <trace from=".U5 .VDDIO" to="net.V3V3" />
+    {/* CSB selects the interface. Figure 25, the I2C connection diagram, drives
+        it to VDDIO, and the datasheet recommends it be driven by a programmable
+        pin that is already at VDDIO at power on. It also carries an internal
+        pull-up to VDDIO of 75 to 125 kilohm, and section 5.2 says it may be left
+        open in I2C, which contradicts the figure. Tied high is the reading that
+        is true under both: the pin is at VDDIO either way, and this way it does
+        not depend on an internal resistor whose value has a 50 percent spread. */}
+    <trace from=".U5 .CSB" to="net.V3V3" />
+    <trace from=".C6 .pin1" to="net.V3V3" />
+    <trace from=".C6 .pin2" to="net.GND" />
+    <trace from=".C7 .pin1" to="net.V3V3" />
+    <trace from=".C7 .pin2" to="net.GND" />
     <trace from=".R4 .pin2" to="net.V3V3" />
     <trace from=".R5 .pin2" to="net.V3V3" />
     <trace from=".U6 .VDD" to="net.V3V3" />
-    <trace from=".U7 .VDD" to="net.V3V3" />
+    <trace from=".U6 .VDDIO" to="net.V3V3" />
+    <trace from=".C8 .pin1" to="net.V3V3" />
+    <trace from=".C8 .pin2" to="net.GND" />
+    <trace from=".C9 .pin1" to="net.V3V3" />
+    <trace from=".C9 .pin2" to="net.GND" />
+    <trace from=".C10 .pin1" to="net.V3V3" />
+    <trace from=".C10 .pin2" to="net.GND" />
+    <trace from=".U7 .VS" to="net.V3V3" />
+    <trace from=".U7 .VDDIO" to="net.V3V3" />
+    <trace from=".U7 .RESV3" to="net.V3V3" />
+    <trace from=".C11 .pin1" to="net.V3V3" />
+    <trace from=".C11 .pin2" to="net.GND" />
+    <trace from=".C12 .pin1" to="net.V3V3" />
+    <trace from=".C12 .pin2" to="net.GND" />
     {/* VBAT and VBAT_IO are both supplies: the radio core and the digital
         interface. VDD_IN feeds the power amplifier regulator, and on an SX1262
         the datasheet's own pin table says it connects to pin 10, which is
@@ -1024,6 +1344,21 @@ export default () => (
     <trace from=".Y2 .CASE1" to="net.GND" />
     <trace from=".Y2 .CASE2" to="net.GND" />
     <trace from=".U9 .VCC" to="net.V3V3" />
+    <trace from=".U9 .V_IO" to="net.V3V3" />
+    {/* V_BCKP keeps the battery-backed RAM and the real time clock alive across
+        a power cycle, which is the difference between a warm start and a cold
+        one. It is on the main rail rather than on a coin cell or a supercap,
+        which is a real limitation stated plainly: while the payload has power
+        the fix survives a firmware restart, and once the cell is disconnected
+        the next start is cold.
+
+        TODO(confirm): whether a supercap earns its mass here. The case for it is
+        a scrubbed launch where the payload is powered down and brought back an
+        hour later, and the case against is that a cold start on the pad is
+        minutes of waiting rather than a lost flight. Decide it after timing a
+        real cold start, which is the measurement named on the gnss row in the
+        bill of materials. */}
+    <trace from=".U9 .V_BCKP" to="net.V3V3" />
     <trace from=".U9 .RF_IN" to=".J5 .SIG" />
     <trace from=".J5 .GND" to="net.GND" />
     <trace from=".J5 .GND2" to="net.GND" />
@@ -1052,7 +1387,7 @@ export default () => (
     <trace from=".R7 .pin1" to="net.VBAT" />
 
     {/* Arming and battery sense into the microcontroller. */}
-    <trace from=".SW1 .A" to=".U3 .ARM" />
+    <trace from=".SW1 .COM" to=".U3 .ARM" />
     <trace from=".R6 .pin1" to=".U3 .ARM" />
     <trace from=".R7 .pin2" to=".U3 .VBAT_SENSE" />
     <trace from=".R8 .pin1" to=".U3 .VBAT_SENSE" />

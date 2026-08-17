@@ -165,11 +165,30 @@ for (const [type, id, label] of [
 // passive placed in a four pad land pattern is a footprint question, not a
 // pinout question.
 
+/**
+ * Is this pad named by the source, under any of the ways a source can name one?
+ *
+ * `pinLabels` sets the port's name directly. A hand written footprint names its
+ * pads with portHints instead, and those arrive as aliases with the name left as
+ * pinN, which is how J1 came to report zero of twenty pads named while every one
+ * of its traces resolved by designator. Both are the source naming the pad.
+ *
+ * A bare number is not a name. tscircuit adds '1', '2' and so on as hints on
+ * every port, so counting those would make every pad look named and the check
+ * would go quiet the way its predecessor did.
+ */
+const GENERIC_PIN = /^(?:pin)?\d+$/i
+
+function isNamed(port) {
+  if (!GENERIC_PIN.test(String(port.name ?? ''))) return true
+  return (port.port_hints ?? []).some((h) => !GENERIC_PIN.test(String(h)))
+}
+
 {
   const named = {}
   const generic = {}
   for (const port of of('source_port')) {
-    const bucket = /^pin\d+$/i.test(String(port.name ?? '')) ? generic : named
+    const bucket = isNamed(port) ? named : generic
     bucket[port.source_component_id] = (bucket[port.source_component_id] ?? 0) + 1
   }
 
@@ -231,6 +250,53 @@ const INTENTIONALLY_UNCONNECTED = {
   'U6.INT1': 'IMU data ready interrupt. The firmware polls the sensors on a fixed cadence ' +
     'rather than reacting to them, because a flight log with an irregular sample interval is ' +
     'harder to reason about than one that occasionally reads the same sample twice.',
+  'U5.INT': 'Barometer interrupt output. Unused for the same reason as the IMU and high-g ' +
+    'interrupts: the firmware samples on a fixed cadence rather than reacting to the parts. The ' +
+    'BMP390 datasheet lists this pin identically for all three interface modes as "host INT input ' +
+    'or DNC", so leaving it open is one of the two documented treatments.',
+  'SW1.T3': 'The arming switch\'s second throw, left open on purpose. The common goes to the ' +
+    'GPIO and one throw to ground, so the internal pull-up defines the pin. Driving this throw to ' +
+    '3V3 would give a defined level in both positions and look tidier, but a slide switch is open ' +
+    'for a moment as the wiper crosses, so the pin would float briefly on every actuation and the ' +
+    'firmware would have to debounce a state it can otherwise trust.',
+  'J1.A8': 'Sideband use pins. Unused, which is what a USB 2.0 only design does with them: they ' +
+    'carry analogue audio or debug signals in modes this payload has no part in. GCT specifies no ' +
+    'board connection for either.',
+  'J1.B8': 'See J1.A8.',
+  'U9.TIMEPULSE': 'One pulse per second output. Not used: this payload timestamps from arming, ' +
+    'not from GNSS time, and it has to work on Solo where there is no receiver at all. Left open ' +
+    'per the datasheet, which also warns this pin must have no load that could pull it low at ' +
+    'startup, because it shares an internal 1 kilohm path with SAFEBOOT_N.',
+  'U9.EXTINT': 'External interrupt input. Left open, which the datasheet permits.',
+  'U9.RESET_N': 'Input only with an internal pull-up to V_IO, and the datasheet says to leave it ' +
+    'open for normal operation. It also says no capacitor should be placed from this pin to ' +
+    'ground, which is a thing somebody would add while tidying up a reset line.',
+  'U9.LNA_EN': 'Controls an external low noise amplifier or an active antenna supply, neither of ' +
+    'which this design has: the module integrates its own LNA and SAW filter. The datasheet notes ' +
+    'this pin also controls the internal LNA and cannot be repurposed.',
+  'U9.VCC_RF': 'An OUTPUT, not a supply input: VCC filtered through an internal ferrite, provided ' +
+    'to power an external active antenna. Open because the antenna is passive. Wiring it to a ' +
+    'rail would be connecting two supplies together.',
+  'U9.VIO_SEL': 'Selects the IO voltage. Open selects 3.3 V, which is this board\'s only rail; ' +
+    'grounding it would select 1.8 V.',
+  'U9.SDA': 'The I2C interface, which the datasheet calls DDC. Unused because the receiver is on ' +
+    'a UART: one interface is enough, and a UART needs no pull-ups and no address.',
+  'U9.SCL': 'See U9.SDA.',
+  'U9.SAFEBOOT_N': 'Pulled low at startup only to enter safeboot, for recovering a module whose ' +
+    'firmware will not run. Internal pull-up, left open for normal operation.',
+  'U7.INT1': 'High-g accelerometer interrupt outputs, both unused for the same reason as the ' +
+    'IMU\'s: the firmware samples on a fixed cadence. The datasheet states no required external ' +
+    'connection for either, and they are push-pull outputs, so open is safe.',
+  'U7.INT2': 'See U7.INT1.',
+  'U7.NC': 'Not internally connected, per Table 5 of the ADXL375 datasheet. There is nothing ' +
+    'inside the package to connect to.',
+  'U6.INT2': 'The ICM-42688-P multiplexes this pin between a second interrupt, a frame sync ' +
+    'input and an external clock input, and PIN9_FUNCTION selects which. Left open deliberately, ' +
+    'and NOT grounded, even though the datasheet says to ground it when frame sync is unused: ' +
+    'that instruction applies to the frame sync function, and the register resets to 00, which ' +
+    'is the second interrupt. So on a board that ties this pin to ground, every power-on has the ' +
+    'part driving a push-pull output into a short until firmware reconfigures it. Open is safe ' +
+    'under both readings.',
 }
 
 {
@@ -243,8 +309,13 @@ const INTENTIONALLY_UNCONNECTED = {
   const orphans = []
   for (const port of of('source_port')) {
     if (connected.has(port.source_port_id)) continue
-    const name = String(port.name ?? '')
-    if (/^pin\d+$/i.test(name)) continue
+    if (!isNamed(port)) continue
+    // Report by the most descriptive name the source gave it, which for a hand
+    // written footprint is the portHint rather than the port's own name.
+    const name =
+      (GENERIC_PIN.test(String(port.name ?? ''))
+        ? (port.port_hints ?? []).find((h) => !GENERIC_PIN.test(String(h)))
+        : port.name) ?? String(port.name ?? '')
     const comp = comps[port.source_component_id] ?? '?'
     if (/^GPIO\d+$/i.test(name)) continue
     const key = `${comp}.${name}`

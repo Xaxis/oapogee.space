@@ -1,8 +1,9 @@
 {
   "note": "Recorded by tools/check-pcb.mjs --update. Counts may fall, never rise.",
   "blockers": {
-    "pinout-incomplete": 7,
+    "pad-clearance": 2,
     "pin-unconnected": 5,
-    "soft-clearance": 63
+    "copper-clearance": 2,
+    "soft-clearance": 0
   }
 }
