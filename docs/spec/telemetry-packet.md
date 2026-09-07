@@ -47,7 +47,7 @@ is obfuscation. This format is the former and will not become the latter.
 that matters: there is no packet type that causes the payload to do anything. A
 receiver cannot arm it, cannot trigger anything, and cannot deploy anything,
 because oApogee has no mechanism to deploy. See
-[Safety and rules](../../content/safety.md).
+[Safety and rules](/safety).
 
 The cost of all this: the format is not human-readable, it is not extensible in
 place, and adding a field means a version bump. Those are accepted.
@@ -194,7 +194,7 @@ The offset is what earns the resolution. Without it a u16 of whole pascals would
 stop at 65535 Pa, which is lower than the pressure at any launch site anyone
 flies from, so the reference would not be representable at all. With it, the
 same two bytes carry 1 Pa steps across the whole band. Whole pascals also match
-`calibration.pad_pressure_pa` in the [log format](./log-format.md), so the same
+`calibration.pad_pressure_pa` in the [log format](/reference/log-format), so the same
 quantity is not on two scales in two specifications. This field is the zero the
 entire altitude column is measured against, which is why it is not coarsened to
 save arithmetic.

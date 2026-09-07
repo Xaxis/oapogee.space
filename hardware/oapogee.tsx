@@ -4,18 +4,20 @@
  * READ THIS BEFORE USING ANY PART OF IT
  *
  * This file is now a layout as well as a netlist. It routes, and `make fab`
- * exports a fabrication package from it, so the old instruction here not to
- * send it to a fabricator is gone along with the placeholder pin numbers that
- * justified it.
+ * exports a fabrication package from it, though only once tools/check-pcb.mjs
+ * reports no open blocker, which it currently does not.
  *
- * What is verified: the microcontroller's sixty pins are the RP2350 datasheet's
- * own numbering, and each signal sits on a GPIO its peripheral can actually
- * reach.
+ * What is verified: every package's pin numbering is transcribed from its
+ * manufacturer's datasheet, with the table or figure cited beside the pinLabels
+ * it produced, and each signal sits on a GPIO its peripheral can actually
+ * reach. Two of those transcriptions replaced guesses that would have produced
+ * a dead board: SDA on a BMP390 pad that is VSS, and VDD on an ICM-42688-P pad
+ * that is the part's own data output.
  *
  * What is NOT verified, and is the reason to read a datasheet before spending
- * money: every other package uses the pin numbering its footprint library
- * assigns, and nothing in this repository compares that against the
- * manufacturer's land pattern. A wrong pin number is invisible in a schematic,
+ * money: a pinLabel maps a signal onto a footprint pad BY NUMBER, and nothing
+ * in this repository knows whether pad 1 of a given footprint is the pad the
+ * datasheet calls pin 1. A wrong pin number is invisible in a schematic,
  * invisible in a render, and shows up as a board that does not work.
  *
  * One board, three tiers. Everything is on the same schematic because that is

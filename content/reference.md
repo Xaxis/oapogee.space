@@ -4,14 +4,14 @@ description: Schematic, pinout, mechanical drawings, wire format specifications,
 tier: all
 difficulty: advanced
 time_estimate: null
-updated: 2026-08-11
+updated: 2026-09-07
 status: draft
 ---
 
 # Reference
 
-Everything an engineer needs, with the explanation stripped out. If you want the
-reasoning, it is on the page that owns each subject.
+If you want the reasoning behind any of this, it is on the page that owns the
+subject.
 
 ## Specifications
 
@@ -27,10 +27,10 @@ reverse engineering anything, and both carry a reference implementation.
 
 ## System block diagram
 
-The generated system diagram is on the [bill of materials](/bom) page. It is
-rendered from `data/system.yaml`, whose nodes reference part identifiers in
-`data/bom.yaml`, and the build fails if the committed diagram stops matching the
-data it was drawn from.
+The generated system diagram is on the [homepage](/). It is rendered from
+`data/system.yaml`, whose nodes reference part identifiers in `data/bom.yaml`,
+and the build fails if the committed diagram stops matching the data it was
+drawn from.
 
 ## Flight state machine
 
@@ -92,11 +92,11 @@ All of it is on the [schematic page](/reference/schematic): the drawing, the
 netlist as text, the routed PCB, the assembly view, a KiCad schematic and the
 circuit JSON.
 
-The fabrication package is not there, and that page says why rather than this
-one. `make fab` refuses to write Gerbers while the board has an open blocker,
-and it currently has two, so publishing them would be publishing a board that
-does not work. The list is generated from the check on every build, so it is
-right on the day you read it rather than on the day somebody wrote it.
+The fabrication package is not there. `make fab` refuses to write Gerbers while
+the board has an open blocker, and it has some, so publishing them would be
+publishing a board that does not work. The count is not repeated here: the
+schematic page generates the list from the check on every build, so it is right
+on the day you read it rather than on the day somebody wrote it.
 
 Everything there is generated from `hardware/oapogee.tsx` by `make hw`, and the
 build fails when a committed artifact stops matching the source it came from.
@@ -104,15 +104,18 @@ build fails when a committed artifact stops matching the source it came from.
 ## Pinout
 
 The microcontroller's pin assignment is fixed and is in the circuit source. The
-60 pins of the package were transcribed from the Raspberry Pi datasheet, and
+60 pins of the package are the Raspberry Pi datasheet's own numbering, and
 signals sit on GPIOs their peripherals can actually reach: I2C0 on GPIO4 and
 GPIO5, SPI0 on GPIO16, GPIO18 and GPIO19, UART1 on GPIO24 and GPIO25, and the
 battery sense on GPIO26, which is the one wired to the ADC.
 
-TODO(confirm-on-hardware): the other fourteen packages have pin numbering that
-has not been checked against a datasheet. A wrong pin number is invisible in a
-schematic and in a render, and shows up as a board that does not work, so
-confirm every package by hand before ordering.
+Every other package is transcribed the same way, from its manufacturer's
+datasheet, with the table or figure cited beside it in `hardware/oapogee.tsx`.
+
+TODO(confirm-on-hardware): what no check in this repository can confirm is that
+a footprint's pad numbering matches the numbering its datasheet uses. A wrong
+pin number is invisible in a schematic and in a render, and shows up as a board
+that does not work, so confirm every package by hand before ordering.
 
 ## Mechanical
 

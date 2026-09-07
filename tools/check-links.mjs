@@ -20,6 +20,7 @@ import { parse } from 'yaml'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const CONTENT = join(ROOT, 'content')
+const DOCS = join(ROOT, 'docs')
 const SPEC = join(ROOT, 'docs/spec')
 const DATA = join(ROOT, 'data')
 
@@ -141,14 +142,36 @@ function walk(dir, acc = []) {
   return acc
 }
 
-// Root markdown that the site renders too. CHANGELOG.md is a page at
-// /changelog, and it carried a link to /status for a while after that route was
-// deleted, because nothing here was reading it.
-const ROOT_MD = ['CHANGELOG.md', 'README.md', 'CONTRIBUTING.md', 'CONTENT-STYLE.md']
+// Root and subdirectory markdown that is not content/ but still links into the
+// site. CHANGELOG.md is a page at /changelog, and it carried a link to /status
+// for a while after that route was deleted, because nothing here was reading
+// it. Five more documents carried the same dead link for longer, in the
+// absolute form, which is why both the file list and the matcher below are
+// wider than they were.
+const OTHER_MD = [
+  'CHANGELOG.md',
+  'README.md',
+  'CONTRIBUTING.md',
+  'CONTENT-STYLE.md',
+  'hardware/README.md',
+  'firmware/README.md',
+  'firmware/SAFETY.md',
+]
   .map((f) => join(ROOT, f))
   .filter((f) => existsSync(f))
 
-const files = [...walk(CONTENT), ...walk(SPEC), ...walk(DATA), ...ROOT_MD]
+const files = [...walk(CONTENT), ...walk(DOCS), ...walk(DATA), ...OTHER_MD]
+
+// A link to this site written in absolute form is still an internal link, and
+// it used to be skipped as external, which is exactly how five documents kept
+// pointing at a route that no longer existed. Normalised here so it is checked
+// like any other.
+const SITE = /^https?:\/\/(?:www\.)?oapogee\.space(\/[^\s]*)?$/
+function internalise(href) {
+  const m = SITE.exec(href)
+  if (!m) return null
+  return m[1] && m[1] !== '/' ? m[1].replace(/\/$/, '') : '/'
+}
 
 let checked = 0
 for (const file of files) {
@@ -163,9 +186,36 @@ for (const file of files) {
     // External, mail, and relative repository paths are out of scope. A relative
     // path like ../../content/safety.md is a link between files in a checkout,
     // which resolves on GitHub and is checked by existence rather than routing.
+    const asSite = internalise(href)
+    if (asSite) {
+      checked++
+      const [route, anchor] = asSite.split('#')
+      if (!knownRoute(route) && route !== '/') {
+        errors.push(`${rel}: link to "${href}" but ${route} is not a route`)
+      } else if (anchor) {
+        const available = anchorsFor(route)
+        if (available && !available.has(anchor)) {
+          errors.push(`${rel}: link to "${href}" but ${route} has no anchor "${anchor}"`)
+        }
+      }
+      continue
+    }
     if (/^(https?:|mailto:|#)/.test(href)) continue
 
     if (href.startsWith('.')) {
+      // docs/spec/ renders as two public pages, so a relative repository path
+      // in one of them resolves against the page URL rather than the file, and
+      // 404s. Both links in the packet spec did: ./log-format.md landed on
+      // /reference/log-format.md, and ../../content/safety.md on
+      // /content/safety.md. Existence on disk said nothing about either.
+      if (rel.startsWith('docs/spec/')) {
+        errors.push(
+          `${rel}: relative link "${href}" is a repository path in a file that renders as a ` +
+            `page, so it resolves against the URL and 404s. Use the site route.`
+        )
+        checked++
+        continue
+      }
       const target = join(file, '..', href.split('#')[0])
       if (!existsSync(target)) {
         errors.push(`${rel}: relative link "${href}" does not exist`)

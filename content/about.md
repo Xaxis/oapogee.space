@@ -4,7 +4,7 @@ description: What oApogee is for, where the name comes from, and the licensing d
 tier: all
 difficulty: beginner
 time_estimate: null
-updated: 2026-08-11
+updated: 2026-09-07
 status: draft
 ---
 
@@ -92,52 +92,24 @@ Full texts are in `LICENSES/`; `LICENSE` at the repository root says which
 applies to which files. The reasoning is kept below because each choice cost
 something worth knowing about.
 
-### Hardware: CERN-OHL-S
+The asymmetry is deliberate: reciprocal hardware, permissive firmware. The
+board is the thing worth protecting from a closed fork, and the firmware is the
+thing worth having other people embed everywhere.
 
-Both are open hardware licences from CERN. The difference is reciprocity.
+Each choice cost something, and the cost is the part worth knowing:
 
-**CERN-OHL-S** is reciprocal: anyone who makes and distributes a product based
-on the design must publish their modified sources. **CERN-OHL-P** is permissive:
-they need not.
-
-The case for `-S`: the plausible bad outcome for a project like this is a
-manufacturer taking the design, producing it at volume, and shipping it as a
-closed product. `-S` does not prevent that and is not meant to, but it does
-require that their improvements come back. Given that the name promises
-openness, taking the licence that keeps downstream open is the consistent
-choice.
-
-The case against, which is real: `-P` would maximise adoption. Some vendors
-avoid reciprocal licences entirely, and if the only goal were for this design to
-end up in as many hands as possible, permissive would get there faster. That is
-the cost of this choice and it is accepted.
-
-### Firmware: Apache 2.0
-
-Both permissive, both fine, and the practical difference is narrow.
-
-**Apache 2.0** adds an express patent grant and a patent retaliation clause,
-which matter more once money is involved. **MIT** is shorter and more familiar
-to hobbyists, and that familiarity is the only thing given up here.
-
-Apache 2.0 wins because the firmware is the part most likely to end up embedded
-in somebody else's project, and the patent grant is worth the extra paragraphs
-when that happens.
-
-Note the asymmetry: reciprocal hardware, permissive firmware. That is deliberate
-and it is a common pattern. The board is the thing worth protecting from a
-closed fork; the firmware is the thing worth having other people embed
-everywhere.
-
-### Documentation: CC BY-SA 4.0
-
-Straightforward, and it matches the reciprocal posture on the hardware.
-
-The consequence, worth stating before agreeing to it: anyone can reproduce this
-build guide commercially, as long as they attribute and share alike. Given that
-the documentation is the product, that is a real thing to accept. `CC BY-NC-SA`
-would prevent it and is not an open licence by the usual definition, which sits
-badly under a name whose first letter means open.
+- **CERN-OHL-S** requires anyone who makes and distributes a product based on
+  the design to publish their modified sources. The permissive `-P` would
+  maximise adoption instead, and some vendors avoid reciprocal licences
+  entirely. That is the cost, and it is accepted.
+- **Apache 2.0** adds an express patent grant, which matters once money is
+  involved and MIT does not offer. What it gives up is MIT's familiarity to
+  hobbyists.
+- **CC BY-SA 4.0** lets anyone reproduce this build guide commercially, with
+  attribution, as long as they share alike. Given that the documentation is the
+  product, that is a real thing to accept. `CC BY-NC-SA` would prevent it and is
+  not an open licence by the usual definition, which sits badly under a name
+  whose first letter means open.
 
 ### Trademark, which is the part licences do not cover
 
@@ -166,9 +138,10 @@ itself. Both are events rather than dates.
 ## Status
 
 **Nothing physical exists yet.** No board has been fabricated, assembled,
-weighed, priced, or flown. The PCB is laid out and routed and its fabrication
-files are published, which is a real step past a paper design, and it is not the
-same thing as a board that works.
+weighed, priced, or flown. The PCB is laid out and routed, which is a real step
+past a paper design and not the same thing as a board that works. Its
+fabrication package is not published, because the check that gates it refuses
+while the board has an open blocker.
 
 Every unverified figure on this site is marked in place, in the page that would
 otherwise state it, saying what evidence would close it. That is deliberately
@@ -180,16 +153,13 @@ number it replaces is not.
 **Never publish a number that has not been measured or sourced.**
 
 No price, mass, range, current draw, battery life, or measured altitude appears
-on this site unless it came from an invoice, a scale, a datasheet, or a flight. A
-missing figure is written as a marker recording what evidence would close it,
-never estimated into place.
+on this site unless it came from an invoice, a scale, a datasheet, or a flight.
 
 People in this hobby spend money and fly hardware over other people's heads
 based on what a site like this tells them. A page full of confident fabricated
-specifications is worse than an empty one.
-
-Two consequences you will have noticed: the bill of materials has no prices in
-it, and the homepage does not have a flight graph.
+specifications is worse than an empty one. Two consequences you will have
+noticed: the bill of materials has no prices in it, and the homepage does not
+have a flight graph.
 
 ## Contributing
 

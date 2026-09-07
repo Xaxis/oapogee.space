@@ -409,7 +409,7 @@ const SOFT_MM = 0.127 // JLCPCB standard two-layer at 1 oz copper
         `tscircuit's own design rule pass reports none of these, and raising the autorouter's ` +
         `traceClearance does not change them; the sequential_trace preset lays no copper at all ` +
         `and a four-layer board did not finish routing in ten minutes. This is the autorouter, ` +
-        `not the placement, and it is the one thing between this board and a fab.`,
+        `not the placement.`,
     })
   } else if (soft > 0) {
     softPairs = soft

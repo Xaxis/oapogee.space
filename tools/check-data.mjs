@@ -466,6 +466,101 @@ for (const file of [...walkMd(CONTENT), ...walkMd(join(ROOT, 'docs/spec'))]) {
       }
     }
   }
+
+  // --- and the claim made without naming a file -----------------------------
+  //
+  // The rule above catches a filename. It does not catch a sentence, and a
+  // sentence is what actually shipped: six places said the fabrication files
+  // were published and that somebody could order a board today, while
+  // check-pcb.mjs said fab_ready false and the Gerbers were absent from
+  // public/hardware. The site's own schematic page carried the claim twenty
+  // lines above the generated list contradicting it.
+  //
+  // So the claim is tied to the check that decides it. While the board has an
+  // open blocker, no prose and no component may say the package is published or
+  // the board is orderable. Negations are what the site should be saying and
+  // are left alone.
+  const STATUS_FILE = join(ROOT, 'hardware/pcb-status.json')
+  if (existsSync(STATUS_FILE)) {
+    const pcb = JSON.parse(readFileSync(STATUS_FILE, 'utf8'))
+    if (!pcb.fab_ready) {
+      const claims = [
+        [/(fabrication (files|package)|gerber)/i, /publish/i, 'says the fabrication package is published'],
+        [/\b(board|pcb)\b/i, /\borderable\b/i, 'calls the board orderable'],
+      ]
+      // "not published", "held back", "refuses to write it": the true forms.
+      const NEGATED = /\b(not|never|no|nor|cannot|without|unpublished|held back|refus\w*|absent|until|while|would be)\b/i
+
+      const sources = [...prose]
+      const walkSrc = (dir) => {
+        if (!existsSync(dir)) return
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          if (entry.name.startsWith('.') || entry.name === 'node_modules') continue
+          const full = join(dir, entry.name)
+          if (entry.isDirectory()) walkSrc(full)
+          else if (/\.tsx?$/.test(entry.name)) sources.push(full)
+        }
+      }
+      walkSrc(join(ROOT, 'apps/web/app'))
+      walkSrc(join(ROOT, 'apps/web/components'))
+      for (const f of ['data/bom.yaml', 'data/tiers.yaml']) sources.push(join(ROOT, f))
+
+      for (const file of sources) {
+        const rel = file.slice(ROOT.length)
+        // Sentence-ish. Long enough to hold a negation, short enough that one
+        // sentence's "not" cannot excuse the next sentence's claim.
+        for (const raw of readFileSync(file, 'utf8').split(/(?<=[.!?])\s+|\n\n+/)) {
+          const sentence = raw.replace(/\s+/g, ' ').trim()
+          if (!sentence || NEGATED.test(sentence)) continue
+          for (const [subject, verb, what] of claims) {
+            if (subject.test(sentence) && verb.test(sentence)) {
+              fail(
+                `${rel} ${what}, and hardware/pcb-status.json says fab_ready is false with ` +
+                  `${pcb.blockers.length} open blocker(s). The sentence: "${sentence.slice(0, 120)}"`
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// --- every open question says where it stands --------------------------------
+//
+// docs/open-questions.md exists so that a decision taken quietly is visible as
+// one, which only works if every question in it says whether it has been taken.
+// One had drifted into saying neither: RP2350 or RP2040 read as a note to
+// self, and a reader could not tell whether the board was designed around an
+// answer or around an assumption. The distinction is the whole document.
+{
+  const path = join(ROOT, 'docs/open-questions.md')
+  if (existsSync(path)) {
+    const lines = readFileSync(path, 'utf8').split('\n')
+    // The closing section is guidance for contributors rather than a question.
+    const NOT_A_QUESTION = new Set(['How to weigh in'])
+    let heading = null
+    let verdict = false
+    const finish = () => {
+      if (heading && !verdict && !NOT_A_QUESTION.has(heading)) {
+        fail(
+          `docs/open-questions.md: "${heading}" says neither **Decided** nor **Open**. ` +
+            'A question that states no verdict is the quiet decision this file exists to prevent.'
+        )
+      }
+    }
+    for (const line of lines) {
+      const m = /^##\s+(.+?)\s*$/.exec(line)
+      if (m) {
+        finish()
+        heading = m[1]
+        verdict = false
+      } else if (/\*\*(Decided|Open)\b/.test(line)) {
+        verdict = true
+      }
+    }
+    finish()
+  }
 }
 
 // --- report ----------------------------------------------------------------

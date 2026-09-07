@@ -47,21 +47,20 @@ paths:
       LGA. None of those are hand-solderable in any sense a beginner means, and
       the thermal pads cannot be reached with an iron at all.
     tradeoff: >
-      Nothing to build until boards are fabricated, and minimum order quantities
-      make a single unit expensive. The layout exists and the fabrication files
-      are published, so ordering is a thing somebody could do today. Whether
-      they should is the availability note below.
+      Nothing to build until boards are fabricated, and there are none. The
+      layout exists and routes, and the fabrication package is not published,
+      because the check that gates it refuses while the board has an open
+      blocker. The schematic page lists what is open, generated on every build.
     available: false
     availability_note: >
-      TODO(confirm-on-hardware): the layout is complete, routed, and passes
-      every geometric check, and the Gerbers, drill files, bill of materials and
-      pick and place are published. What is not confirmed is the part that costs
-      money to get wrong: 152 signal names are mapped onto footprint pads by
-      pin number, and only the microcontroller's 60 pins have been checked
-      against a datasheet. The other fourteen packages have not. A wrong pin
-      number is invisible in a schematic, invisible in a render, and shows up as
-      a board that does not work. Confirm every package by hand before ordering,
-      then fly one, then mark this path available.
+      TODO(confirm-on-hardware): the layout is complete and routed, and every
+      package's pin numbering is now transcribed from its manufacturer's
+      datasheet rather than taken from a footprint library, with the table or
+      figure cited beside it in the circuit source. Two of those transcriptions
+      replaced guesses that would have produced a dead board. What remains is
+      the radio's RF matching network, whose values Semtech does not publish,
+      and which is what keeps this path unavailable. Order a board, fly one,
+      then mark this path available.
 
 # ---------------------------------------------------------------------------
 # Tier budgets. Tier names, capabilities, and the comparison matrix live in
@@ -222,12 +221,11 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): quote the RMS noise in Pa at the oversampling and output
-      data rate oApogee actually configures, from the datasheet, and convert it
-      to metres of altitude noise at sea level. Do not quote the headline
-      "0.5 m" style figure from marketing material without stating the
-      configuration it assumes. Also state the usable pressure range and what
-      altitude that corresponds to.
+      TODO(verify): the RMS noise in Pa at the oversampling and output data rate
+      oApogee configures, from the datasheet, converted to metres of altitude
+      noise at sea level. A headline noise figure with no configuration beside
+      it is not the same number. Also the usable pressure range and the altitude
+      it corresponds to.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
@@ -333,16 +331,12 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): confirm the ADXL375 full-scale range and bandwidth from the
-      datasheet, with the table cited, and state the full-scale range oApogee
-      configures on the ICM-42688-P, also quoted from its datasheet. Then,
-      separately, produce the number that justifies this part: the peak
-      acceleration of a representative loaded airframe on a C, D, and E motor,
-      taken from OpenRocket simulation, so the motor class at which the 6-axis
-      IMU saturates is derived rather than asserted. Both halves are needed. A
-      full-scale range with no simulated peaks says nothing about which motors
-      exceed it, and simulated peaks with no range say nothing about which part
-      clips first.
+      TODO(verify): two numbers, and neither alone decides anything. First, the
+      ADXL375 full-scale range and bandwidth, and the full-scale range oApogee
+      configures on the ICM-42688-P, each quoted from its datasheet with the
+      table cited. Second, the peak acceleration of a representative loaded
+      airframe on a C, D and E motor from OpenRocket, so the motor class at
+      which the 6-axis IMU saturates is derived rather than asserted.
     optional: true
     applies:
       - { tier: link, path: board, qty: 1 }
@@ -380,12 +374,11 @@ parts:
       confidence: unverified
       verify: >
         TODO(verify): identify a currently-stocked ADXL375 breakout and record
-        whether it exposes the SPI interface and a usable chip select pin. The
-        Board path puts this part on SPI sharing the IMU's bus. If no
-        SPI-capable breakout can be sourced, the Modules path does not share the
-        Board path's bus assignment, and the "Same electrical design, two ways
-        to fabricate it" note at the head of this file must be amended rather
-        than quietly left standing.
+        whether it exposes SPI and a usable chip select. The Board path puts
+        this part on SPI sharing the IMU's bus. If no SPI-capable breakout can
+        be sourced, the two paths no longer share a bus assignment, and the
+        "Same electrical design, two ways to fabricate it" note at the head of
+        this file has to be amended.
 
   # --- Radio --------------------------------------------------------------
 
@@ -399,13 +392,11 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): the entire range claim. Range is the number readers will
-      most want and the number most often lied about in this hobby. It must come
-      from a measured ground test and a measured flight, with the antenna type,
-      orientation, spreading factor, bandwidth, transmit power, and terrain all
-      stated. Publish the disappointing numbers too, specifically the range with
-      the rocket on the ground in tall grass after landing, which is the case
-      that actually matters for recovery.
+      TODO(verify): the entire range claim, from a measured ground test and a
+      measured flight, stating antenna type, orientation, spreading factor,
+      bandwidth, transmit power and terrain. Include the range with the rocket
+      on the ground in tall grass after landing, which is the case that decides
+      whether it is recoverable.
     applies:
       - { tier: link, path: board, qty: 1 }
       - { tier: track, path: board, qty: 1 }
@@ -433,8 +424,7 @@ parts:
       TODO(verify): confirm the regulatory position before publishing a build
       that transmits. A module carrying its own approval does not make a
       finished payload approved, and the answer differs by country. Also weigh
-      it, price it, and measure range against the Board path so the two are
-      known to be comparable rather than assumed to be.
+      it, price it, and measure its range against the Board path.
     applies:
       - { tier: link, path: modules, qty: 1 }
       - { tier: track, path: modules, qty: 1 }
@@ -528,14 +518,12 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): choose between a ceramic patch and a small helical, and
-      measure the thing that actually decides it, which is time to first fix
-      inside the airframe you fly rather than gain in free air. A patch needs a
-      ground plane and a view of the sky in one direction, which suits a nose
-      cone bay and does not suit a pod strapped to the side of a tube. A
-      helical is smaller, worse in the open, and much less fussy about
-      orientation, which may make it better in a rocket that is not pointing up
-      once the parachute is out.
+      TODO(verify): choose between a ceramic patch and a small helical, on time
+      to first fix inside the airframe you fly rather than gain in free air. A
+      patch needs a ground plane and a view of the sky in one direction, which
+      suits a nose cone bay and not a pod on the side of a tube. A helical is
+      smaller, worse in the open, and far less fussy about orientation, which
+      may win in a rocket that is not pointing up under its parachute.
 
       TODO(confirm-on-hardware): confirm a passive antenna acquires at all
       through the airframe wall. If it does not, the answer is an active
@@ -566,12 +554,11 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): choose between a tuned wire monopole cut to a quarter
-      wavelength and a flexible PCB antenna, and measure the difference. Publish
-      the wire length as a measured, trimmed figure with the ground plane it
-      assumes, not as a textbook calculation, because the calculation is not what
-      works in a body tube. Also determine whether a carbon fibre or metallic
-      airframe blocks the link, and say so plainly if it does.
+      TODO(verify): choose between a tuned wire monopole and a flexible PCB
+      antenna, measured. Publish the wire length as a trimmed figure with the
+      ground plane it assumes rather than a textbook calculation, which is not
+      what works in a body tube. Also whether a carbon fibre or metallic
+      airframe blocks the link.
     applies:
       - { tier: link, path: board, qty: 1 }
       - { tier: track, path: board, qty: 1 }
@@ -634,12 +621,11 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): measure the actual current draw of each tier in each flight
-      state, then size the cell from that rather than from the brief's assumed
-      range. Report endurance as pad-idle hours plus post-landing beacon hours,
-      because those are the two numbers a flier needs. Confirm the cell ships
-      with a protection circuit; unprotected cells are common and must not be
-      recommended.
+      TODO(verify): measure the current draw of each tier in each flight state
+      and size the cell from that rather than from the brief's assumed range.
+      Report endurance as pad-idle hours plus post-landing beacon hours.
+      Confirm the cell ships with a protection circuit: unprotected cells are
+      common and must not be recommended.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
@@ -718,11 +704,9 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): price and weigh with the rest of the board. The electrical
-      selection is settled and sourced; what is not settled is whether 800 mA is
-      generous or merely adequate, because the payload's current draw in each
-      flight state has never been measured. That measurement is on the battery
-      entry and it decides nothing here unless it comes out surprisingly high.
+      TODO(verify): price and weigh with the rest of the board. The selection is
+      settled and sourced; whether 800 mA is generous or merely adequate is not,
+      and it follows from the current draw measurement on the battery entry.
     datasheet:
       document: SLVS520C, March 2006, revised October 2015
       url: https://www.ti.com/lit/ds/symlink/tps63001.pdf
@@ -961,11 +945,9 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): both are effectively zero, and this project does not publish
-      "effectively zero" as a measurement. Three pads of copper on a board that
-      is being made anyway cost nothing extra and weigh what their solder does.
-      Close it with the rest of the board when a real cart is priced and a real
-      assembly is weighed.
+      TODO(verify): both are effectively zero, which is not a measurement. Three
+      pads of copper on a board being made anyway cost nothing extra and weigh
+      what their solder does. Close it with the rest of the board.
     applies:
       - { tier: solo, path: board, qty: 1 }
       - { tier: link, path: board, qty: 1 }
@@ -1614,10 +1596,10 @@ parts:
     price_usd: null
     mass_g: null
     verify: >
-      TODO(verify): the number that matters is not the datasheet sound pressure
-      level, it is the distance at which the beacon pattern is findable in tall
-      grass on a windy day. Measure it by having somebody hide an active unit in
-      a field and timing the search. Then weigh it and price it with the rest.
+      TODO(verify): not the datasheet sound pressure level, but the distance at
+      which the beacon pattern is findable in tall grass on a windy day.
+      Somebody hides an active unit in a field and the search is timed. Then
+      weigh and price it with the rest.
     datasheet:
       document: Murata PKLCS1212E4001-R1, surface mount piezo transducer
       url: https://www.digikey.com/en/products/detail/murata-electronics/PKLCS1212E4001-R1/1219314

@@ -86,27 +86,29 @@ export default function Schematic() {
         </div>
       </header>
 
-      {/* Still the most important thing on this page, but the risk moved. The
-          board is laid out, routed and published, so the old warning not to send
-          anything to a fabricator was both wrong and directly contradicted by
-          the Files tab twenty lines below it. What is actually unverified is
-          narrower and easier to miss. */}
+      {/* This box states the risk in prose and the section at the foot of the
+          page states it from the check. They contradicted each other once, when
+          this said the fabrication package was published and the Files tab
+          twenty lines below rendered it as held back, so this now says only
+          what does not come from the check. */}
       <section className="max-w-[46rem] rounded-lg border-l-3 border-[var(--color-alert)] bg-[var(--color-surface)] p-6">
         <h2 className="text-lg font-semibold text-white">Before you order this board</h2>
         <p className="mt-3 text-[var(--color-muted)]">
-          The connectivity below is the design decision worth reviewing, and the layout is real:
-          routed, checked against its own design rules, and published as a fabrication package.
+          You cannot yet. The fabrication package is held back while the board has an open blocker,
+          and it has {status.blockers.length}. They are listed at the foot of this page, generated
+          on every build.
         </p>
         <p className="mt-3 text-[var(--color-muted)]">
-          What has not been checked is which physical pad each signal lands on. The
-          microcontroller&rsquo;s sixty pins were transcribed from the Raspberry Pi datasheet. The
-          other fourteen packages were not: their pin numbering is whatever the footprint library
-          assigns, and nothing here compares that to the manufacturer&rsquo;s land pattern.
+          When that clears, the thing to check by hand is which physical pad each signal lands on.
+          Every package&rsquo;s pin numbering is transcribed from its manufacturer&rsquo;s datasheet,
+          with the table or figure cited beside it in the circuit source, and two of those
+          transcriptions replaced guesses that would have produced a dead board. What no check here
+          can confirm is that each footprint&rsquo;s pad numbering matches the numbering the
+          datasheet uses.
         </p>
         <p className="mt-3 font-medium text-[var(--color-body)]">
           A wrong pin number is invisible in a schematic, invisible in a render, and shows up as a
-          board that does not work. Confirm every package against its datasheet before you spend
-          money.
+          board that does not work.
         </p>
       </section>
 

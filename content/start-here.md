@@ -4,7 +4,7 @@ description: What oApogee is, which tier to build, what skills and tools you nee
 tier: all
 difficulty: beginner
 time_estimate: 10 minutes to read
-updated: 2026-08-11
+updated: 2026-09-07
 status: draft
 ---
 
@@ -31,82 +31,49 @@ If electronic deployment is what you want, that belongs to high power rocketry
 and to the NAR and Tripoli certification paths. oApogee is not that and will not
 become that.
 
-## Before you read further
+## Where the project is
 
 **Nothing physical exists yet.** No board has been fabricated, assembled,
-weighed, priced, or flown. The design is further along than that sentence
-suggests, though: the PCB is laid out, routed, and its fabrication files are
-published, so ordering one is something a person could do today. What has not
-been done is checking every package's pin numbering against its datasheet,
-which is the part that costs money to get wrong. There are no cost figures, no mass figures, no range figures
-and no battery life figures anywhere on this site, because none of them have
-been measured. Every missing figure is marked where it would otherwise appear,
-saying what evidence would close it.
+weighed, priced, or flown, which is why no cost, mass, range or battery life
+figure appears anywhere on this site.
 
-What exists today is the design, the parts list, the wire formats, and the
-safety and regulatory groundwork. That is genuinely useful if you want to
-understand the design or tell us where it is wrong. It is not yet enough to
-build from with confidence.
+What does exist is the design, the parts list, the firmware, the wire formats,
+and the safety and regulatory groundwork. That is enough to build the Modules
+path from today, and enough to tell us where the design is wrong. It is not
+enough to build the custom board from: that is laid out and routed, but its
+fabrication package is held back while the board has an open blocker, and it
+has one. The [schematic page](/reference/schematic) lists what is open.
 
 ## Which tier
 
-Every tier is intended to be the same board and the same firmware, so moving up
+Every tier is meant to be the same board and the same firmware, so moving up
 means populating footprints that were already there rather than building a new
-payload. That is a design intention, not a demonstrated fact: it holds only if a
-Solo build leaves the radio and GNSS sections genuinely optional, and nobody can
-know that until a board exists and one unit has been flown as Solo and then
-upgraded and flown again.
+payload.
 
-### oApogee Solo
+- **Solo.** Barometer, IMU, onboard logging, no radio. The cheapest build, and
+  the only one with no radio regulations to read first. Its limitation is
+  recovery: Solo has a buzzer and nothing else.
+- **Link.** Adds a LoRa downlink, so you watch the altitude climb in real time
+  and keep a second copy of the flight even if the rocket is never found. It
+  needs a [ground station](/ground-station), which is a second build with its
+  own parts list, and it puts a transmitter in your rocket, which means reading
+  the [radio section](/safety#radio) first.
+- **Track.** Adds a GNSS receiver. The valuable output is not the flight track,
+  it is the last position fix sent down before the signal is lost, which turns
+  a search into a walk. Track is the full build, and cost and mass are the only
+  reasons not to choose it.
 
-Barometer, IMU, onboard logging. No radio.
-
-Build this if you want a flight profile and you are happy to read it after you
-get the rocket back. It is the cheapest tier, the simplest build, and the only
-one with no radio regulations to understand before your first flight.
-
-Its limitation is recovery. Solo has a buzzer and nothing else, so if the rocket
-drifts a long way you are searching by ear.
-
-### oApogee Link
-
-Adds a LoRa downlink and a ground station.
-
-Build this if you want to watch the altitude climb in real time, or if you fly
-somewhere the payload might not come back. The downlink is a second copy of the
-data: even if you never find the rocket, you have the flight.
-
-Two things to know before choosing it. It needs a ground station, which is a
-second build with its own parts list, so budget for both. And it puts a
-transmitter in your rocket, which means reading the [radio
-section](/safety#radio) before you fly.
-
-### oApogee Track
-
-Adds a GNSS receiver.
-
-Build this if you fly big fields, windy days, or anything with a long descent.
-The valuable output is not the flight track, it is the last position fix sent
-down before the signal is lost, which turns a search into a walk.
-
-Track is the full build. There is no reason not to choose it apart from cost and
-mass.
+The [bill of materials](/bom) shows what each tier actually costs you in parts.
 
 ## Which build path
 
-Independently of the tier, there are two ways to build the electronics.
+Independently of the tier, there are two ways to build the electronics:
+off-the-shelf **Modules** wired to a carrier, or the custom **Board**.
 
-**Modules.** Off-the-shelf breakout boards wired to a carrier or protoboard. You
-can build this today with no PCB fabrication, no reflow and no stencil. It is
-heavier and bulkier than the board, and every inter-board wire is a joint that
-can fail under boost shock.
-
-**Board.** The custom oApogee PCB. One part number, a smaller and lighter
-payload, and nothing to build until boards are fabricated, which has not
-happened yet.
-
-Start with Modules. It exists so that the project is useful before the board
-does, and everything you learn transfers.
+Start with Modules. It is the one you can build today, it needs no PCB
+fabrication or reflow, and everything you learn transfers. It is heavier and
+bulkier, and every inter-board wire is a joint that can fail under boost shock.
+The [bill of materials](/bom) gives you a parts list for either.
 
 ## What you need to be able to do
 
@@ -135,16 +102,11 @@ standing nearby.
 
 ## What it costs, weighs, and takes
 
-TODO(verify): fill this section in with measured figures. It should carry, per
-tier and per build path, the actual price of a real cart from a US distributor
-at quantity one, the measured mass of an assembled unit including cell, and the
-median and slowest build times from timing several people who have soldered
-before. The targets in the project brief are under $60 for the full build, under
-25 g flying mass, and an evening of work, but a target is not a measurement and
-this site does not publish targets as though they were.
-
-The [bill of materials](/bom) lists every part with its price column empty for
-the same reason.
+TODO(verify): per tier and per build path, the price of a real cart from a US
+distributor at quantity one, the measured mass of an assembled unit including
+cell, and the median and slowest build times from people who have soldered
+before. The brief's targets are under $60, under 25 g and an evening, and a
+target is not a measurement.
 
 ## What to expect from a first flight
 
@@ -185,7 +147,5 @@ actually goes wrong, rather than what is easiest to imagine going wrong.
 
 [Troubleshooting](/troubleshooting) is organised by what you saw, not by which
 component failed, because when you have a problem you know the symptom and not
-the cause.
-
-If your problem is not there, or the answer is wrong, telling us is the most
-useful thing you can do for this project right now.
+the cause. If your problem is not there, or the answer is wrong, telling us is
+the most useful thing you can do for this project right now.

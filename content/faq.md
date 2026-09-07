@@ -4,25 +4,23 @@ description: Questions people actually ask about oApogee, including the ones wit
 tier: all
 difficulty: beginner
 time_estimate: null
-updated: 2026-08-11
+updated: 2026-09-07
 status: draft
 ---
 
 # FAQ
 
-Real questions only. Anything asked twice in the wild gets added. Nothing here
-is invented as a way of writing marketing copy in question form.
-
-Because the project is new, this page is short, and most of what is here is
-questions asked during the design rather than by builders. It will get longer
-and more useful as people build things.
+Real questions only, and anything asked twice in the wild gets added. Because
+the project is new, most of these were asked during the design rather than by
+builders.
 
 ## Can I buy one?
 
 Not yet. Kits are intended eventually, and nothing has been fabricated, so there
-is nothing to sell. You can order the bare PCB yourself from the published
-fabrication files, with the caveat on the schematic page: the pin numbering of
-most packages has not been checked against a datasheet.
+is nothing to sell. Nor can you fabricate one yourself yet: the board is laid
+out and routed, but the fabrication package is held back while the board has an
+open blocker, and it has. The [schematic page](/reference/schematic) lists what
+is open.
 
 ## Can it deploy my parachute?
 
