@@ -19,7 +19,15 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs'
+import {
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  existsSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+} from 'node:fs'
 import { createHash } from 'node:crypto'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -119,6 +127,63 @@ function boundingBox(path) {
   return [0, 1, 2].map((a) => Number((hi[a] - lo[a]).toFixed(1)))
 }
 
+/**
+ * A fingerprint of the solid, not of the file.
+ *
+ * OpenSCAD does not render the same source to the same bytes twice. Three runs
+ * of an unchanged pod-base gave three different files: the same 862 vertices
+ * and the same 1736 triangles, with 52 of them splitting a flat face along the
+ * other diagonal. Same solid, different mesh.
+ *
+ * That made `make mech` non-idempotent. Running it to check something rewrote
+ * all three STLs, so a contributor got three modified binaries for a change
+ * they did not make, and a real change to a model arrived in a diff that looked
+ * exactly like a no-op one. Binary files are the worst place for that, because
+ * nobody can read the diff to tell which it was.
+ *
+ * So the parts that do not depend on the triangulation are what gets compared:
+ * the vertex set, the triangle count, and the volume and surface area, both of
+ * which are invariant under splitting a coplanar face differently. Across those
+ * three runs the volumes agreed to nine significant figures.
+ */
+function fingerprint(path) {
+  const buf = readFileSync(path)
+  const count = buf.readUInt32LE(80)
+  const verts = new Set()
+  let volume = 0
+  let area = 0
+
+  for (let i = 0; i < count; i++) {
+    const base = 84 + i * 50 + 12
+    const p = []
+    for (let v = 0; v < 3; v++) {
+      const xyz = [0, 1, 2].map((a) => buf.readFloatLE(base + v * 12 + a * 4))
+      p.push(xyz)
+      // 4 decimals is a tenth of a micron, well below anything a printer or a
+      // pair of calipers can resolve, and above the float noise the exporter
+      // introduces.
+      verts.add(xyz.map((x) => x.toFixed(4)).join(','))
+    }
+    const [a0, b0, c0] = p
+    volume +=
+      (a0[0] * (b0[1] * c0[2] - b0[2] * c0[1]) -
+        a0[1] * (b0[0] * c0[2] - b0[2] * c0[0]) +
+        a0[2] * (b0[0] * c0[1] - b0[1] * c0[0])) /
+      6
+    const u = [b0[0] - a0[0], b0[1] - a0[1], b0[2] - a0[2]]
+    const v2 = [c0[0] - a0[0], c0[1] - a0[1], c0[2] - a0[2]]
+    const n = [
+      u[1] * v2[2] - u[2] * v2[1],
+      u[2] * v2[0] - u[0] * v2[2],
+      u[0] * v2[1] - u[1] * v2[0],
+    ]
+    area += Math.hypot(n[0], n[1], n[2]) / 2
+  }
+
+  const vertHash = createHash('sha256').update([...verts].sort().join(';')).digest('hex')
+  return `${count}:${verts.size}:${vertHash}:${volume.toFixed(4)}:${area.toFixed(4)}`
+}
+
 // Rendered from an isometric angle that shows the cavity and one strap slot,
 // because the preview exists to let somebody recognise the part rather than to
 // be pretty.
@@ -131,24 +196,29 @@ for (const part of mech.parts) {
   const stl = join(OUT, `oapogee-${part.id.replace(/_/g, '-')}.stl`)
   const png = join(OUT, `oapogee-${part.id.replace(/_/g, '-')}.png`)
 
-  for (const [flag, out] of [
-    ['--export-format=binstl', stl],
-    [null, png],
-  ]) {
-    const args = ['--hardwarnings', '-o', out]
-    if (flag) args.push(flag)
-    else args.push('--imgsize=1100,750', '--viewall', '--autocenter', '--colorscheme=Tomorrow Night',
-                   `--camera=${CAMERA}`)
-    args.push(scad)
+  const run = (args, label) => {
     try {
-      execFileSync(openscad, args, { stdio: ['ignore', 'ignore', 'pipe'] })
+      execFileSync(openscad, ['--hardwarnings', ...args, scad], {
+        stdio: ['ignore', 'ignore', 'pipe'],
+      })
     } catch (e) {
-      console.error(`${part.source} failed to render:\n${e.stderr?.toString() ?? e.message}`)
+      rmSync(`${stl}.new`, { force: true })
+      console.error(`${part.source} failed to render ${label}:\n${e.stderr?.toString() ?? e.message}`)
       process.exit(1)
     }
   }
-  const shells = countShells(stl)
+
+  // The STL goes to a scratch path first, so the committed one is still there
+  // to compare the solid against.
+  const fresh = `${stl}.new`
+  run(['-o', fresh, '--export-format=binstl'], 'the mesh')
+
+  // Checked on what was just rendered, not on what is committed, so a defect
+  // introduced by an edit is caught even in the run that decides to keep the
+  // existing bytes.
+  const shells = countShells(fresh)
   if (shells !== 1) {
+    rmSync(fresh, { force: true })
     console.error(
       `${part.source} exported ${shells} disconnected surfaces. A printed part is one.\n` +
         `Either something is floating free of the body, or a pocket is fully enclosed by\n` +
@@ -158,9 +228,49 @@ for (const part of mech.parts) {
     )
     process.exit(1)
   }
+
+  const same = existsSync(stl) && fingerprint(stl) === fingerprint(fresh)
+  if (same) {
+    rmSync(fresh, { force: true })
+  } else {
+    renameSync(fresh, stl)
+    // The preview is a picture of the solid, so it is only re-rendered when the
+    // solid changed. That is not only about time: the rasteriser is not quite
+    // deterministic either, and a preview that churned would put the same
+    // unreadable binary diff back that skipping the mesh just removed.
+    run(
+      [
+        '-o', png,
+        '--imgsize=1100,750',
+        '--viewall',
+        '--autocenter',
+        '--colorscheme=Tomorrow Night',
+        `--camera=${CAMERA}`,
+      ],
+      'the preview'
+    )
+  }
+
+  if (!existsSync(png)) {
+    run(
+      [
+        '-o', png,
+        '--imgsize=1100,750',
+        '--viewall',
+        '--autocenter',
+        '--colorscheme=Tomorrow Night',
+        `--camera=${CAMERA}`,
+      ],
+      'the preview'
+    )
+  }
+
   const [bx, by, bz] = boundingBox(stl)
   sizes[part.id] = { x_mm: bx, y_mm: by, z_mm: bz }
-  console.log(`${part.id}: ${part.source} -> ${stl.slice(ROOT.length)} (1 solid, ${bx} x ${by} x ${bz} mm)`)
+  console.log(
+    `${part.id}: ${part.source} -> ${stl.slice(ROOT.length)} ` +
+      `(1 solid, ${bx} x ${by} x ${bz} mm${same ? ', unchanged' : ''})`
+  )
 }
 
 // Every .scad in the directory, including the ones that are only included, so

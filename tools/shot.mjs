@@ -12,7 +12,7 @@
  */
 
 import { spawn } from 'node:child_process'
-import { writeFileSync, existsSync } from 'node:fs'
+import { writeFileSync, existsSync, rmSync } from 'node:fs'
 
 const [url, out, width = '390', height = '1600'] = process.argv.slice(2)
 if (!url || !out) {
@@ -34,7 +34,11 @@ if (!chrome) {
   process.exit(1)
 }
 
-const PORT = 9334
+// Port and profile are per-process. A fixed pair meant a second run could
+// attach to the previous run's Chrome while it was still shutting down, and
+// then talk to a socket that closed underneath it.
+const PORT = 9334 + (process.pid % 1000)
+const PROFILE = `/tmp/oapogee-shot-profile-${process.pid}`
 const browser = spawn(
   chrome,
   [
@@ -46,7 +50,7 @@ const browser = spawn(
     '--hide-scrollbars',
     '--no-sandbox',
     `--remote-debugging-port=${PORT}`,
-    '--user-data-dir=/tmp/oapogee-shot-profile',
+    `--user-data-dir=${PROFILE}`,
     'about:blank',
   ],
   { stdio: 'ignore' }
@@ -55,6 +59,9 @@ const browser = spawn(
 const done = (code) => {
   try {
     browser.kill()
+  } catch {}
+  try {
+    rmSync(PROFILE, { recursive: true, force: true })
   } catch {}
   process.exit(code)
 }

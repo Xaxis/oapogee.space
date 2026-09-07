@@ -129,6 +129,45 @@ function recolour(svg) {
   return out
 }
 
+/**
+ * Are two renders of the same artifact the same artifact.
+ *
+ * Not the same bytes. The KiCad export mints 223 fresh UUIDs per run, and the
+ * circuit JSON gives each warning record a random id and emits the records in
+ * whatever order it happened to produce them. Neither says anything about the
+ * design, and a byte comparison reports both as a change.
+ *
+ * Normalising the UUIDs still catches a real design change, because a moved net
+ * changes far more than identifiers. For circuit JSON the ordering moves too,
+ * so the comparison is over sorted lines with the random id tails stripped: a
+ * design change alters what the lines say, not only where they sit.
+ */
+function equivalent(format, a, b) {
+  const norm = (buf) => {
+    const text = buf.toString('utf8')
+    if (format === 'kicad_sch') {
+      return text.replace(/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/g, '<uuid>')
+    }
+    if (format === 'circuit-json') {
+      // The warning records are advisory output about the design, not the
+      // design, and the exporter does not produce the same set of them twice:
+      // which of twenty-one identical 0402 resistors it names varies per run.
+      // Compare the circuit, then sort, because the record order moves too.
+      try {
+        return JSON.parse(text)
+          .filter((e) => !String(e?.type ?? '').endsWith('_warning'))
+          .map((e) => JSON.stringify(e))
+          .sort()
+          .join('\n')
+      } catch {
+        return text
+      }
+    }
+    return text
+  }
+  return norm(a) === norm(b)
+}
+
 const fab = process.argv.includes('--fab')
 for (const { format, file } of fab ? FAB_ARTIFACTS : ARTIFACTS) {
   // The CLI resolves -o itself and fails on an absolute path, so it is given a
@@ -182,18 +221,21 @@ for (const { format, file } of fab ? FAB_ARTIFACTS : ARTIFACTS) {
     // re-render, which is the mistake this check exists to catch.
     if (format === 'pcb-svg' || format === 'assembly-svg') continue
 
-    // The KiCad export mints 223 fresh UUIDs on every run, so a byte comparison
-    // reports a change that is not one. Normalising them still catches a real
-    // design change, because a moved net changes far more than identifiers.
-    const normalise = (buf) =>
-      format === 'kicad_sch'
-        ? buf.toString('utf8').replace(/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/g, '<uuid>')
-        : buf.toString('utf8')
-
-    if (normalise(readFileSync(target)) !== normalise(produced)) {
+    if (!equivalent(format, readFileSync(target), produced)) {
       stale.push(`${file} does not match the source`)
     }
   } else {
+    // Two of these exports are byte-unstable in ways that mean nothing: the
+    // KiCad schematic mints fresh UUIDs on every run, and circuit JSON emits
+    // its warning records in a different order with a different random id each
+    // time. Rewriting them anyway produced a 1900 line diff on any commit that
+    // touched a comment in the circuit source, which is 1900 lines a reviewer
+    // has to read past to find the change that mattered. The comparison the
+    // check already makes is the one to make here.
+    if (existsSync(target) && equivalent(format, readFileSync(target), produced)) {
+      console.log(`  ${file}  unchanged`)
+      continue
+    }
     writeFileSync(target, produced)
     console.log(`  ${file}  ${(produced.length / 1024).toFixed(0)} kB`)
   }

@@ -1,22 +1,31 @@
 #!/usr/bin/env node
 /**
- * Every supplier link this site asserts still resolves.
+ * Every external link this site asserts still resolves.
+ *
+ * This used to check supplier links only, which was seven URLs out of about
+ * twenty. The ones it skipped are the ones that matter most: the datasheets
+ * every pinout in hardware/oapogee.tsx was transcribed from, and the eCFR, NAR
+ * and Tripoli pages the safety and radio sections send a reader to instead of
+ * paraphrasing. A dead datasheet link makes a transcription uncheckable, and a
+ * dead regulatory link is a reader sent nowhere on the one page where being
+ * wrong has consequences beyond a lost flight.
  *
  * Deliberately NOT part of `make check` and not run in CI. A build that fails
  * because somebody else's website is having a bad morning teaches contributors
  * to ignore a red build, which costs far more than a stale link. Run it when
- * touching the bill of materials, and on whatever schedule suits.
+ * touching the bill of materials or a primary source, and on whatever schedule
+ * suits.
  *
  * What it checks, and what it cannot: that the URL responds. It says nothing
- * about whether the page still describes the part it did when somebody opened
- * it, which is why every product link carries the date it was checked and why
- * this prints those dates rather than pretending to have re-read the pages.
+ * about whether the page still says what it said when somebody read it, which
+ * is why every product and datasheet link carries the date it was checked and
+ * why this prints those dates rather than pretending to have re-read them.
  *
- *   node tools/check-suppliers.mjs
+ *   node tools/check-external.mjs
  */
 
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync, readdirSync } from 'node:fs'
+import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parse } from 'yaml'
 
@@ -31,12 +40,33 @@ const UA =
 
 const targets = []
 
+const seen = new Set()
+const add = (url, what, checked) => {
+  if (!url || !/^https?:/.test(url) || seen.has(url)) return
+  seen.add(url)
+  targets.push({ url, what, checked })
+}
+
 for (const part of bom.parts ?? []) {
-  if (part.breakout?.url) {
-    targets.push({ url: part.breakout.url, what: `${part.id} breakout`, checked: part.breakout.checked })
-  }
-  for (const sub of part.substitutes ?? []) {
-    if (sub.url) targets.push({ url: sub.url, what: `${part.id} substitute ${sub.mpn}` })
+  add(part.breakout?.url, `${part.id} breakout`, part.breakout?.checked)
+  for (const sub of part.substitutes ?? []) add(sub.url, `${part.id} substitute ${sub.mpn}`)
+  // The datasheet a pinout was transcribed from. If this rots, the
+  // transcription stops being checkable by anybody but its author.
+  add(part.datasheet?.url, `${part.id} datasheet`, part.datasheet?.checked)
+}
+
+// Primary sources. The safety page links these rather than paraphrasing a rule,
+// which only works while the link lands somewhere.
+{
+  const glossary = parse(readFileSync(join(ROOT, 'data/glossary.yaml'), 'utf8'))
+  for (const term of glossary.terms ?? []) add(term.source, `glossary: ${term.term}`)
+
+  const contentDir = join(ROOT, 'content')
+  for (const file of readdirSync(contentDir).filter((f) => f.endsWith('.md'))) {
+    const text = readFileSync(join(contentDir, file), 'utf8')
+    for (const m of text.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)) {
+      add(m[1], `${relative(ROOT, join(contentDir, file))}`)
+    }
   }
 }
 
@@ -44,12 +74,7 @@ for (const part of bom.parts ?? []) {
 // confirm the template still works rather than every part individually.
 const sample = (bom.parts ?? []).find((p) => p.mpn && p.confidence === 'asserted')?.mpn
 for (const sup of [...(suppliers.distributors ?? []), ...(suppliers.makers ?? [])]) {
-  if (sample) {
-    targets.push({
-      url: sup.search.replace('{mpn}', encodeURIComponent(sample)),
-      what: `${sup.name} search template`,
-    })
-  }
+  if (sample) add(sup.search.replace('{mpn}', encodeURIComponent(sample)), `${sup.name} search template`)
 }
 
 const results = await Promise.all(
@@ -82,7 +107,7 @@ for (const r of results) {
 
 if (bad) {
   console.error(
-    `\n${bad} supplier link${bad === 1 ? '' : 's'} did not resolve. ` +
+    `\n${bad} external link${bad === 1 ? '' : 's'} did not resolve. ` +
       `Check by hand before changing anything: a retailer blocking automated requests ` +
       `looks identical to a dead link from here.`
   )
@@ -91,7 +116,7 @@ if (bad) {
 
 const blocked = results.filter((r) => r.blocked).length
 console.log(
-  `\nAll ${results.length} supplier links resolve` +
+  `\nAll ${results.length} external links resolve` +
     (blocked
       ? `, ${blocked} of them behind bot protection that refuses automated requests but serves a browser.`
       : '.')

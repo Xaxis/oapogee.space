@@ -11,13 +11,7 @@
  * regenerate; an edit made here is lost the next time the generator runs, and
  * worse, it is lost silently while the two definitions disagree.
  *
- * HONESTY NOTE, to be deleted by the first real generator run:
- * tools/gen-states.mjs does not exist yet. This file was written by hand, to the
- * exact shape the generator will produce, so that the rest of the firmware has
- * something to compile against. Until the generator exists and CI checks that
- * the committed file matches its output, this file is a hand-written copy of the
- * YAML with all the drift risk that implies. It has not run on hardware, because
- * nothing has.
+ * `make data` fails when the committed file stops matching the YAML.
  */
 
 #ifndef OAPOGEE_GEN_OA_STATES_H

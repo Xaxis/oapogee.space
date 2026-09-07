@@ -14,7 +14,7 @@ SHELL := /bin/bash
 
 .PHONY: help install dev build start lint type-check format test \
         check check-fast prose data links schematic check-schematic responsive \
-        fw-build fw-test fw-check crossimpl check-suppliers mech fab viewers clean
+        fw-build fw-test fw-check crossimpl check-external mech fab viewers states clean
 
 help: ## List available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -32,6 +32,7 @@ prose: ## Style rules hold, and the project name is never shortened to "Apogee"
 data: ## Structured data cross-references resolve and the accuracy contract holds
 	@node tools/check-data.mjs
 	@node tools/gen-mechanical.mjs --check
+	@node tools/gen-states.mjs --check
 
 mech: ## Regenerate the printed parts. Needs OpenSCAD; CI does not have it.
 	@node tools/gen-mechanical.mjs
@@ -47,8 +48,8 @@ fw-build: ## Build the firmware core and its tests for the host
 fw-test: fw-build ## Run the firmware test suite
 	@ctest --test-dir firmware/build --output-on-failure
 
-check-suppliers: ## Every supplier link still resolves. Not in `make check`: it hits the internet.
-	@node tools/check-suppliers.mjs
+check-external: ## Every external link resolves: suppliers, datasheets, primary sources. Not in `make check`: it hits the internet.
+	@node tools/check-external.mjs
 
 fw-check: ## The passive boundary holds and no tuning constant is hardcoded
 	@node tools/check-firmware.mjs
@@ -75,6 +76,9 @@ check-hw: ## The committed hardware artifacts match hardware/oapogee.tsx
 fab: ## Export fabrication files. Refuses unless the board passes every blocker.
 	@node tools/check-pcb.mjs --fab
 	@node tools/build-hardware.mjs --fab
+
+states: ## Regenerate the firmware state enumeration from data/flight-phases.yaml
+	@node tools/gen-states.mjs
 
 schematic: ## Regenerate the system block diagram from data/system.yaml
 	@node tools/gen-schematic.mjs

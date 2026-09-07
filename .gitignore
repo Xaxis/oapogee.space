@@ -37,3 +37,10 @@ firmware/build-*/
 # tscircuit build cache and its intermediate circuit JSON
 hardware/.tscircuit/
 hardware/oapogee.circuit.json
+
+# Scratch circuit exports from routing experiments. Six of these were committed
+# once, about 5 MB of them, referenced by nothing. The two stamps that ARE read
+# are hardware/rendered.json and hardware/pcb-status.json, which are not this.
+hardware/*.circuit.json
+hardware/probe.json
+hardware/.seqdone
