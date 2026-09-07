@@ -7,9 +7,9 @@ import type { SearchDoc } from '@/lib/search-index'
 /**
  * Search across the whole site.
  *
- * Twenty-one pages is past the point where navigation alone is enough,
- * particularly for the two cases that matter most: somebody with a symptom in
- * front of them, and somebody holding a part wondering if it is the right one.
+ * The site is past the point where navigation alone is enough, particularly
+ * for the two cases that matter most: somebody with a symptom in front of them,
+ * and somebody holding a part wondering if it is the right one.
  * Both are searches for a phrase that appears in exactly one place, so scoring
  * is deliberately simple and favours exact and prefix matches over cleverness.
  *

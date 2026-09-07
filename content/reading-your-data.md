@@ -4,7 +4,7 @@ description: What comes off the payload, how to open it, and what every feature 
 tier: all
 difficulty: beginner
 time_estimate: null
-updated: 2026-08-11
+updated: 2026-09-07
 status: draft
 ---
 
@@ -52,22 +52,19 @@ another language is an afternoon at most.
 
 ## What the graph shows
 
-TODO(verify): this section needs a real flight. It is written as the structure
-of the walkthrough, with each feature described in terms of what causes it, and
-it must be replaced by an annotated plot of an actual oApogee flight with each
-feature marked on the real curve. A synthetic illustration would defeat the
-purpose of the page.
+TODO(verify): an annotated plot of a real oApogee flight, with each feature
+below marked on the actual curve. Everything here is the structure of the
+walkthrough; a synthetic illustration would defeat the purpose of the page.
 
 Plot altitude against time and you get a shape that is the same on every flight,
 with the details differing.
 
 ### The launch, and the part before it
 
-The trace starts before the motor lights. That is the pre-arm ring buffer: the
-firmware keeps the most recent samples continuously from the moment you arm, and
-writes them into the log when it detects launch. Launch detection is inherently
-late, so without the buffer every log would start a fraction of a second after
-ignition and the moment itself would be missing from all of them.
+The trace starts before the motor lights. That is the
+[pre-arm ring buffer](/firmware#pre-arm-ring-buffer): launch detection is
+inherently late, so the firmware keeps the most recent samples continuously from
+the moment you arm and writes them into the log when it fires.
 
 ### Boost
 
@@ -83,11 +80,10 @@ when the acceleration field carries its reading. Clear means the number came
 from the IMU and is subject to saturation, and it does not distinguish a board
 built without the part from one whose part has failed.
 
-TODO(verify): state the full-scale range oApogee configures on the IMU, quoted
-from its datasheet, and the motor class at which a representative loaded
-airframe exceeds it, from simulation. Both are open questions on the `high_g`
-part in the bill of materials, and naming a threshold here before they close
-would be exactly the guess that note exists to prevent.
+TODO(verify): the full-scale range oApogee configures on the IMU, from its
+datasheet, and the motor class at which a representative loaded airframe exceeds
+it, from simulation. Both are open on the `high_g` part in the
+[bill of materials](/bom).
 
 Barometric altitude is least trustworthy during boost, because airflow over the
 static ports disturbs the pressure the sensor sees. This is why the fusion leans

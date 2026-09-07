@@ -37,6 +37,12 @@ export default function FlightLog() {
         </section>
       )}
 
+      {/* Until submissions open, the format is reference material for a
+          contributor who wants to record the right fields today, not something
+          a reader of this page needs. Inline it was two thousand words of spec
+          for a mechanism that does not exist, under a heading saying nothing
+          has flown. Behind a disclosure it is one line and one click. */}
+      <Spec open={submissions_open}>
       <section className="max-w-[46rem]">
         <h2 className="text-2xl font-semibold text-white">Submitting a flight</h2>
         <p className="mt-3 text-[var(--color-muted)]">
@@ -149,6 +155,27 @@ export default function FlightLog() {
           ))}
         </ol>
       </section>
+      </Spec>
     </div>
+  )
+}
+
+/**
+ * The submission format, inline once submissions are open and behind a
+ * disclosure until then.
+ *
+ * A `<details>` rather than client state, so it works with no JavaScript and
+ * prints open, and so the sections inside it stay exactly what they were.
+ */
+function Spec({ open, children }: { open: boolean; children: React.ReactNode }) {
+  if (open) return <>{children}</>
+  return (
+    <details className="group">
+      <summary className="cursor-pointer text-[var(--color-muted)] hover:text-[var(--color-body)]">
+        The submission format, specified now so that recording a flight today records the right
+        fields
+      </summary>
+      <div className="mt-8 space-y-14">{children}</div>
+    </details>
   )
 }

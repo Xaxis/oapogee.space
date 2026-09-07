@@ -4,7 +4,7 @@ description: Drag and drop a file onto a USB drive. Then the source build, the c
 tier: all
 difficulty: beginner
 time_estimate: null
-updated: 2026-08-11
+updated: 2026-09-07
 status: draft
 ---
 
@@ -173,15 +173,10 @@ short term. Neither alone would be adequate, and saying which one the firmware
 trusted at each instant is why both the raw and the fused values are stored in
 the log.
 
-oApogee uses a complementary filter. It is far simpler to implement, to explain,
-and to verify by hand, which on a project whose product is its documentation is
-a real argument rather than a lazy one.
-
-A Kalman filter is better behaved when the noise characteristics are known, and
-they are not known, because nothing has flown. Choosing one now would mean
-inventing covariances, which is the one thing this project does not do. The
-decision is recorded with its reasoning in `docs/open-questions.md` and is worth
-revisiting once several flights exist to characterise the sensors against.
+oApogee uses a complementary filter, for v1. A Kalman filter is better behaved
+when the noise characteristics are known, and they are not known, because
+nothing has flown. The full argument and the condition for revisiting it are in
+`docs/open-questions.md`.
 
 ### Apogee detection
 

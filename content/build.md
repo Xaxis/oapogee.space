@@ -4,7 +4,7 @@ description: Step by step assembly of an oApogee payload, with an observable che
 tier: all
 difficulty: intermediate
 time_estimate: null
-updated: 2026-08-11
+updated: 2026-09-07
 status: draft
 ---
 
@@ -14,10 +14,8 @@ Every step here ends with something you can see, hear, or measure. If you see
 the wrong thing, the step tells you where to go before you build anything on top
 of the mistake.
 
-**This guide is a skeleton.** The structure, the checkpoints, and the failure
-branches are written. The specific values, photographs, and anything that
-depends on a physical board are marked and missing, because the board does not
-exist yet. Do not attempt to build from this expecting every number to be there.
+**The structure is written and the numbers are not.** Anything that depends on a
+physical board is marked and missing, because no board has been built.
 
 ## Before you start
 
@@ -301,12 +299,11 @@ should fail on your bench, where it costs an evening.
 > the position you actually mounted it, the margin has not gone backwards, and
 > the rocket moves freely on the rail with the pod fitted.
 
-TODO(verify): this checkpoint asks whether the margin moved, not whether it
-clears a threshold, because this site does not yet publish a threshold. The
-[safety page](/safety#stability-is-a-safety-issue) says why: the caliber margin
-to aim for needs quoting from NAR or Tripoli guidance rather than asserting,
-and that has not been done. Until it is, use the margin your rocket flew well
-at as the reference and treat a large move as a reason to stop.
+TODO(verify): this checkpoint asks whether the margin moved rather than whether
+it clears a threshold, because the caliber margin to aim for is still open on
+the [Mounting](/mounting#what-to-aim-for) page. Until it closes, use the margin
+your rocket flew well at as the reference and treat a large move as a reason to
+stop.
 
 Then work through the [preflight checklist](/preflight) on the day.
 

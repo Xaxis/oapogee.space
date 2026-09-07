@@ -4,16 +4,14 @@ description: The internal sled and the external pod, static port sizing and plac
 tier: all
 difficulty: intermediate
 time_estimate: null
-updated: 2026-08-11
+updated: 2026-09-07
 status: draft
 ---
 
 # Mounting
 
-This page is where the claim that oApogee attaches to any model rocket either
-becomes true or does not. It covers two form factors, the vent holes without
-which the barometer is useless, and the stability check that keeps the rocket
-flying straight with a payload on it.
+This is where the claim that oApogee attaches to any model rocket either
+becomes true or does not.
 
 ## Two form factors
 
@@ -22,23 +20,14 @@ flying straight with a payload on it.
 A printed sled that slides into a payload bay, cut for the bore of a BT-55 body
 tube by default.
 
-The two form factors are sized for different rockets on purpose. The pod straps
-to the outside of a tube as small as a BT-50, which is the whole point of it:
-your rocket needs no payload bay. The sled needs a rocket that has one, and a
-rocket with a payload section is a bigger rocket. Sizing the sled for a BT-50
-as well produced a part with a sliver of rail on each side of the board, which
-a slicer will happily emit and a landing will happily break. The board has grown
-since, and no longer fits that bore at all.
-
-A coupler is narrower than the tube it joins, so it is not the same fit either.
-Measure yours and re-render with that bore rather than assuming.
-
 Use this if your rocket already has a payload section. It is the lighter and
 lower-drag option, it does not change the outside of the airframe at all, and it
 puts the payload on the vehicle centreline where its mass has the least awkward
-effect.
+effect. Its limitation is that it only works on rockets that have somewhere to
+put it, and the board is now wider than a BT-50 bore, so that is the floor.
 
-Its limitation is that it only works on rockets that have somewhere to put it.
+A coupler is narrower than the tube it joins, so it is not the same fit either.
+Measure yours and re-render with that bore rather than assuming.
 
 ### Form B: the external pod
 
@@ -105,16 +94,10 @@ right is the difference between a flight profile and a fiction.
 
 ### Sizing
 
-TODO(verify): publish the port diameter and count oApogee recommends, along with
-the reasoning that produced them. The rule of thumb in hobby rocketry relates
-total vent area to the enclosed volume, and this site should state the specific
-rule it is using, cite where it comes from, and show the arithmetic for the
-standard sled and pod volumes rather than quoting a number with no derivation.
-Then confirm it by flying the same rocket with two different port
-configurations and comparing.
-
-Until that is measured, this page will not print a number. A confident wrong
-port size produces confident wrong altitudes for everybody who follows it.
+TODO(verify): publish the port diameter and count, with the vent-area-to-volume
+rule they came from, its source, and the arithmetic for the standard sled and
+pod volumes. Then fly the same rocket with two port configurations and
+compare.
 
 ## Stability, which is a safety issue
 
@@ -149,11 +132,9 @@ safety number and it does not get a rule of thumb from an anonymous website.
 
 ### A worked example
 
-TODO(verify): work a complete example. Take a named, commonly available kit,
-state its published stability margin unloaded on a specific motor, then show the
-same rocket in OpenRocket with an oApogee pod at two different positions, one
-sensible and one badly chosen, with the resulting margins and what each means.
-Include the OpenRocket file so a reader can open it rather than trusting a
+TODO(verify): a named kit, its published margin unloaded on a specific motor,
+then the same rocket with a pod at two positions, one sensible and one badly
+chosen, with the resulting margins. Publish the OpenRocket file, not a
 screenshot.
 
 ## Mass budget
@@ -226,9 +207,8 @@ Two constraints that decide more than the antenna choice does:
   apart share a small volume, and the transmitter is many orders of magnitude
   louder than the satellites the receiver is listening for.
 
-TODO(verify): this section gives directions, not distances, because no oApogee
-payload has flown. What closes it is a range test with the antenna in the
-positions people will actually use, and a time to first fix measured inside a
+TODO(verify): distances rather than directions. A range test with the antenna
+in the positions people actually use, and a time to first fix measured inside a
 real airframe rather than on a bench. Both are named on the antenna rows in the
 [bill of materials](/bom).
 

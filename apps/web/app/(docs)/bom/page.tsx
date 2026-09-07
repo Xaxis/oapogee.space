@@ -58,11 +58,11 @@ export default function Bom() {
         </p>
 
         {/* One row per tool, in the same idiom as the parts list above. These
-            were cards in a three-column grid, and eight of the sixteen tools
-            have no note, so half the grid was empty boxes of varying height
-            with a word in the corner. A tool list answers one question, which
-            is whether you can start tonight, and a dense list answers it in a
-            glance where a ragged wall of cards does not. */}
+            were cards in a three-column grid, and more than a third of the
+            tools carry no note, so much of the grid was empty boxes of varying
+            height with a word in the corner. A tool list answers one question,
+            which is whether you can start tonight, and a dense list answers it
+            in a glance where a ragged wall of cards does not. */}
         <div className="mt-8 flex flex-col gap-8">
           {(
             [

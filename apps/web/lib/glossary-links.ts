@@ -4,7 +4,7 @@ import type { Term } from './data'
 //
 // The style rule is that jargon gets a one-clause gloss on first use and the
 // full definition lives in the glossary. That only works if the link exists,
-// and doing it by hand across twenty pages guarantees it is done inconsistently
+// and doing it by hand across every page guarantees it is done inconsistently
 // and then rots as pages are edited. So it happens at render time from
 // data/glossary.yaml, which is already the single source for those definitions.
 //

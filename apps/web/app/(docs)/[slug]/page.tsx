@@ -15,8 +15,8 @@ const COMPANIONS: Record<string, () => React.ReactNode> = {
 }
 
 // One route for every prose page. Pages generated from data (bill of materials,
-// preflight, troubleshooting, flights, glossary, status) have their own
-// directories, and an explicit route wins over this dynamic one.
+// preflight, troubleshooting, flights, glossary) have their own directories,
+// and an explicit route wins over this dynamic one.
 
 export function generateStaticParams() {
   return CONTENT_ROUTES.map((r) => ({ slug: r.slug }))

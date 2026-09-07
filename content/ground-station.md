@@ -4,7 +4,7 @@ description: The receiver for oApogee Link and Track. Assembly, pairing, antenna
 tier: link
 difficulty: intermediate
 time_estimate: null
-updated: 2026-08-11
+updated: 2026-09-07
 status: draft
 ---
 
@@ -29,18 +29,11 @@ does not, and no amount of trying different browsers on it will help, because
 they all use the same underlying engine.
 
 This is a real limitation and it excludes a large share of the phones at a
-typical launch. The alternative designs are worse: a native app per platform
-that nobody installs, or a local server the user has to run before they can see
-an altitude. A plain serial terminal fallback is documented below for anyone the
-browser path locks out.
-
-Decided: WebSerial, with the requirement stated prominently rather than in a
-footnote, plus the terminal fallback so nobody is locked out. A native app per
-platform will not get installed, and a local server the reader runs before their
-first packet is a worse first-run experience than the entire rest of the
-project. The wire format is specified independently of any receiver, so an iOS
-client is something somebody else can build without asking, which is most of why
-the format is published as a specification.
+typical launch. The alternatives are worse: a native app per platform that
+nobody installs, or a local server the reader has to run before they can see an
+altitude. The terminal fallback documented below is there so nobody is locked
+out, and because the wire format is specified independently of any receiver, an
+iOS client is something somebody else can build without asking.
 
 ## Building it
 

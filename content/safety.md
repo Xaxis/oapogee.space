@@ -4,17 +4,13 @@ description: What oApogee will not do, how to handle the battery, how to ground 
 tier: all
 difficulty: beginner
 time_estimate: null
-updated: 2026-08-11
+updated: 2026-09-07
 status: draft
 ---
 
 # Safety and rules
 
 Read this before you buy parts, not after you have built something.
-
-Four separate things get called safety here: what oApogee deliberately cannot
-do, how to handle the hardware, how to test before you fly, and which rules
-apply to a rocket with a transmitter in it.
 
 Nothing here replaces your club's safety officer or your Range Safety Officer.
 If someone standing at the range contradicts this page, they win.
@@ -24,25 +20,19 @@ If someone standing at the range contradicts this page, they win.
 **oApogee is a passive instrumentation payload. It does not fire ejection
 charges, control deployment, ignite motors, or command any pyrotechnic device.**
 
-This is a design boundary, not a missing feature. It will not be added later.
-
-The two have completely different failure consequences. If an instrumentation
-payload fails, you lose data. If a deployment controller fails, the rocket comes
-in ballistic, or the charge fires on the pad while somebody is standing at it. A
-payload that can only observe means the worst outcome of any bug in this project
-is a disappointing graph.
-
-Electronic deployment control belongs to high power rocketry, flown under a
-certification programme that exists because those consequences are real. If that
-is what you need, the NAR and Tripoli certification paths are where to look.
+This is a design boundary, not a missing feature, and the reason is the
+difference in consequences. If an instrumentation payload fails, you lose data.
+If a deployment controller fails, the rocket comes in ballistic, or the charge
+fires on the pad while somebody is standing at it. A payload that can only
+observe means the worst outcome of any bug in this project is a disappointing
+graph. Deployment control belongs to high power rocketry, flown under a
+certification programme that exists because those consequences are real.
 
 Your recovery system is the motor's ejection charge and delay grain, exactly as
 it was before you added a payload. oApogee does not change it, interact with it,
-or know it happened except as a jolt in the accelerometer trace.
-
-So oApogee will never be a reason a rocket recovers safely. Choose your motor
-delay as you would with no payload, and simulate with the payload mass
-included.
+or know it happened except as a jolt in the accelerometer trace. So oApogee will
+never be a reason a rocket recovers safely. Choose your motor delay as you would
+with no payload, and simulate with the payload mass included.
 
 ## Lithium polymer batteries
 
@@ -161,18 +151,11 @@ you fly it.** Not after. Not on the second flight. A rocket that has flown well
 ten times tells you nothing about how it flies with a payload in a new place.
 Weigh your assembled payload and simulate with that figure.
 
-Which way the centre of gravity moves depends on where the payload goes: forward
-of the balance point increases the margin and increases weathercocking, aft of
-it reduces the margin and past a point makes the rocket unstable. The external
-pod makes this easier to get wrong than the sled, because it can be strapped
-anywhere and the obvious place is not always the right one.
+The external pod makes this easier to get wrong than the sled, because it can be
+strapped anywhere and the obvious place is not always the right one.
 
-TODO(verify): a full worked example, with a named common kit, its published
-stability margin unloaded, the same rocket with an oApogee pod at two different
-positions, and the resulting margins from OpenRocket. Include the caliber margin
-to aim for, quoted from NAR or Tripoli guidance rather than asserted.
-
-The Mounting page carries the full treatment, including static ports and the
+The [Mounting](/mounting) page carries the full treatment: which way the centre
+of gravity moves and why, the caliber margin to aim for, static ports, and the
 mass budget effect on apogee by motor class.
 
 ## Radio
@@ -202,12 +185,10 @@ module specifically to keep this simple.
 
 - Primary source: [47 CFR Part 15](https://www.ecfr.gov/current/title-47/chapter-I/subchapter-A/part-15)
 
-TODO(verify): transcribe the specific power and antenna limits that apply to
-oApogee's configuration in 902 to 928 MHz from the current text of Part 15,
-subpart C, and state them here with the section number. Do not paraphrase them
-from memory or from a forum post. Separately, verify whether any provision
-restricts airborne operation of Part 15 devices in this band, and state the
-answer either way, because "nobody mentioned it" is not a finding.
+TODO(verify): transcribe the power and antenna limits for this band from the
+current text of Part 15 subpart C, with the section number. Separately, whether
+any provision restricts airborne operation of a Part 15 device here, answered
+either way: "nobody mentioned it" is not a finding.
 
 ### Outside the US
 
@@ -218,13 +199,11 @@ For the EU and the UK, the equivalent short range device band is 863 to
 870 MHz, which requires a different radio module because the matching network
 and antenna are tuned per band. It is not a firmware setting.
 
-TODO(verify): document the EU and UK rules properly rather than gesturing at
-them. Specifically: which sub-bands within 863 to 870 MHz are usable, the duty
-cycle limits that apply to each, the relevant ETSI harmonised standard, the UK
-interface requirement document, and, critically, whether airborne use is
-permitted, because several national administrations restrict it. Cite the
-primary documents. If the answer is that oApogee cannot be flown legally in a
-given country, the site says so.
+TODO(verify): which sub-bands within 863 to 870 MHz are usable, the duty cycle
+limit on each, the relevant ETSI harmonised standard, the UK interface
+requirement document, and whether airborne use is permitted, which several
+national administrations restrict. Cite the primary documents. If the answer is
+that oApogee cannot be flown legally somewhere, the site says so.
 
 If you are outside the US, the EU, and the UK, oApogee currently has nothing to
 tell you about your regulator and will not guess. Check with your national
@@ -295,12 +274,10 @@ source, or wait for the transcription below.
 
 - Primary source: [14 CFR Part 101](https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-101)
 
-TODO(verify): transcribe the Class 1 criteria from the current text of Part 101
-Subpart C, with the section number, including the propellant mass limit, the
-total weight limit, and the construction requirements. State them as a quotation
-with a retrieval date rather than a paraphrase. Then state plainly where the
-boundary into Class 2 sits and what that entails, so a reader scaling up knows
-what changes.
+TODO(verify): quote the Class 1 criteria from the current text of Part 101
+Subpart C, with the section number and a retrieval date: the propellant mass
+limit, the total weight limit, and the construction requirements. Then where the
+boundary into Class 2 sits and what that entails.
 
 TODO(verify): confirm whether a transmitter in the payload has any bearing on
 airspace notification requirements. The expected answer is no at Class 1, but
@@ -339,10 +316,8 @@ anything from a tree using a method you would not describe to somebody.
 
 ## Before you use this page as authority
 
-This page is `status: draft`. It has been written carefully and has not been
-reviewed by anyone with formal expertise in the regulations it describes. Every
-`TODO(verify)` above is a number or rule section deliberately left out rather
-than guessed at.
+This page has been written carefully and has not been reviewed by anyone with
+formal expertise in the regulations it describes.
 
 Where a claim matters legally or physically, the primary source is linked and it
 is what governs. Read it. If you find something here that is wrong, that is the

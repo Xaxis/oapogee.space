@@ -361,8 +361,14 @@ export function SchematicViewer({
           onPointerMove={onPointerMove}
           onPointerUp={endPointer}
           onPointerCancel={endPointer}
-          className="h-[65vh] max-h-[760px] min-h-[340px] w-full touch-none outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-hivis)]"
-          style={{ cursor: dragging ? 'grabbing' : 'grab' }}
+          className="max-h-[760px] min-h-[340px] w-full touch-none outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-hivis)]"
+          // Sized to the drawing rather than to the viewport. A fixed 65vh box
+          // gave the 1168 by 616 system diagram a band of paper colour above
+          // and below it on every desktop, which on a dark page reads as a
+          // rendering fault rather than as a margin. Clamped at both ends, so a
+          // tall narrow board letterboxes sideways instead of running off the
+          // screen.
+          style={{ cursor: dragging ? 'grabbing' : 'grab', aspectRatio: naturalWidth / naturalHeight }}
         >
           <Sheet svg={svg} />
         </div>

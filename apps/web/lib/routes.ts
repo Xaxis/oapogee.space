@@ -1,8 +1,9 @@
 // Routes are shorter than filenames on purpose. `/data` is what somebody types
 // and links to; `reading-your-data.md` is what makes sense in a directory
-// listing. This map is the one place the two are reconciled, and both the
-// dynamic content route and the status page read it, so a page cannot exist in
-// one and not the other.
+// listing. This map is the one place the two are reconciled: the dynamic
+// content route, the sidebar, the breadcrumb, the reading order and
+// tools/check-links.mjs all read it, so they cannot disagree about what the
+// site contains.
 
 export type ContentRoute = {
   slug: string // URL segment

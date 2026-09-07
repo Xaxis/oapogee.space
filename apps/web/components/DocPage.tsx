@@ -53,15 +53,12 @@ export function DocPage({
             )}
           </div>
 
+          {/* The status is worth a sentence, once. The marker callouts below it
+              carry their own label and their own closing condition, so a
+              second sentence here explaining what a marker is repeated the
+              same boilerplate on all twelve prose pages. */}
           <p className="mt-4 text-sm text-[var(--color-dim)]">
             {STATUS_MEANING[frontmatter.status]}
-            {markers.total > 0 && (
-              <>
-                {' '}
-                The highlighted blocks below are places where a number or a step is deliberately
-                missing rather than guessed at.
-              </>
-            )}
           </p>
         </header>
 

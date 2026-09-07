@@ -66,7 +66,10 @@ export default function OpengraphImage() {
             color: '#8b9099',
           }}
         >
-          <div style={{ display: 'flex' }}>Solo . Link . Track</div>
+          {/* A middot, not a full stop. The card is the project's first
+              impression in every chat it is pasted into, and "Solo . Link .
+              Track" reads as a typo there. */}
+          <div style={{ display: 'flex' }}>Solo · Link · Track</div>
           <div style={{ display: 'flex', color: '#ff7a1a' }}>Design stage, nothing has flown</div>
           <div style={{ display: 'flex' }}>oapogee.space</div>
         </div>

@@ -34,7 +34,11 @@ export default function GlossaryPage() {
         ))}
       </nav>
 
-      <dl className="mt-10 flex max-w-[46rem] flex-col gap-10">
+      {/* Two columns from xl. Forty-five definitions in one column is sixteen
+          thousand pixels of scrolling for a page people arrive at to look one
+          word up. A grid rather than CSS columns, so an entry is never split
+          down the middle of its own definition. */}
+      <dl className="mt-10 flex max-w-[46rem] flex-col gap-10 xl:grid xl:max-w-none xl:grid-cols-2 xl:items-start xl:gap-x-12">
         {sorted.map((term) => (
           <div key={term.id} id={term.id} className="scroll-mt-24">
             <dt className="flex flex-wrap items-baseline gap-3">
