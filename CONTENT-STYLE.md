@@ -49,18 +49,23 @@ TODO(verify): typical mass of the Solo build with a 150 mAh cell, measured on a
 0.1 g scale, three assembled units.
 ```
 
-Three markers, used precisely:
+Four markers, used precisely. Each renders with its own label, so choosing the
+wrong one tells the reader the wrong thing about why the gap is there:
 
 - `TODO(verify)` for a number, a price, a link, or a claim that needs a source
   or a measurement. Always say what evidence would close it.
 - `TODO(confirm-on-hardware)` for a procedural step that cannot be checked until
   a physical board exists. The step may be written out in full, it is simply not
   trusted yet.
+- `TODO(confirm)` for a decision nobody has taken. Not a missing measurement, a
+  missing choice. If the arguments on both sides are worth writing down, they go
+  in `docs/open-questions.md` and this points at them.
 - `TODO(photo)` for an image slot, with a description of what the photo must
   show, not just "photo here".
 
-Every marker is collected onto the site's status page when it builds. A marker
-with no closing condition is not a marker, it is a shrug.
+Every marker renders as a labelled callout where it sits, so a reader sees
+exactly where a number is missing rather than reading around a gap they cannot
+detect. A marker with no closing condition is not a marker, it is a shrug.
 
 A page full of confident fabricated specs is worse than an empty page. Readers
 in this hobby spend money and fly hardware over other people's heads based on
@@ -142,8 +147,16 @@ Every build step that changes the state of the hardware ends with an observable
 result. Not "the sensor should now work". Something the reader can see:
 
 > You should see the status LED pulse green twice. The serial console should
-> print a pressure between 95000 and 103000 Pa. If it prints 0, the sensor is
-> not on the bus, go to Troubleshooting: the barometer never appears.
+> print a pressure that is stable, plausible for your elevation against what
+> your local weather service publishes, and that rises slightly when you carry
+> the board downstairs. If it prints 0, the sensor is not on the bus, go to
+> Troubleshooting: the barometer never appears.
+
+Note what that example does not do: quote a fixed acceptable band. Pressure
+falls with elevation, so a correct sensor at a mile-high field reads below any
+sea level figure, and a band would send that reader to Troubleshooting for a
+working part. A checkpoint tests the thing the reader can actually conclude
+something from.
 
 Write the failure branch next to the success branch. A beginner who sees the
 wrong thing at step 7 needs to know at step 7, not after they have soldered
@@ -216,9 +229,10 @@ Only the maintainer moves a page to `verified`.
 
 The bill of materials, the glossary, the preflight checklist, the tier
 comparison, and the troubleshooting index are structured data in `data/`, in
-YAML. They render into the site, into printable sheets, and into the repository
-README. A table hand-written inside a Markdown page will drift from the one next
-to it, and there is no way to check that it has not.
+YAML. Most of them render in more than one place, and the preflight checklist
+renders to screen and to a printed sheet from the same file. A table
+hand-written inside a Markdown page will drift from the one next to it, and
+there is no way to check that it has not.
 
 Prose pages reference the data. They do not restate it.
 

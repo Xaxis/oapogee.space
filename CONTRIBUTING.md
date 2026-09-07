@@ -2,10 +2,12 @@
 
 The most useful contribution right now is telling us where this is wrong.
 
-Nothing has been built, so there is no hardware to test and no firmware to
-debug. What there is: a design, a parts list, two wire format specifications,
-and a set of safety and regulatory pages written carefully by people who are not
-lawyers, licensed amateur radio operators, or NAR and Tripoli officials.
+No board has been fabricated, so there is no hardware to test against. Almost
+everything else exists: a routed circuit as source, a parts list, a firmware
+core with a host test suite you can run in a minute, two wire format
+specifications with two implementations, parametric printed parts, and a set of
+safety and regulatory pages written carefully by people who are not lawyers,
+licensed amateur radio operators, or NAR and Tripoli officials.
 
 If you are any of those, the safety and radio pages are where being wrong has
 consequences beyond embarrassment, and where a correction is worth the most.
@@ -64,18 +66,30 @@ build rather than producing a warning nobody reads.
 
 | Target | Claim |
 |---|---|
-| `make prose` | No em dashes, no emoji, and the name is never shortened |
-| `make data` | Part, tier and glossary cross-references resolve; frontmatter is complete; a null price carries a marker; no page claims `verified` with open markers |
-| `make links` | Every internal link resolves, including its anchor |
-| `make check-schematic` | The committed diagram matches `data/system.yaml` |
+| `make prose` | No em dashes, no emoji, the name is never shortened, and every physical quantity in published prose is either allowlisted with its source or inside a marker |
+| `make data` | Part, tier and glossary cross-references resolve; frontmatter is complete; a null price carries a marker; no page claims `verified` with open markers; no prose says the fabrication package is published while the board has an open blocker; every question in `docs/open-questions.md` states a verdict; the firmware's state enumeration matches `data/flight-phases.yaml` |
+| `make links` | Every internal link resolves, including its anchor, and including links written as absolute URLs to this site |
+| `make check-schematic` | The committed block diagram matches `data/system.yaml` |
+| `make check-hw` | The committed board artifacts match `hardware/oapogee.tsx`, and the board has not regressed against its baseline |
+| `make fw-check` | The firmware's passive boundary holds, and no tuning constant is hardcoded |
+| `make fw-test` | The firmware core's test suite, thirteen binaries |
+| `make crossimpl` | The C and TypeScript packet implementations encode identical bytes |
+| `make responsive` | No page scrolls sideways at 320 px or 390 px |
+| `make viewers` | Every drawing pans, zooms both ways, and has its drawing in frame |
+| `make test` | The web test suite |
+| `make lint` `make type-check` `make build` | The site |
 
-After editing `data/system.yaml`, run `make schematic` and commit the
-regenerated SVG. After editing `hardware/oapogee.tsx`, run `make hw`. Both are
-checked, so a stale one cannot merge.
+Two of these need a regeneration step rather than an edit. After editing
+`data/system.yaml`, run `make schematic`; after editing `hardware/oapogee.tsx`,
+run `make hw`. Both commit an artifact, and both are checked, so a stale one
+cannot merge.
 
-Verification markers need no regeneration step: they are read from the content
-files when the site is built and listed at
-[oapogee.space/status](https://oapogee.space/status).
+Not in `make check`: `make check-external`, because it hits the internet, and
+`make mech`, because it needs OpenSCAD and CI does not have it.
+
+Verification markers need no regeneration step. They are read from the content
+files when the site is built and rendered as a callout in place, on the page
+that would otherwise carry the figure.
 
 ## Where things live
 
@@ -83,6 +97,8 @@ files when the site is built and listed at
 content/     Prose pages, Markdown with YAML frontmatter
 data/        Structured source: bom, tiers, glossary, preflight, troubleshooting
 docs/spec/   The two wire format specifications
+hardware/    tscircuit circuit source and OpenSCAD printed parts. Runs under bun.
+firmware/    Freestanding C11 core and its host test suite. Needs only cmake.
 apps/web/    The site, which is one renderer of content/ and data/
 tools/       The checks above
 ```

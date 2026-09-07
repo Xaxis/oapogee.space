@@ -10,32 +10,31 @@ PDF of a schematic, and this directory is where that comes from.
 
 ## What this is and is not
 
-**This is a netlist. It is not a pinout.**
+**This is a netlist and a layout. It is not a board anyone has held.**
 
-It says what connects to what, which is the design decision worth reviewing. It
-does not say which physical pin of any package a signal lands on. The pin
-numbers in the source are structural placeholders assigned in the order the
-labels are written, not read from a datasheet.
+The connectivity is the design decision worth reviewing, and it is now backed by
+real pin numbers: every package's numbering is transcribed from its
+manufacturer's datasheet, with the table or figure cited beside the `pinLabels`
+it produced. Two of those transcriptions replaced guesses that would have
+produced a dead board, which is why they are cited rather than trusted.
 
-That is deliberate. This project's rule is that it never publishes a number it
-has not measured or sourced, and a datasheet pin number recalled from memory is
-exactly the kind of confident, plausible, wrong figure the rule exists to
-prevent. Mapping these functional pins onto real packages is a separate step,
-done against datasheets, and it is tracked as an open item.
+**What no check in this repository can confirm** is that a footprint's pad
+numbering matches the numbering its datasheet uses. A `pinLabel` maps a signal
+onto a pad BY NUMBER, and nothing here knows whether pad 1 of a given footprint
+is the pad the part calls pin 1. Confirm each package by hand before spending
+money.
 
-**Do not lay a board out from this and do not send anything here to a
-fabricator.**
-
-There is also deliberately no PCB or 3D output. A layout needs real footprints,
-real footprints need the pin mapping that has not been done, and a routed board
-built on placeholder pins would look far more finished than it is.
+**No fabrication package is published.** `make fab` refuses to write Gerbers
+while `tools/check-pcb.mjs` reports an open blocker, and it does. Those blockers
+render on the site's schematic page, generated on every build.
 
 ## Building it
 
 ```bash
 make hw-deps   # once, installs tscircuit here
 make hw        # render the artifacts into apps/web/public/hardware/
-make check-hw  # verify the committed artifacts match the source
+make check-hw  # the committed artifacts match the source, and the board passes
+make fab       # Gerbers and KiCad PCB. Refuses while any blocker is open.
 ```
 
 Outputs, in order of how much they can be trusted:
@@ -45,12 +44,18 @@ Outputs, in order of how much they can be trusted:
 | `oapogee-netlist.txt` | The connectivity, as text. Diffable, reviewable, and the thing to read first. |
 | `oapogee-schematic.svg` | The same connectivity, drawn. |
 | `oapogee.kicad_sch` | A KiCad schematic, for anyone who wants to take the design further. |
+| `oapogee-pcb.svg` | The routed board: placement, footprints and copper. |
+| `oapogee-assembly.svg` | Outlines and designators, for placing parts by hand. |
 | `oapogee-circuit.json` | Machine readable, for anyone writing their own tooling. |
 
 `make check-hw` compares the netlist and the schematic against a fresh render,
-so the committed drawing cannot quietly stop matching the source. Circuit JSON
-is excluded from that comparison because it embeds absolute paths from whichever
-machine produced it.
+so the committed drawing cannot quietly stop matching the source, then runs
+`tools/check-pcb.mjs` over the board. Two artifacts are excluded from the byte
+comparison and compared by content instead: the KiCad schematic mints fresh
+UUIDs on every run, and circuit JSON embeds an absolute source path and emits
+its advisory warnings in a different order each time. Neither says anything
+about the design, and rewriting them on every render buried real changes under
+1900 lines of churn.
 
 ## Two things that will bite you
 
@@ -94,12 +99,12 @@ then arm it once the rocket is on the rail, which a power switch cannot express.
 The input is pulled up and the switch pulls it down, because a floating input
 reads as noise and an input that reads as noise arms a rocket at random.
 
-TODO(confirm): whether the switch is mechanical or magnetic. A slide or screw
-switch is the rocketry convention and needs a hole in the pod. A reed or Hall
-sensor arms through the wall with a magnet, which keeps the enclosure sealed
-apart from its static ports, at the cost of a part that can be armed by anything
-magnetic nearby. Decide before the enclosure is designed, because it changes the
-pod.
+Mechanical, a slide switch, rather than a reed or Hall sensor. The
+sealed-enclosure argument for a magnetic switch never applied here, because the
+pod has static ports cut through it and must have. What is left is a trade of an
+inspectable state for one anything magnetic in a range box can change, and arm
+state is what an operator confirms by eye at the pad. Consequence: the pod needs
+an aperture for it, which it does not have yet.
 
 ## Battery sense
 
@@ -111,16 +116,14 @@ microcontroller's ADC will accept.
 
 ## Open items
 
-Listed at [oapogee.space/status](https://oapogee.space/status):
-
-- Map every functional pin onto a real package pin, from datasheets.
-- Choose the buck-boost regulator, currently a placeholder part.
+- Design the radio's RF front end. Semtech publishes the topology and not the
+  matching values, and this is the one thing between the board and a fabricator.
+  The argument is in `docs/open-questions.md`.
 - Set the charge current programming resistor, which follows from the cell
   capacity, which follows from an endurance requirement nobody has measured.
 - Size the battery sense divider against the microcontroller's ADC input range
   and its input impedance, and decide whether it needs switching off between
   readings to stop it draining the cell on the pad.
-- Decide the decoupling network properly rather than one capacitor per rail.
 - Wire the IMU's data-ready interrupt. Polling a high rate sensor gives sample
   intervals that jitter with whatever else the loop is doing, and the log stores
   a timestamp per record precisely because that jitter is real.

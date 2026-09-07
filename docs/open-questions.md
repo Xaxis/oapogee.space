@@ -6,8 +6,7 @@ trusted rather than checked, and because most of these are questions somebody
 with more flying experience than us can answer in a sentence.
 
 Numbers that need measuring rather than deciding are not here. Those live as
-markers in the content files and are listed at
-[oapogee.space/status](https://oapogee.space/status).
+markers in the content files, beside the figure each one replaces.
 
 Settled decisions and their reasoning move to [CHANGELOG.md](../CHANGELOG.md).
 
@@ -151,13 +150,15 @@ fitted rather than picked now.
 
 ## RP2350 or RP2040
 
-RP2350 is specified. Before committing, the current errata for the silicon
-revision that is actually purchasable should be read, and any item touching the
-pins oApogee uses recorded here.
+**Open.** RP2350 is specified and the board is laid out around its sixty pins,
+so this is not an open choice so much as an unfinished check on one that has
+been made.
 
+What closes it: read the current errata for the silicon revision that is
+actually purchasable, and record here any item touching the pins oApogee uses.
 If an erratum does affect them and the workaround is external components, RP2040
-becomes more attractive, and that decision should be written down rather than
-quietly made.
+becomes more attractive, and that decision gets written down rather than quietly
+made.
 
 ## Arming switch: mechanical or magnetic
 

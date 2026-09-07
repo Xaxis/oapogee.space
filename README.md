@@ -15,11 +15,18 @@ That is a design boundary and it will not change. See
 
 ## Project status
 
-**This is a design on paper.** Nothing has been fabricated, assembled, weighed,
-priced, or flown. Every cost, mass, range and endurance figure on the site is
-missing rather than estimated, and each gap records what evidence would close
-it. The full list is at [oapogee.space/status](https://oapogee.space/status),
-read from the content files when the site is built so it cannot go stale.
+**Nothing physical exists.** No board has been fabricated, assembled, weighed,
+priced, or flown, so every cost, mass, range and endurance figure is missing
+rather than estimated. Each gap is marked in place, on the page that would
+otherwise state the figure, rather than summarised on a page of its own: a count
+drifts, a marker beside the number it replaces does not.
+
+What does exist is further along than a paper design. The circuit is source that
+routes; the firmware is sixteen host-testable modules with a test suite in CI;
+the two wire formats are published specifications with a second implementation
+checked against the first byte for byte; the printed parts are parametric
+source. No fabrication package is published, because the check that gates it
+refuses while the board has an open blocker, and it does.
 
 Design decisions that are still open are in
 [docs/open-questions.md](docs/open-questions.md).
@@ -34,9 +41,10 @@ worth existing is that a motivated beginner can follow the site start to finish
 and end up with a working payload and a real flight graph. That only works if
 every number on it is true.
 
-So there are no estimates dressed as measurements. A figure that has not been
-verified is written as a marker saying what evidence would close it, and the
-build fails if the index of those markers goes stale. A site full of confident
+So there are no estimates dressed as measurements, and that is enforced rather
+than promised: `make prose` fails on any physical quantity in published prose
+that is not either recorded in an allowlist with where it came from, or sitting
+inside a marker that says what evidence would close it. A site full of confident
 fabricated specs is worse than useless in a hobby where people's build decisions
 depend on them.
 
@@ -47,10 +55,13 @@ prices in it, and the homepage does not have a flight graph.
 
 ```
 content/     Prose pages, Markdown with YAML frontmatter
-data/        Structured source: bom.yaml, tiers.yaml, glossary.yaml
-docs/        Working documents, including the page map and the format specs
+data/        Structured source: bom, tiers, glossary, preflight, troubleshooting,
+             system diagram, flight phases, mechanical, suppliers, flights
+docs/        The page map, open questions, and the two wire format specs
+hardware/    tscircuit circuit source and OpenSCAD printed parts. Runs under bun.
+firmware/    Freestanding C11 core and its host test suite. Needs only cmake.
 apps/web/    Next.js 15 App Router site, one renderer of content/ and data/
-tools/       Checks: prose rules, data cross-references, marker index
+tools/       The checks, and the generators that feed them
 ```
 
 `content/` and `data/` are the product. `apps/web/` renders them. Anything that
@@ -67,7 +78,8 @@ make install     # dependencies, pinned to match CI
 make dev         # the site, locally
 make check       # everything CI runs
 make check-fast  # the same without the site build
-make hw          # re-render the schematic from hardware/oapogee.tsx
+make hw          # re-render the board artifacts from hardware/oapogee.tsx
+make fw-test     # build and run the firmware test suite
 ```
 
 ## Contributing
@@ -112,7 +124,8 @@ something else. Licences do not stop somebody shipping a clone under this name;
 a trademark does.
 
 A project named for openness that ships a black box loses the audience it was
-built for, so the intent is to publish the KiCad project rather than a PDF
-schematic, the parametric CAD source rather than only STLs, and the full
-firmware including calibration constants. Anything that cannot be opened will be
-declared explicitly rather than quietly omitted.
+built for, so the bar is source files rather than exports: the KiCad project
+rather than a PDF schematic, the parametric CAD source rather than only STLs,
+and the full firmware including its calibration constants. All three are
+published. Anything that cannot be opened will be declared explicitly rather
+than quietly omitted.

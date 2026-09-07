@@ -5,10 +5,8 @@ sensor fusion, the packet builders, the log writer, and the transmit scheduler.
 
 **No build in this directory has ever run on hardware.** No board has been
 fabricated, no image has been flashed, no packet has been transmitted, and no
-flight has been logged. What exists here is the contract: headers, the field
-tables the specs are encoded in, the build system, and two artifacts that
-enforce the passive payload boundary mechanically. The implementations come
-next, and they will still not have run on hardware when they arrive.
+flight has been logged. The core is written and tested on a host, which is a
+different claim from working, and this file is careful about which one it makes.
 
 ## What is here and what is not
 
@@ -16,9 +14,10 @@ Implemented:
 
 | Part | State |
 |---|---|
+| Sixteen core modules in `core/src/` | Written. State machine, fusion, barometric conversion, ring buffer, scheduler, packet builders, log packers and manifest, config parser and validator, health monitor, CRC |
 | Wire format tables, packets and log records | Written, checked against the specs at compile time |
-| Public interfaces for every core module | Written |
-| Flight state enumeration | Written by hand to the shape the generator will produce |
+| Thirteen test binaries in `test/` | Written and running in CI, including a simulated flight driven through the state machine |
+| Flight state enumeration | Generated from `data/flight-phases.yaml` by `tools/gen-states.mjs`, checked by `make data` |
 | Host build, warnings as errors | Builds on macOS clang and on Linux gcc |
 | Output allowlist and undefined-symbol checks | Written and running |
 
@@ -26,12 +25,10 @@ Not implemented:
 
 | Part | State |
 |---|---|
-| Every function body in `core/src/` | Stubs. The files contain an include and a comment |
-| Everything in `port/` | Declarations only. There is no `port/src` |
+| Everything in `port/` | Declarations only. There is no `port/src`, because there is no board |
 | The application that ties them together | Does not exist |
-| Tests | Do not exist. The build picks up `tests/` when it appears |
 | The target build | Refuses to configure, with a message saying why |
-| `tools/gen-states.mjs` | Does not exist. `gen/oa_states.h` is a hand-written copy of what it will emit |
+| A release | No `.uf2` is published, because there is nothing to run one on |
 
 ## Why C
 
@@ -65,12 +62,13 @@ wrong and plausible.
 firmware/
   core/           No SDK. No libc beyond string.h, stdint.h, stdbool.h, stddef.h.
     include/      The interfaces. This is the contract.
-    src/          Implementations. Stubs today.
+    src/          The implementations. Sixteen modules, no allocation anywhere.
     allowed-undefined.txt
-  gen/            Generated from data/. Do not hand-edit.
+  gen/            Generated from data/. Do not hand-edit; `make states` writes it.
   port/           The hardware surface. Declarations only.
     include/
     outputs.allowlist
+  test/           Host tests. Thirteen binaries, run by `make fw-test`.
   CMakeLists.txt
 ```
 
@@ -89,10 +87,10 @@ meant to be read on its own.
 **Core is the only part that can be tested today, and that is the point.** It
 compiles with nothing installed but CMake and a compiler, on a laptop, with no
 board in the room. So the interesting behaviour, the transitions, the fusion, the
-apogee detection lag, the byte layout of every packet, is testable now rather
-than after a board arrives. A test can drive an entire flight through the state
-machine from a table of samples, including the flights that only happen when a
-sensor fails, which is a category of test nobody runs by flying rockets.
+apogee detection lag, the byte layout of every packet, is tested now rather than
+after a board arrives. `test/test_oa_state.c` drives an entire flight through the
+state machine from a table of samples, including the flights that only happen
+when a sensor fails, which is a category of test nobody runs by flying rockets.
 
 The seam that makes this work is `oa_sink_t`. Core writes bytes into a sink and
 knows nothing else: not LittleFS, not a flash part, not a radio. Tests point a
@@ -144,16 +142,20 @@ somebody measured something.
 ## Building
 
 ```bash
+make fw-test     # configure, build, and run the tests
+```
+
+Or without make, which is the same thing:
+
+```bash
 cmake -S firmware -B firmware/build
 cmake --build firmware/build
+ctest --test-dir firmware/build --output-on-failure
 cmake --build firmware/build --target oa-check
 ```
 
 Nothing but CMake 3.16 and a C11 compiler. Warnings are errors:
 `-Wall -Wextra -Werror -Wconversion -Wshadow -Wvla -Wdouble-promotion`.
-
-Linking `liboa_core.a` currently prints a warning that the archive defines no
-symbols. That is correct: the sources are stubs.
 
 `oa-check` runs the two enforcement checks. See [SAFETY.md](./SAFETY.md) for what
 each one catches and why it exists.

@@ -42,9 +42,11 @@ groups:
   - id: board
     name: Board
     note: >
-      The payload PCB. Nothing here is measured, because nothing has been
-      fabricated. These are the constraints the board will be designed to meet
-      rather than observations of one that exists.
+      The payload PCB. The outline is the routed layout's own, and make data
+      fails if it stops matching the board element in hardware/oapogee.tsx,
+      because the enclosure is built around it. Everything here is still
+      provisional: a layout is not a fabricated board, and nothing has been put
+      against a pair of calipers.
 
   - id: cell
     name: Cell

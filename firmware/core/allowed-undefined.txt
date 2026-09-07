@@ -45,9 +45,10 @@
 # The list is short on purpose. If it grows past a handful of entries, core has
 # stopped being the thing this project claims it is.
 #
-# NOTHING IN CORE HAS RUN ON HARDWARE, and this check has so far only been run
-# against source files that contain no implementations. It is the contract, not
-# a result.
+# NOTHING IN CORE HAS RUN ON HARDWARE. The check itself is a result rather than
+# a contract now: it runs over the real objects of sixteen implemented modules on
+# every build, and the list has stayed at four. What it cannot say is anything
+# about a soldered board, because there is not one.
 #
 # One symbol per line. Names are as they appear in the object file with any
 # platform underscore prefix stripped, so that the same list works for Mach-O on
