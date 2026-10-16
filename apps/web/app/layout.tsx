@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Script from 'next/script'
 import { Search } from '@/components/Search'
 import { buildSearchIndex } from '@/lib/search-index'
 import '../styles/globals.css'
@@ -122,6 +123,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
         </footer>
+        <Script
+          src="https://overlook.technology/s.js"
+          data-site="ws_dojifjqjhf"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
